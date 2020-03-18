@@ -5,6 +5,14 @@ VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excel Ribbon", "Excel Ribbon\Excel Ribbon.csproj", "{11C968A1-359F-4C1A-944E-FB95434CBC9D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{8AE0A061-C3AA-4B76-8EDE-0BCB33C2AA40}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Excel", "Excel", "{628E03D2-94D2-4953-85FB-F2683762EA83}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Python Engine", "Python Engine\Python Engine.csproj", "{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Macro Engine", "Macro Engine\Macro Engine.csproj", "{1C58F68F-E109-4A24-B8EA-FA7B10465813}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +23,22 @@ Global
 		{11C968A1-359F-4C1A-944E-FB95434CBC9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11C968A1-359F-4C1A-944E-FB95434CBC9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11C968A1-359F-4C1A-944E-FB95434CBC9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C58F68F-E109-4A24-B8EA-FA7B10465813}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C58F68F-E109-4A24-B8EA-FA7B10465813}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C58F68F-E109-4A24-B8EA-FA7B10465813}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C58F68F-E109-4A24-B8EA-FA7B10465813}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{11C968A1-359F-4C1A-944E-FB95434CBC9D} = {628E03D2-94D2-4953-85FB-F2683762EA83}
+		{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4} = {8AE0A061-C3AA-4B76-8EDE-0BCB33C2AA40}
+		{1C58F68F-E109-4A24-B8EA-FA7B10465813} = {8AE0A061-C3AA-4B76-8EDE-0BCB33C2AA40}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C1BF1757-C214-4BF1-A3E2-B93B4CDF1F18}
