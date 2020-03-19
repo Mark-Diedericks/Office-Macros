@@ -18,21 +18,27 @@ namespace Excel_Ribbon
     {
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
-            MacroEngine.Instantiate(Dispatcher.CurrentDispatcher, new HostState(), () => 
+            MacroEngine.Instantiate(Dispatcher.CurrentDispatcher, new HostState(), () =>
             {
+                string code = "print('hello')";
+
+
+
                 IExecutionEngine ipy = MacroEngine.GetExecutionEngine("IronPython");
                 if(ipy != null)
                     Application.ActiveSheet.Cells(1, 1).Value = ipy.GetLabel();
 
-                string code = "print('hello')";
-                Macro m = new Macro("IronPython", code);
-                m.Execute(() => { Application.ActiveSheet.Cells(1, 3).Value = "YAY"; }, false);
+                Macro mipy = new Macro("IronPython", code);
+                mipy.Execute(() => { Application.ActiveSheet.Cells(2, 1).Value = "YAY"; }, false);
 
                 
 
                 IExecutionEngine py = MacroEngine.GetExecutionEngine("Python");
                 if (py != null)
-                    Application.ActiveSheet.Cells(2, 1).Value = py.GetLabel();
+                    Application.ActiveSheet.Cells(4, 1).Value = py.GetLabel();
+
+                Macro mpy = new Macro("Python", code);
+                mpy.Execute(() => { Application.ActiveSheet.Cells(5, 1).Value = "YAY"; }, false);
             });            
         }
 

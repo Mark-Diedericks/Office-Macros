@@ -25,10 +25,21 @@ namespace Python_Engine
 
         private ExecutionEngine()
         {
+            string py_home = @"D:\Mark Diedericks\Documents\Visual Studio 2019\Projects\Office Python\Dependencies\Python35\";
+            string py_path = py_home + @"\Scripts;" + py_home + @"\lib;" + py_home + @"lib\site-packages";
+
+            Environment.SetEnvironmentVariable("PATH", py_home, EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("PYTHONHOME", py_home, EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("PYTHONPATH", py_path, EnvironmentVariableTarget.Process);
+
+            PythonEngine.PythonHome = py_home;
+            PythonEngine.PythonPath = py_path;
+
             PythonEngine.Initialize();
 
             m_IsExecuting = false;
             m_BackgroundWorker = new BackgroundWorker();
+            m_BackgroundWorker.WorkerSupportsCancellation = true;
 
             //Reset IO streams of ScriptEngine if they're changed
             EventManager.GetInstance().OnIOChanged += () =>
@@ -43,6 +54,8 @@ namespace Python_Engine
             {
                 if (m_BackgroundWorker != null)
                     m_BackgroundWorker.CancelAsync();
+
+                PythonEngine.Shutdown();
             };
         }
 
