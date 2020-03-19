@@ -20,11 +20,19 @@ namespace Excel_Ribbon
         {
             MacroEngine.Instantiate(Dispatcher.CurrentDispatcher, new HostState(), () => 
             {
-                IExecutionEngine engine = MacroEngine.GetExecutionEngine("Python");
-                Application.ActiveSheet.Cells(1, 1).Value = engine.GetLabel();
-                //string code = "print('hello'";
-                //Macro m = new Macro("Python", code);
-                //m.Execute(() => { Application.ActiveSheet.Cells(1, 1).Value = "YAY"; }, false);
+                IExecutionEngine ipy = MacroEngine.GetExecutionEngine("IronPython");
+                if(ipy != null)
+                    Application.ActiveSheet.Cells(1, 1).Value = ipy.GetLabel();
+
+                string code = "print('hello')";
+                Macro m = new Macro("IronPython", code);
+                m.Execute(() => { Application.ActiveSheet.Cells(1, 3).Value = "YAY"; }, false);
+
+                
+
+                IExecutionEngine py = MacroEngine.GetExecutionEngine("Python");
+                if (py != null)
+                    Application.ActiveSheet.Cells(2, 1).Value = py.GetLabel();
             });            
         }
 

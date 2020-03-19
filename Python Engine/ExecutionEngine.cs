@@ -10,8 +10,10 @@ using Python.Runtime;
 using System.ComponentModel;
 using System.Windows.Threading;
 using System.Threading;
+using System.Reflection;
+using System.IO;
 
-namespace Python_Engine.Engine
+namespace Python_Engine
 {
     [Export(typeof(IExecutionEngine))]
     [ExportMetadata("Language", "Python")]

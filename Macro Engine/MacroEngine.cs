@@ -26,8 +26,6 @@ namespace Macro_Engine
 
         [ImportMany(typeof(IExecutionEngine))]
         private IEnumerable<Lazy<IExecutionEngine, IExecutionEngineData>> m_ExecutionEngineImplementations;
-        //private IEnumerable<Lazy<IExecutionEngine, IExecutionEngineData>> m_ExecutionEngineImplementations = new List<Lazy<IExecutionEngine, IExecutionEngineData>>();
-
 
         private CompositionContainer m_Container;
         private bool m_HasExtensions;
@@ -37,11 +35,13 @@ namespace Macro_Engine
             m_HasExtensions = false;
 
             AggregateCatalog catalog = new AggregateCatalog();
-            catalog.Catalogs.Add(new AssemblyCatalog(typeof(MacroEngine).Assembly));
 
             if (Directory.Exists(FileManager.ExtensionsDirectory))
             {
                 catalog.Catalogs.Add(new DirectoryCatalog(FileManager.ExtensionsDirectory));
+                foreach(string addin_dir in Directory.GetDirectories(FileManager.ExtensionsDirectory))
+                    catalog.Catalogs.Add(new DirectoryCatalog(addin_dir));
+
                 m_HasExtensions = true;
             }
 
