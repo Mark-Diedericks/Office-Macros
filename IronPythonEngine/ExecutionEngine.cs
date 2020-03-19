@@ -58,6 +58,10 @@ namespace IronPython_Engine
         {
             return "Python " + m_ScriptEngine.LanguageVersion.ToString();
         }
+        public void ClearContext()
+        {
+
+        }
 
         #region Execution
 

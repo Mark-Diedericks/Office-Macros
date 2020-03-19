@@ -11,7 +11,7 @@ namespace Macro_Engine.Engine
         string GetLabel();
         bool ExecuteMacro(string source, Action OnCompleted, bool async);
         void TerminateExecution();
-
+        void ClearContext();
     }
 
     public interface IExecutionEngineData

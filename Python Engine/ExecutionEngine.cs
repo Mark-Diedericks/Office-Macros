@@ -67,6 +67,11 @@ namespace Python_Engine
             }
         }
 
+        public void ClearContext()
+        {
+
+        }
+
         #region Execution
 
         /// <summary>
