@@ -1,41 +1,39 @@
-﻿using System;
+﻿using Macro_Engine.Interop;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
 
-namespace Macro_Engine.Macros
+namespace Macro_Engine
 {
-    /// <summary>
-    /// Data strcture containing info on a macro, serializable data structure for saving
-    /// </summary>
-    [TypeConverter(typeof(MacroDeclarationConverter))]
-    [SettingsSerializeAs(SettingsSerializeAs.String)]
-    public class MacroDeclaration
+    [TypeConverter(typeof(HostStateConverter))]
+    [SettingsSerializeAs(SettingsSerializeAs.Xml)]
+    public class HostState
     {
-        public string Language { get; }
-        public string Name { get; set; }
-        public string RelativePath { get; set; }
-        public Guid ID  { get; set; }
+        public string[] Workspaces { get; }
+        public string[] RibbonMacros { get; }
+        public string ActiveMacro { get; }
+        public AssemblyDeclaration[] Assemblies { get; }
 
-        public MacroDeclaration(string lang, string name, string path) : this(lang, name, path, Guid.Empty)
-        {}
-
-        public MacroDeclaration(string lang, string name, string path, Guid id)
+        public HostState(string[] workspaces, string[] ribbonMacros, string activeMacro, AssemblyDeclaration[] assemblies)
         {
-            Language = lang;
-            Name = name;
-            RelativePath = path;
-            ID = id;
+            Workspaces = workspaces;
+            RibbonMacros = ribbonMacros;
+            ActiveMacro = activeMacro;
+            Assemblies = assemblies;
         }
+
+        public HostState() : this(new string[] { }, new string[] { }, "", new Macro_Engine.Interop.AssemblyDeclaration[] { })
+        { }
     }
 
-    /// <summary>
-    /// Converter to serialize MacroDeclaration instances
-    /// </summary>
-    public class MacroDeclarationConverter : TypeConverter
+    class HostStateConverter : TypeConverter
     {
         /// <summary>
         /// Interface method, ensures that the source can be deserialized into an MacroDeclaration
@@ -59,9 +57,7 @@ namespace Macro_Engine.Macros
         {
             if (value is string)
             {
-                string[] parts = ((string)value).Split(new char[] { ',' });
-                MacroDeclaration macro = new MacroDeclaration(parts[0], parts.Length > 1 ? parts[1] : "", parts.Length > 2 ? parts[2] : "");
-                return macro;
+                return Deserialize((string)value);
             }
 
             return base.ConvertFrom(context, culture, value);
@@ -79,11 +75,32 @@ namespace Macro_Engine.Macros
         {
             if (destinationType == typeof(string))
             {
-                MacroDeclaration macro = value as MacroDeclaration;
-                return string.Format("{0},{1},{2}", macro.Language, macro.Name, macro.RelativePath);
+                HostState state = value as HostState;
+                return Serialize(state);
             }
             return base.ConvertTo(context, culture, value, destinationType);
         }
 
+        private HostState Deserialize(string value)
+        {
+            XmlSerializer ser = new XmlSerializer(typeof(HostState));
+            return (HostState)ser.Deserialize(new StringReader(value));
+        }
+
+        private string Serialize(HostState value)
+        {
+            if (value == null)
+                return string.Empty;
+
+            XmlSerializer ser = new XmlSerializer(typeof(HostState));
+            using (StringWriter sw = new StringWriter())
+            {
+                using(XmlWriter xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true }))
+                {
+                    ser.Serialize(xw, value);
+                    return sw.ToString();
+                }
+            }
+        }
     }
 }

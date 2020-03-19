@@ -9,11 +9,6 @@ namespace Macro_Engine.Engine
 {
     public class ExecutionEngineIO
     {
-        private readonly EngineBase m_Engine;
-        protected EngineBase GetEngine()
-        {
-            return m_Engine;
-        }
 
         private TextReader Input;
         private readonly TextWriter Output;
@@ -24,10 +19,9 @@ namespace Macro_Engine.Engine
         /// </summary>
         /// <param name="output">Console Output TextWriter</param>
         /// <param name="error">Console Error TextWriter</param>
-        public ExecutionEngineIO(EngineBase engine, TextWriter output, TextWriter error)
+        public ExecutionEngineIO(TextWriter output, TextWriter error, TextReader input = null)
         {
-            m_Engine = engine;
-            Input = null;
+            Input = input;
             Output = output;
             Error = error;
         }
@@ -40,7 +34,7 @@ namespace Macro_Engine.Engine
             Output.Flush();
             Error.Flush();
 
-            GetEngine().GetEventManager().ClearAllIO();
+            EventManager.ClearAllIO();
         }
 
         /// <summary>

@@ -8,20 +8,9 @@ namespace Macro_Engine
 {
     public class MessageManager
     {
-        private readonly EngineBase m_Engine;
-        protected EngineBase GetEngine()
+        public static MessageManager GetInstance()
         {
-            return m_Engine;
-        }
-
-        private MessageManager(EngineBase engine)
-        {
-            m_Engine = engine;
-        }
-
-        public static MessageManager Instantiate(EngineBase engine)
-        {
-            return new MessageManager(engine);
+            return MacroEngine.GetMessageManager();
         }
 
         //VoidMessage event, for all Forms and GUIs
@@ -49,9 +38,9 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="content">The message to be displayed</param>
         /// <param name="title">The message's header</param>
-        public void DisplayOkMessage(string content, string title)
+        public static void DisplayOkMessage(string content, string title)
         {
-            DisplayOkMessageEvent?.Invoke(content, title);
+            GetInstance().DisplayOkMessageEvent?.Invoke(content, title);
         }
 
         /// <summary>
@@ -60,9 +49,9 @@ namespace Macro_Engine
         /// <param name="content">The message to be displayed</param>
         /// <param name="title">The message's header</param>
         /// <param name="OnReturn">The Action, and bool representation of the yes/no result, to be fired when the user provides input</param>
-        public void DisplayYesNoMessage(string content, string title, Action<bool> OnReturn)
+        public static void DisplayYesNoMessage(string content, string title, Action<bool> OnReturn)
         {
-            DisplayYesNoMessageEvent?.Invoke(content, title, OnReturn);
+            GetInstance().DisplayYesNoMessageEvent?.Invoke(content, title, OnReturn);
         }
 
         /// <summary>
@@ -77,9 +66,9 @@ namespace Macro_Engine
         /// <param name="helpContextID"></param>
         /// <param name="type"></param>
         /// <param name="OnResult">The Action, and returning object, to be fired when the task is completed</param>
-        public void DisplayInputMessage(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult)
+        public static void DisplayInputMessage(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult)
         {
-            DisplayInputMessageEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type, OnResult);
+            GetInstance().DisplayInputMessageEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type, OnResult);
         }
 
         /// <summary>
@@ -88,9 +77,9 @@ namespace Macro_Engine
         /// <param name="content">The message to be displayed</param>
         /// <param name="title">The message's header</param>
         /// <returns>The bool result of the user's action</returns>
-        public bool DisplayYesNoMessage(string content, string title)
+        public static bool DisplayYesNoMessage(string content, string title)
         {
-            bool? res = DisplayYesNoMessageReturnEvent?.Invoke(content, title);
+            bool? res = GetInstance().DisplayYesNoMessageReturnEvent?.Invoke(content, title);
             return res.HasValue ? res.Value : false;
         }
 
@@ -106,9 +95,9 @@ namespace Macro_Engine
         /// <param name="helpContextID"></param>
         /// <param name="type"></param>
         /// <returns>InputBox's resultant object</returns>
-        public object DisplayInputMessage(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type)
+        public static object DisplayInputMessage(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type)
         {
-            return DisplayInputMessageReturnEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type);
+            return GetInstance().DisplayInputMessageReturnEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type);
         }
     }
 }

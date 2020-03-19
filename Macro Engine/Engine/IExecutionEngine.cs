@@ -8,13 +8,16 @@ namespace Macro_Engine.Engine
 {
     public interface IExecutionEngine
     {
-        IExecutionEngine Instantiate(EngineBase engine);
-
-        IExecutionEngine GetDebugEngine();
-        IExecutionEngine GetReleaseEngine();
-
+        string GetLabel();
         bool ExecuteMacro(string source, Action OnCompleted, bool async);
         void TerminateExecution();
 
     }
+
+    public interface IExecutionEngineData
+    {
+        string Language { get; }
+        string FileExt { get; }
+    }
+
 }
