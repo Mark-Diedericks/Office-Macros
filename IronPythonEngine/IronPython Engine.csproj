@@ -75,7 +75,11 @@
     <ProjectReference Include="..\Macro Engine\Macro Engine.csproj">
       <Project>{1c58f68f-e109-4a24-b8ea-fa7b10465813}</Project>
       <Name>Macro Engine</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(TargetDir)*" "$(SolutionDir)\Extensions\IronPython\" /s /Y</PostBuildEvent>
+  </PropertyGroup>
 </Project>

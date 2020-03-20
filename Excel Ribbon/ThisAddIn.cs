@@ -25,20 +25,24 @@ namespace Excel_Ribbon
 
 
                 IExecutionEngine ipy = MacroEngine.GetExecutionEngine("IronPython");
+                System.Diagnostics.Debug.WriteLine(ipy);
                 if(ipy != null)
-                    Application.ActiveSheet.Cells(1, 1).Value = ipy.GetLabel();
+                    if(Application.ActiveSheet != null)
+                        Application.ActiveSheet.Cells(1, 1).Value = ipy.GetLabel();
 
                 Macro mipy = new Macro("IronPython", code);
-                mipy.Execute(() => { Application.ActiveSheet.Cells(2, 1).Value = "YAY"; }, false);
+                mipy.Execute(() => { if (Application.ActiveSheet != null) Application.ActiveSheet.Cells(2, 1).Value = "YAY"; }, false);
 
                 
 
                 IExecutionEngine py = MacroEngine.GetExecutionEngine("Python");
+                System.Diagnostics.Debug.WriteLine(py);
                 if (py != null)
-                    Application.ActiveSheet.Cells(4, 1).Value = py.GetLabel();
+                    if (Application.ActiveSheet != null)
+                        Application.ActiveSheet.Cells(4, 1).Value = py.GetLabel();
 
                 Macro mpy = new Macro("Python", code);
-                mpy.Execute(() => { Application.ActiveSheet.Cells(5, 1).Value = "YAY"; }, false);
+                mpy.Execute(() => { if (Application.ActiveSheet != null) Application.ActiveSheet.Cells(5, 1).Value = "YAY"; }, false);
             });            
         }
 

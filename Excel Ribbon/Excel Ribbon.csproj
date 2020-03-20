@@ -256,4 +256,12 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <PropertyGroup>
+    <PostBuildEvent>if not exist "$(TargetDir)\Extensions\" mkdir "$(TargetDir)\Extensions\"
+xcopy "$(SolutionDir)\Extensions\*" "$(TargetDir)\Extensions\"  /s /Y</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>
