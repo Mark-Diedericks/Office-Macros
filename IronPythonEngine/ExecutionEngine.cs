@@ -61,7 +61,7 @@ namespace IronPython_Engine
 
         public void ClearContext()
         {
-
+            m_ScriptScope = m_ScriptEngine.CreateScope();
         }
 
         #region Execution
@@ -187,21 +187,21 @@ namespace IronPython_Engine
             {
                 System.Diagnostics.Debug.WriteLine("Execution Error: " + tae.Message);
 
-                /*if (Main.GetEngineIOManager() != null)
+                if (MacroEngine.GetEngineIOManager(Language) != null)
                 {
-                    Main.GetEngineIOManager().GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
-                    Main.GetEngineIOManager().GetOutput().Flush();
-                }*/
+                    MacroEngine.GetEngineIOManager(Language).GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
+                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                }
             }
             catch (Exception e)
             {
                 System.Diagnostics.Debug.WriteLine("Execution Error: " + e.Message);
 
-                /*if (Main.GetEngineIOManager() != null)
+                if (MacroEngine.GetEngineIOManager(Language) != null)
                 {
-                    Main.GetEngineIOManager().GetError().WriteLine("Execution Error: " + e.Message);
-                    Main.GetEngineIOManager().GetOutput().Flush();
-                }*/
+                    MacroEngine.GetEngineIOManager(Language).GetError().WriteLine("Execution Error: " + e.Message);
+                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                }
             }
         }
 

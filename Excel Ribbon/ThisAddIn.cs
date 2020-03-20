@@ -18,6 +18,9 @@ namespace Excel_Ribbon
     {
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
+            if (Application.ActiveSheet == null)
+                Application.Workbooks.Add();
+
             MacroEngine.Instantiate(Dispatcher.CurrentDispatcher, new HostState(), () =>
             {
                 string code = "print('hello')";
@@ -35,13 +38,13 @@ namespace Excel_Ribbon
 
                 
 
-                IExecutionEngine py = MacroEngine.GetExecutionEngine("Python");
+                IExecutionEngine py = MacroEngine.GetExecutionEngine("Python35NET");
                 System.Diagnostics.Debug.WriteLine(py);
                 if (py != null)
                     if (Application.ActiveSheet != null)
                         Application.ActiveSheet.Cells(4, 1).Value = py.GetLabel();
 
-                Macro mpy = new Macro("Python", code);
+                Macro mpy = new Macro("Python35NET", code);
                 mpy.Execute(() => { if (Application.ActiveSheet != null) Application.ActiveSheet.Cells(5, 1).Value = "YAY"; }, false);
             });            
         }
