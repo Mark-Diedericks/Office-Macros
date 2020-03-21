@@ -61,8 +61,9 @@ namespace Macro_UI.Routing
         public delegate void DocumentEvent(DocumentViewModel vm);
         public static event DocumentEvent DocumentChangedEvent;
 
-        private static EventManager s_Instance;
         private static App s_UIApp;
+
+        private static EventManager s_Instance;
         private static bool s_IsLoaded;
         private static bool s_IsRibbonLoaded;
 
@@ -111,16 +112,16 @@ namespace Macro_UI.Routing
         public static void CreateApplicationInstance(Dispatcher dispatcher, string[] RibbonMacros)
         {
             new EventManager();
-            
-            s_UIApp = new App();
-            s_UIApp.InitializeComponent();
 
             RibbonLoadedEvent += MacroEngine.LoadRibbonMacros;
 
             string[] workspaces = new string[] { Path.GetFullPath(FileManager.AssemblyDirectory + "/Macros/") };
             HostState state = new HostState(workspaces, RibbonMacros, Properties.Settings.Default.ActiveMacro, Properties.Settings.Default.IncludedLibraries);
 
-            MacroEngine.Instantiate(dispatcher, state, new Action(() =>
+            s_UIApp = new App();
+            s_UIApp.InitializeComponent();
+
+            CancellationTokenSource cts = MacroEngine.Instantiate(dispatcher, state, new Action(() =>
             {
                 MacroEngine.GetEventManager().OnFocused += WindowFocusEvent;
                 MacroEngine.GetEventManager().OnShown += WindowShowEvent;
@@ -153,31 +154,47 @@ namespace Macro_UI.Routing
 
             GetInstance().ShutdownEvent += () =>
             {
-                MainWindow.GetInstance().Dispatcher.BeginInvoke(DispatcherPriority.Send, new Action(() =>
+                try
                 {
-                    if(MacroEngine.GetDeclaration(MacroEngine.GetActiveMacro()) != null)
-                        Properties.Settings.Default.ActiveMacro = MacroEngine.GetDeclaration(MacroEngine.GetActiveMacro()).RelativePath;
-                    
-                    Properties.Settings.Default.IncludedLibraries = MacroEngine.GetAssemblies().ToArray<AssemblyDeclaration>();
+                    cts.Cancel();
+                }
+                catch(Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                }
 
-                    if (MainWindowViewModel.GetInstance() != null)
+                if(MainWindow.GetInstance() != null)
+                {
+                    MainWindow.GetInstance().Dispatcher.BeginInvoke(DispatcherPriority.Send, new Action(() =>
                     {
-                        MainWindowViewModel.GetInstance().SaveAll();
-                        List<DocumentViewModel> unsaved = MainWindowViewModel.GetInstance().DockManager.GetUnsavedDocuments();
+                        if (MacroEngine.GetDeclaration(MacroEngine.GetActiveMacro()) != null)
+                            Properties.Settings.Default.ActiveMacro = MacroEngine.GetDeclaration(MacroEngine.GetActiveMacro()).RelativePath;
 
-                        if (unsaved.Count > 0)
+                        Properties.Settings.Default.IncludedLibraries = MacroEngine.GetAssemblies().ToArray<AssemblyDeclaration>();
+
+                        if (MainWindowViewModel.GetInstance() != null)
                         {
-                            bool save = DisplayYesNoMessageReturn("You have unsaved documents. Would you like to save them?", "Unsaved Documents");
+                            MainWindowViewModel.GetInstance().SaveAll();
+                            List<DocumentViewModel> unsaved = MainWindowViewModel.GetInstance().DockManager.GetUnsavedDocuments();
 
-                            if (save)
-                                foreach (DocumentViewModel document in unsaved)
-                                    if (document is TextualEditorViewModel)
-                                        document.Save(null);
+                            if (unsaved.Count > 0)
+                            {
+                                bool save = DisplayYesNoMessageReturn("You have unsaved documents. Would you like to save them?", "Unsaved Documents");
+
+                                if (save)
+                                    foreach (DocumentViewModel document in unsaved)
+                                        if (document is TextualEditorViewModel)
+                                            document.Save(null);
+                            }
                         }
-                    }
 
+                        s_UIApp.Shutdown();
+                    }));
+                }
+                else if (s_UIApp != null)
+                {
                     s_UIApp.Shutdown();
-                }));
+                }
             };
 
             s_UIApp.Run();

@@ -55,13 +55,12 @@ namespace Macro_UI.View
         {
             s_Instance = this;
 
+            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>> mw 1");
             InitializeComponent();
+            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>> mw 2");
 
-            {
-                throw new NotImplementedException();
-                ThemeManager.AddAccent("ExcelAccent", new Uri("pack://application:,,,/Excel Macros UI;component/Themes/ExcelAccent.xaml"));
-                ThemeManager.ChangeAppStyle(this, ThemeManager.GetAccent("ExcelAccent"), ThemeManager.GetAppTheme("BaseLight"));
-            }
+            ThemeManager.AddAccent("ExcelAccent", new Uri("pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml"));
+            ThemeManager.ChangeAppStyle(this, ThemeManager.GetAccent("ExcelAccent"), ThemeManager.GetAppTheme("BaseLight"));
 
             this.DataContextChanged += MainWindow_DataContextChanged;
 

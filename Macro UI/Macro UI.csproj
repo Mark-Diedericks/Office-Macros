@@ -38,6 +38,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AvalonDock.Themes.VS2012">
+      <HintPath>..\Dependencies\AvalonDock.Theme.VS2012\bin\x64\Debug\AvalonDock.Themes.VS2012.dll</HintPath>
+    </Reference>
     <Reference Include="ControlzEx, Version=3.0.2.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ControlzEx.3.0.2.4\lib\net462\ControlzEx.dll</HintPath>
     </Reference>
@@ -176,10 +179,10 @@
     <Compile Include="Managers\RelayCommand.cs" />
     <Compile Include="Managers\SyntaxStyleLoader.cs" />
     <Compile Include="Managers\TextBoxWriter.cs" />
-    <Compile Include="Theme\DarkTheme.cs" />
-    <Compile Include="Theme\ITheme.cs" />
-    <Compile Include="Theme\IThemeManager.cs" />
-    <Compile Include="Theme\LightTheme.cs" />
+    <Compile Include="Themes\DarkTheme.cs" />
+    <Compile Include="Themes\ITheme.cs" />
+    <Compile Include="Themes\IThemeManager.cs" />
+    <Compile Include="Themes\LightTheme.cs" />
     <Compile Include="ViewModel\Base\DocumentViewModel.cs" />
     <Compile Include="ViewModel\Base\ToolViewModel.cs" />
     <Compile Include="ViewModel\Base\ViewModel.cs" />
@@ -212,6 +215,10 @@
     <Compile Include="Model\MainWindowModel.cs" />
     <Compile Include="Model\SettingsMenuModel.cs" />
     <Compile Include="Model\TextualEditorModel.cs" />
+    <Page Include="Themes\ExcelAccent.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="View\ConsoleView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -260,7 +267,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Resources\IronPython.xshd" />
+    <None Include="Resources\DefaultSyntax.xshd" />
     <Resource Include="Resources\Entypo.ttf" />
   </ItemGroup>
   <ItemGroup>
@@ -283,4 +290,8 @@
     <Resource Include="Resources\ConvertPython.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

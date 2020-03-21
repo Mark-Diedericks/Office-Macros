@@ -11,14 +11,32 @@ using System.Windows.Threading;
 using Macro_Engine;
 using Macro_Engine.Macros;
 using Macro_Engine.Engine;
+using System.Threading;
 
 namespace Excel_Ribbon
 {
     public partial class ThisAddIn
     {
+        private Thread m_Thread;
+
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
-            if(false)
+            Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+
+            m_Thread = new Thread(() =>
+            {
+                Macro_UI.Routing.EventManager.CreateApplicationInstance(dispatcher, new string[] { });
+            });
+
+            Macro_UI.Routing.EventManager.ApplicationLoadedEvent += delegate () {
+                Macro_UI.Routing.EventManager.WindowShowEvent();
+            };
+
+            m_Thread.SetApartmentState(ApartmentState.STA);
+            m_Thread.IsBackground = true;
+            m_Thread.Start();
+
+            if (true)
                 return;
 
             if (Application.ActiveSheet == null)
@@ -53,7 +71,17 @@ namespace Excel_Ribbon
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
-            MacroEngine.Destroy();
+            Macro_UI.Routing.EventManager.GetInstance().Shutdown();
+
+            try
+            {
+                m_Thread.Join();
+                m_Thread.Abort();
+            }
+            catch(Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
         }
 
         #region VSTO generated code

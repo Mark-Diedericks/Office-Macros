@@ -41,7 +41,7 @@
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
                         <!-- Accent -->
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
-                        <ResourceDictionary Source="pack://application:,,,/Excel Macros UI;component/Themes/ExcelAccent.xaml" />
+                        <ResourceDictionary Source="pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary x:Name="ThemeDictionary">
@@ -336,7 +336,7 @@
                             <Button.Template>
                                 <ControlTemplate TargetType="{x:Type Button}">
                                     <Grid x:Name="ContentGrid" Margin="0,0,0,0">
-                                        <Image Width="16" Height="16" Source="pack://application:,,,/Excel Macros UI;component/Resources/ConvertPython.png" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4,0,4,0" Stretch="Uniform" />
+                                        <Image Width="16" Height="16" Source="pack://application:,,,/Macro UI;component/Resources/ConvertPython.png" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4,0,4,0" Stretch="Uniform" />
                                     </Grid>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="true">
@@ -367,10 +367,6 @@
 
                     <DataTemplate DataType="{x:Type viewModels:TextualEditorViewModel}">
                         <views:TextualEditorView DataContext="{Binding}"/>
-                    </DataTemplate>
-
-                    <DataTemplate DataType="{x:Type viewModels:VisualEditorViewModel}">
-                        <views:VisualEditorView DataContext="{Binding}"/>
                     </DataTemplate>
                 </dock:DockingManager.Resources>
 

@@ -1,4 +1,4 @@
-﻿<SyntaxDefinition name="IronPython" extensions=".ipy">
+﻿<SyntaxDefinition name="DefaultSyntax" extensions=".ipy">
 	
 	<Properties>
 		<Property name="LineComment" value="#"/>

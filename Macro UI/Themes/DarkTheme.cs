@@ -23,7 +23,7 @@ namespace Macro_UI.Themes
             UriList = new List<Uri>
             {
                 new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml"),
-                new Uri("pack://application:,,,/Excel Macros UI;component/Themes/ExcelAccent.xaml"),
+                new Uri("pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml"),
                 new Uri("pack://application:,,,/AvalonDock.Themes.VS2012;component/DarkTheme.xaml"),
             };
         }

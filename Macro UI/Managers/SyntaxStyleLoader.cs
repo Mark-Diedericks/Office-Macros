@@ -52,9 +52,7 @@ namespace Macro_UI.Utilities
         /// <returns>The stream of syntax style data</returns>
         public static Stream GetStyleStream()
         {
-            throw new NotImplementedException();
-
-            string style = Properties.Resources.IronPython;
+            string style = Properties.Resources.DefaultSyntax;
 
             style = style.Replace(DIGIT, s_ColorValues[(int)SyntaxStyleColor.DIGIT]);
             style = style.Replace(COMMENT, s_ColorValues[(int)SyntaxStyleColor.COMMENT]);

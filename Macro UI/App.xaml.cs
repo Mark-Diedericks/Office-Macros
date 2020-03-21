@@ -24,6 +24,8 @@ namespace Macro_UI
         {
             MainWindow = new MainWindow() { DataContext = new MainWindowViewModel() };
             ((MainWindowViewModel)MainWindow.DataContext).SetTheme(Macro_UI.Properties.Settings.Default.Theme);
+
+            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>> " + MainWindow.DataContext);
         }
     }
 }

@@ -26,9 +26,9 @@ namespace Macro_UI.Themes
                 //new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml"),
                 //new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml"),
                 //new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml"),
-                //new Uri("pack://application:,,,/Excel Macros UI;component/Themes/ExcelAccent.xaml"),
+                //new Uri("pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml"),
                 new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml"),
-                new Uri("pack://application:,,,/Excel Macros UI;component/Themes/ExcelAccent.xaml"),
+                new Uri("pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml"),
                 new Uri("pack://application:,,,/AvalonDock.Themes.VS2012;component/LightTheme.xaml"),
             };
         }

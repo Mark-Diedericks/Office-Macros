@@ -11,6 +11,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Macro_Engine.Engine;
@@ -150,13 +151,14 @@ namespace Macro_Engine
         /// <param name="hostDispatcher">Host application UI dispatcher</param>
         /// <param name="state">Host application state; ribbon macros, active macro, assemblies and workspaces</param>
         /// <param name="OnLoaded">Action to be fired once MacroEngine is fully initialized</param>
-        public static void Instantiate(Dispatcher hostDispatcher, HostState state, Action OnLoaded)
+        /// <returns>The initialization task thread</returns>
+        public static CancellationTokenSource Instantiate(Dispatcher hostDispatcher, HostState state, Action OnLoaded)
         {
             if (GetInstance() != null)
                 System.Diagnostics.Debug.WriteLine("Overriding existing MacroEngine!");
 
-            Dispatcher UIDispatcher = Dispatcher.CurrentDispatcher;
-            Task.Run(() =>
+            CancellationTokenSource cts = new CancellationTokenSource();
+            Task init = Task.Run(() =>
             {
                 MacroEngine me = new MacroEngine(hostDispatcher, state);
 
@@ -189,11 +191,13 @@ namespace Macro_Engine
 
                 EventManager.OnAssembliesChangedInvoke();
 
-                UIDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                hostDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                     OnLoaded?.Invoke();
                     EventManager.OnLoadedInvoke();
                 }));
-            });
+            }, cts.Token);
+
+            return cts;
         }
 
         /// <summary>
