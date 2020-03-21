@@ -17,6 +17,7 @@ namespace Macro_Engine.Engine
     public interface IExecutionEngineData
     {
         string Language { get; }
+        string Runtime { get; }
         string FileExt { get; }
     }
 

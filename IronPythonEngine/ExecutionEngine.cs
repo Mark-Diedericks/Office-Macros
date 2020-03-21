@@ -16,10 +16,12 @@ namespace IronPython_Engine
 {
     [Export(typeof(IExecutionEngine))]
     [ExportMetadata("Language", "IronPython")]
+    [ExportMetadata("Runtime", "IronPython 2.7.9.0")]
     [ExportMetadata("FileExt", ".ipy")]
     public class ExecutionEngine : IExecutionEngine
     {
-        private readonly string Language = "IronPython";
+        private readonly string Runtime = "IronPython 2.7.9.0";
+
         private ScriptEngine m_ScriptEngine;
         private ScriptScope m_ScriptScope;
 
@@ -42,8 +44,8 @@ namespace IronPython_Engine
             EventManager.GetInstance().OnIOChanged += () =>
             {
                 m_ScriptEngine.Runtime.IO.RedirectToConsole();
-                Console.SetOut(MacroEngine.GetEngineIOManager("Python").GetOutput());
-                Console.SetError(MacroEngine.GetEngineIOManager("Python").GetError());
+                Console.SetOut(MacroEngine.GetEngineIOManager(Runtime).GetOutput());
+                Console.SetError(MacroEngine.GetEngineIOManager(Runtime).GetError());
             };
 
             //End running tasks if program is exiting
@@ -111,10 +113,10 @@ namespace IronPython_Engine
 
             m_BackgroundWorker.RunWorkerCompleted += (s, args) =>
             {
-                if (MacroEngine.GetEngineIOManager(Language) != null)
+                if (MacroEngine.GetEngineIOManager(Runtime) != null)
                 {
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().WriteLine("Asynchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Asynchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
                 }
 
                 Utilities.EndProfileSession(profileID);
@@ -147,10 +149,10 @@ namespace IronPython_Engine
                 m_IsExecuting = true;
                 ExecuteSource(source);
 
-                if (MacroEngine.GetEngineIOManager(Language) != null)
+                if (MacroEngine.GetEngineIOManager(Runtime) != null)
                 {
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().WriteLine("Synchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Synchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
                 }
 
                 Utilities.EndProfileSession(profileID);
@@ -176,8 +178,8 @@ namespace IronPython_Engine
                 m_ScriptScope.SetVariable("MissingType", Type.Missing);
             }*/
 
-            if (MacroEngine.GetEngineIOManager(Language) != null)
-                MacroEngine.GetEngineIOManager(Language).ClearAllStreams();
+            if (MacroEngine.GetEngineIOManager(Runtime) != null)
+                MacroEngine.GetEngineIOManager(Runtime).ClearAllStreams();
                 
             try
             {
@@ -187,20 +189,20 @@ namespace IronPython_Engine
             {
                 System.Diagnostics.Debug.WriteLine("Execution Error: " + tae.Message);
 
-                if (MacroEngine.GetEngineIOManager(Language) != null)
+                if (MacroEngine.GetEngineIOManager(Runtime) != null)
                 {
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
                 }
             }
             catch (Exception e)
             {
                 System.Diagnostics.Debug.WriteLine("Execution Error: " + e.Message);
 
-                if (MacroEngine.GetEngineIOManager(Language) != null)
+                if (MacroEngine.GetEngineIOManager(Runtime) != null)
                 {
-                    MacroEngine.GetEngineIOManager(Language).GetError().WriteLine("Execution Error: " + e.Message);
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                    MacroEngine.GetEngineIOManager(Runtime).GetError().WriteLine("Execution Error: " + e.Message);
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
                 }
             }
         }

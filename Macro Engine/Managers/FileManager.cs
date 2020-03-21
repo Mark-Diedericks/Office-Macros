@@ -108,7 +108,7 @@ namespace Macro_Engine
                     if (!fi.Directory.Exists)
                         fi.Directory.Create();
 
-                    string lang = MacroEngine.GetLangauge(Path.GetExtension(file));
+                    string lang = MacroEngine.GetLangaugeFromFileExt(Path.GetExtension(file));
 
                     if (string.IsNullOrEmpty(lang))
                         continue;
@@ -212,7 +212,7 @@ namespace Macro_Engine
 
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.FileName = md.Name;
-            sfd.Filter = md.Language + " | *" + MacroEngine.GetFileExt(md.Language);
+            sfd.Filter = md.Language + " | *" + MacroEngine.GetMacro(md.ID).GetDefaultFileExtension();
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
@@ -260,7 +260,7 @@ namespace Macro_Engine
                 MacroEngine.FireShowFocusEvent();
 
                 string fileExt = Path.GetExtension(ofd.FileName).ToLower().Trim();
-                string lang = MacroEngine.GetLangauge(fileExt);
+                string lang = MacroEngine.GetLangaugeFromFileExt(fileExt);
 
                 if(string.IsNullOrEmpty(lang))
                 {

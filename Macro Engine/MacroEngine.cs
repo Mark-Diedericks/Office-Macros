@@ -208,20 +208,20 @@ namespace Macro_Engine
 
 
 
-        #region Execution Engine
+        #region Execution Engine & IO
 
         /// <summary>
         /// Get the appropriate IExecutionEngine implementation for the given language
         /// </summary>
-        /// <param name="lang">The specified language</param>
+        /// <param name="runtime">The specified runtime</param>
         /// <returns>IExecutionEngine of the langauge</returns>
-        public static IExecutionEngine GetExecutionEngine(string lang)
+        public static IExecutionEngine GetExecutionEngine(string runtime)
         {
             try
             {
-                string value = lang.ToLower().Trim();
+                string value = runtime.ToLower().Trim();
                 foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
-                    if (engine.Metadata.Language.Equals(value, StringComparison.OrdinalIgnoreCase))
+                    if (engine.Metadata.Runtime.Equals(value, StringComparison.OrdinalIgnoreCase))
                         return engine.Value;
             }
             catch(Exception e)
@@ -235,9 +235,55 @@ namespace Macro_Engine
         /// <summary>
         /// Get the appropriate IExecutionEngine implementation for the given language
         /// </summary>
-        /// <param name="lang">The specified language</param>
-        /// <returns>IExecutionEngine of the langauge</returns>
-        public static string GetLangauge(string fileExt)
+        /// <param name="language">The specified language</param>
+        /// <returns>Runtime(s) of the language</returns>
+        public static List<string> GetRuntimes(string language)
+        {
+            List<string> runtimes = new List<string>();
+
+            try
+            {
+                string value = language.ToLower().Trim();
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
+                    if (engine.Metadata.Language.Equals(value, StringComparison.OrdinalIgnoreCase))
+                        runtimes.Add(engine.Metadata.Runtime);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+            }
+
+            return runtimes;
+        }
+
+        /// <summary>
+        /// Get the appropriate IExecutionEngine implementation for the given language
+        /// </summary>
+        /// <param name="runtime">The specified runtime</param>
+        /// <returns>Language of the runtime</returns>
+        public static string GetLangauge(string runtime)
+        {
+            try
+            {
+                string value = runtime.ToLower().Trim();
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
+                    if (engine.Metadata.Runtime.Equals(value, StringComparison.OrdinalIgnoreCase))
+                        return engine.Metadata.Language;
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+            }
+
+            return String.Empty;
+        }
+
+        /// <summary>
+        /// Get the appropriate IExecutionEngine implementation for the given language
+        /// </summary>
+        /// <param name="fileExt">The specified fileExt</param>
+        /// <returns>Language of the File Extension</returns>
+        public static string GetLangaugeFromFileExt(string fileExt)
         {
             try
             {
@@ -251,21 +297,21 @@ namespace Macro_Engine
                 System.Diagnostics.Debug.WriteLine(e.Message);
             }
 
-            return "";
+            return "Plain Text";
         }
 
         /// <summary>
         /// Get the appropriate IExecutionEngine implementation for the given language
         /// </summary>
-        /// <param name="lang">The specified language</param>
-        /// <returns>IExecutionEngine of the langauge</returns>
-        public static string GetFileExt(string lang)
+        /// <param name="runtime">The specified runtime</param>
+        /// <returns>FileExt of the runtime</returns>
+        public static string GetFileExt(string runtime)
         {
             try
             {
-                string value = lang.ToLower().Trim();
+                string value = runtime.ToLower().Trim();
                 foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
-                    if (engine.Metadata.Language.Equals(value, StringComparison.OrdinalIgnoreCase))
+                    if (engine.Metadata.Runtime.Equals(value, StringComparison.OrdinalIgnoreCase))
                         return engine.Metadata.FileExt;
             }
             catch (Exception e)
@@ -273,22 +319,25 @@ namespace Macro_Engine
                 System.Diagnostics.Debug.WriteLine(e.Message);
             }
 
-            return "";
+            return ".txt";
         }
 
         /// <summary>
         /// Sets the TextWriters for both output and error of the execution engines
         /// </summary>
-        /// <param name="lang">Language for which the IO is associated</param>
+        /// <param name="runtime">Runtime for which the IO is associated</param>
         /// <param name="output">TextWriter for ouput stream</param>
         /// <param name="error">TextWriter for error stream</param>
         /// <param name="input">TextReader for inputstream</param>
-        public static void SetIOStreams(string lang, TextWriter output, TextWriter error, TextReader input = null)
+        public static void SetIOStreams(string runtime, TextWriter output, TextWriter error, TextReader input = null)
         {
-            if (GetInstance().m_IOManagers.ContainsKey(lang))
-                GetInstance().m_IOManagers[lang] = new ExecutionEngineIO(output, error, input);
+            if (string.IsNullOrEmpty(runtime))
+                throw new NotImplementedException();
+
+            if (GetInstance().m_IOManagers.ContainsKey(runtime))
+                GetInstance().m_IOManagers[runtime] = new ExecutionEngineIO(output, error, input);
             else
-                GetInstance().m_IOManagers.Add(lang, new ExecutionEngineIO(output, error, input));
+                GetInstance().m_IOManagers.Add(runtime, new ExecutionEngineIO(output, error, input));
 
             EventManager.OnIOChangedInvoke();
         }
@@ -296,12 +345,12 @@ namespace Macro_Engine
         /// <summary>
         /// Gets the ExecutionEngineIO instance
         /// </summary>
-        /// <param name="lang">The language whose IO manager to get</param>
+        /// <param name="runtime">The runtime whose IO manager to get</param>
         /// <returns>IO Manager for specified language</returns>
-        public static ExecutionEngineIO GetEngineIOManager(string lang)
+        public static ExecutionEngineIO GetEngineIOManager(string runtime)
         {
-            if (GetInstance().m_IOManagers.ContainsKey(lang))
-                return GetInstance().m_IOManagers[lang];
+            if (GetInstance().m_IOManagers.ContainsKey(runtime))
+                return GetInstance().m_IOManagers[runtime];
 
             return null;
         }

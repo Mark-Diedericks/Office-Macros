@@ -16,11 +16,13 @@ using System.IO;
 namespace Python_Engine
 {
     [Export(typeof(IExecutionEngine))]
-    [ExportMetadata("Language", "Python35NET")]
+    [ExportMetadata("Language", "Python")]
+    [ExportMetadata("Runtime", "PythonNET 3.5.0")]
     [ExportMetadata("FileExt", ".py")]
     public class ExecutionEngine : IExecutionEngine
     {
-        private readonly string Language = "Python35NET";
+        private readonly string Runtime = "PythonNET 3.5.0";
+
         private PyScope m_ScriptScope;
 
         private BackgroundWorker m_BackgroundWorker;
@@ -52,8 +54,8 @@ namespace Python_Engine
             EventManager.GetInstance().OnIOChanged += () =>
             {
                 //m_ScriptEngine.Runtime.IO.RedirectToConsole();
-                //Console.SetOut(MacroEngine.GetEngineIOManager(Language).GetOutput());
-                //Console.SetError(MacroEngine.GetEngineIOManager(Language).GetError());
+                //Console.SetOut(MacroEngine.GetEngineIOManager(Runtime).GetOutput());
+                //Console.SetError(MacroEngine.GetEngineIOManager(Runtime).GetError());
             };
 
             //End running tasks if program is exiting
@@ -137,10 +139,10 @@ namespace Python_Engine
 
             m_BackgroundWorker.RunWorkerCompleted += (s, args) =>
             {
-                if (MacroEngine.GetEngineIOManager(Language) != null)
+                if (MacroEngine.GetEngineIOManager(Runtime) != null)
                 {
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().WriteLine("Asynchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Asynchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
                 }
 
                 Utilities.EndProfileSession(profileID);
@@ -173,10 +175,10 @@ namespace Python_Engine
                 m_IsExecuting = true;
                 ExecuteSource(source);
 
-                if (MacroEngine.GetEngineIOManager(Language) != null)
+                if (MacroEngine.GetEngineIOManager(Runtime) != null)
                 {
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().WriteLine("Synchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Synchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
                 }
 
                 Utilities.EndProfileSession(profileID);
@@ -202,8 +204,8 @@ namespace Python_Engine
                 m_ScriptScope.Set("MissingType", Type.Missing);
             }*/
 
-            if (MacroEngine.GetEngineIOManager(Language) != null)
-                MacroEngine.GetEngineIOManager(Language).ClearAllStreams();
+            if (MacroEngine.GetEngineIOManager(Runtime) != null)
+                MacroEngine.GetEngineIOManager(Runtime).ClearAllStreams();
                 
             try
             {
@@ -217,20 +219,20 @@ namespace Python_Engine
             {
                 System.Diagnostics.Debug.WriteLine("Execution Error: " + tae.Message);
 
-                if (MacroEngine.GetEngineIOManager(Language) != null)
+                if (MacroEngine.GetEngineIOManager(Runtime) != null)
                 {
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
                 }
             }
             catch (Exception e)
             {
                 System.Diagnostics.Debug.WriteLine("Execution Error: " + e.Message);
 
-                if (MacroEngine.GetEngineIOManager(Language) != null)
+                if (MacroEngine.GetEngineIOManager(Runtime) != null)
                 {
-                    MacroEngine.GetEngineIOManager(Language).GetError().WriteLine("Execution Error: " + e.Message);
-                    MacroEngine.GetEngineIOManager(Language).GetOutput().Flush();
+                    MacroEngine.GetEngineIOManager(Runtime).GetError().WriteLine("Execution Error: " + e.Message);
+                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
                 }
             }
         }

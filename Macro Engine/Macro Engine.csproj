@@ -89,13 +89,13 @@
     <Compile Include="Interop\InteropInfo.cs" />
     <Compile Include="Interop\InteropTools.cs" />
     <Compile Include="Macros\MacroDeclaration.cs" />
-    <Compile Include="Program\EventManager.cs" />
+    <Compile Include="Managers\EventManager.cs" />
     <Compile Include="MacroEngine.cs" />
     <Compile Include="Macros\Macro.cs" />
-    <Compile Include="Program\FileManager.cs" />
-    <Compile Include="Program\HostState.cs" />
-    <Compile Include="Program\MessageManager.cs" />
-    <Compile Include="Program\Utilities.cs" />
+    <Compile Include="Managers\FileManager.cs" />
+    <Compile Include="Managers\HostState.cs" />
+    <Compile Include="Managers\MessageManager.cs" />
+    <Compile Include="Managers\Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

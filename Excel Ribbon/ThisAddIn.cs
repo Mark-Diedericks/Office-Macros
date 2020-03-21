@@ -30,7 +30,7 @@ namespace Excel_Ribbon
 
 
 
-                IExecutionEngine ipy = MacroEngine.GetExecutionEngine("IronPython");
+                IExecutionEngine ipy = MacroEngine.GetExecutionEngine("IronPython 2.7.9.0");
                 System.Diagnostics.Debug.WriteLine(ipy);
                 if(ipy != null)
                     if(Application.ActiveSheet != null)
@@ -41,13 +41,13 @@ namespace Excel_Ribbon
 
                 
 
-                IExecutionEngine py = MacroEngine.GetExecutionEngine("Python35NET");
+                IExecutionEngine py = MacroEngine.GetExecutionEngine("PythonNET 3.5.0");
                 System.Diagnostics.Debug.WriteLine(py);
                 if (py != null)
                     if (Application.ActiveSheet != null)
                         Application.ActiveSheet.Cells(4, 1).Value = py.GetLabel();
 
-                Macro mpy = new Macro("Python35NET", code);
+                Macro mpy = new Macro("Python", code);
                 mpy.Execute(() => { if (Application.ActiveSheet != null) Application.ActiveSheet.Cells(5, 1).Value = "YAY"; }, false);
             });            
         }

@@ -131,11 +131,32 @@ namespace Macro_Engine.Macros
         /// </summary>
         /// <param name="OnCompletedAction">Action to be fire when the task is completed</param>
         /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
-        public void Execute(Action OnCompletedAction, bool async)
+        public void Execute(Action OnCompletedAction, bool async, string runtime = "")
         {
-            IExecutionEngine engine = MacroEngine.GetExecutionEngine(Language);
+            if (string.IsNullOrEmpty(runtime))
+                runtime = GetDefaultRuntime();
+
+            IExecutionEngine engine = MacroEngine.GetExecutionEngine(runtime);
             if(engine != null)
                 engine.ExecuteMacro(m_Source, OnCompletedAction, async);
+        }
+
+        /// <summary>
+        /// Returns the default runtime for the macro's language
+        /// </summary>
+        /// <returns>Default runtime</returns>
+        public string GetDefaultRuntime()
+        {
+            return MacroEngine.GetRuntimes(Language).FirstOrDefault<string>();
+        }
+
+        /// <summary>
+        /// Returns the default file extension for the macro's runtime
+        /// </summary>
+        /// <returns>Default file extension</returns>
+        public string GetDefaultFileExtension()
+        {
+            return MacroEngine.GetFileExt(GetDefaultRuntime());
         }
     }
 }
