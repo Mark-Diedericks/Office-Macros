@@ -38,13 +38,11 @@ namespace Macro_UI.Model.Base
             if (declaration == null)
                 return null;
 
-            switch(declaration.type)
+            switch(declaration.Language)
             {
-                case MacroType.PYTHON:
+                default:
                     return new TextualEditorModel(id);
             }
-
-            return null;
         }
 
         #region IsClosed

@@ -71,9 +71,16 @@ namespace Python_Engine
                 }
                 PythonEngine.Shutdown();
             };
+
+            EventManager.GetInstance().OnTerminateExecution += TerminateExecution;
         }
 
         public string GetLabel()
+        {
+            return Runtime;
+        }
+
+        public string GetVersion()
         {
             using(Py.GIL())
             {

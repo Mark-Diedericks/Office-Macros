@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Macro_Engine.Macros;
 
 namespace Macro_UI.ViewModel
 {
@@ -49,7 +50,8 @@ namespace Macro_UI.ViewModel
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         public override void Start(Action OnComplete)
         {
-            Macro_Engine.Engine.ExecutionEngine.GetDebugEngine().ExecuteMacro(Source.Text, OnComplete, MainWindowViewModel.GetInstance().AsyncExecution);
+            Macro m = MacroEngine.GetMacro(Macro);
+            m.ExecuteSource(Source.Text, OnComplete, MainWindowViewModel.GetInstance().AsyncExecution);
             base.Stop(null);
         }
 
@@ -59,7 +61,7 @@ namespace Macro_UI.ViewModel
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         public override void Stop(Action OnComplete)
         {
-            Macro_Engine.Engine.ExecutionEngine.GetDebugEngine().TerminateExecution();
+            Macro_Engine.EventManager.OnTerminateExecutionInvoke();
             base.Stop(null);
         }
 

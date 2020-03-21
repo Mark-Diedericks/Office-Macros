@@ -108,7 +108,7 @@ namespace Macro_UI.Routing
         /// <param name="application">Excel Application</param>
         /// <param name="dispatcher">Excel UI Dispatcher</param>
         /// <param name="RibbonMacros">A serialized list of ribbon accessible macros</param>
-        public static void CreateApplicationInstance(Dispatcher dispatcher, string RibbonMacros)
+        public static void CreateApplicationInstance(Dispatcher dispatcher, string[] RibbonMacros)
         {
             new EventManager();
             
@@ -117,7 +117,10 @@ namespace Macro_UI.Routing
 
             RibbonLoadedEvent += MacroEngine.LoadRibbonMacros;
 
-            MacroEngine.Instantiate(dispatcher, new Action(() =>
+            string[] workspaces = new string[] { Path.GetFullPath(FileManager.AssemblyDirectory + "/Macros/") };
+            HostState state = new HostState(workspaces, RibbonMacros, Properties.Settings.Default.ActiveMacro, Properties.Settings.Default.IncludedLibraries);
+
+            MacroEngine.Instantiate(dispatcher, state, new Action(() =>
             {
                 MacroEngine.GetEventManager().OnFocused += WindowFocusEvent;
                 MacroEngine.GetEventManager().OnShown += WindowShowEvent;
@@ -146,7 +149,7 @@ namespace Macro_UI.Routing
                     MacroEngine.LoadRibbonMacros();
 
                 LoadCompleted();
-            }), RibbonMacros, Properties.Settings.Default.ActiveMacro, Properties.Settings.Default.IncludedLibraries);
+            }));
 
             GetInstance().ShutdownEvent += () =>
             {
@@ -276,7 +279,7 @@ namespace Macro_UI.Routing
             MainWindow.GetInstance().Dispatcher.Invoke(() =>
             {
                 MainWindowViewModel.GetInstance().ShowWindow();
-                MainWindowViewModel.GetInstance().CreateMacroAsync(MacroType.PYTHON);
+                MainWindowViewModel.GetInstance().CreateMacroAsync();
             });
         }
 

@@ -323,6 +323,20 @@ namespace Macro_Engine
         }
 
         /// <summary>
+        /// Get the appropriate default IExecutionEngine runtime
+        /// </summary>
+        /// <param name="runtime">The specified runtime</param>
+        /// <returns>FileExt of the runtime</returns>
+        public static string GetDefaultRuntime()
+        {
+            Lazy<IExecutionEngine, IExecutionEngineData> engine = GetInstance().m_ExecutionEngineImplementations.FirstOrDefault<Lazy<IExecutionEngine, IExecutionEngineData>>();
+            if (engine.Value == null)
+                return "";
+
+            return GetFileExt(engine.Metadata.Runtime);
+        }
+
+        /// <summary>
         /// Sets the TextWriters for both output and error of the execution engines
         /// </summary>
         /// <param name="runtime">Runtime for which the IO is associated</param>
@@ -332,12 +346,17 @@ namespace Macro_Engine
         public static void SetIOStreams(string runtime, TextWriter output, TextWriter error, TextReader input = null)
         {
             if (string.IsNullOrEmpty(runtime))
-                throw new NotImplementedException();
-
-            if (GetInstance().m_IOManagers.ContainsKey(runtime))
-                GetInstance().m_IOManagers[runtime] = new ExecutionEngineIO(output, error, input);
+            { 
+                foreach (string key in GetInstance().m_IOManagers.Keys)
+                    GetInstance().m_IOManagers[key] = new ExecutionEngineIO(output, error, input);
+            }
             else
-                GetInstance().m_IOManagers.Add(runtime, new ExecutionEngineIO(output, error, input));
+            {
+                if (GetInstance().m_IOManagers.ContainsKey(runtime))
+                    GetInstance().m_IOManagers[runtime] = new ExecutionEngineIO(output, error, input);
+                else
+                    GetInstance().m_IOManagers.Add(runtime, new ExecutionEngineIO(output, error, input));
+            }
 
             EventManager.OnIOChangedInvoke();
         }

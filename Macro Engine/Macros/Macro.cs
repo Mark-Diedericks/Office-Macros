@@ -127,18 +127,31 @@ namespace Macro_Engine.Macros
         }
 
         /// <summary>
-        /// Execute the macro using the Debug Execution Engine
+        /// Execute the macro using the source saved in macro
         /// </summary>
         /// <param name="OnCompletedAction">Action to be fire when the task is completed</param>
         /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
+        /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
         public void Execute(Action OnCompletedAction, bool async, string runtime = "")
+        {
+            ExecuteSource(m_Source, OnCompletedAction, async, runtime);
+        }
+
+        /// <summary>
+        /// Execute the macro using the with given source
+        /// </summary>
+        /// <param name="Source">Code to be executed</param>
+        /// <param name="OnCompletedAction">Action to be fire when the task is completed</param>
+        /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
+        /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
+        public void ExecuteSource(string Source, Action OnCompletedAction, bool async, string runtime = "")
         {
             if (string.IsNullOrEmpty(runtime))
                 runtime = GetDefaultRuntime();
 
             IExecutionEngine engine = MacroEngine.GetExecutionEngine(runtime);
-            if(engine != null)
-                engine.ExecuteMacro(m_Source, OnCompletedAction, async);
+            if (engine != null)
+                engine.ExecuteMacro(Source, OnCompletedAction, async);
         }
 
         /// <summary>

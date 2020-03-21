@@ -40,6 +40,10 @@ namespace Macro_Engine
         public delegate void IOChangedEvent();
         public event IOChangedEvent OnIOChanged;
 
+        //OnLoaded event, for all Forms and GUIs
+        public delegate void TerminateExecutionEvent();
+        public event TerminateExecutionEvent OnTerminateExecution;
+
         //OnAssembliesChanged event, for all Forms and GUIs
         public delegate void AssembliesChangedEvent();
         public event AssembliesChangedEvent OnAssembliesChanged;
@@ -101,12 +105,16 @@ namespace Macro_Engine
             GetInstance().OnMacroRenamed?.Invoke(id);
         }
 
+        public static void OnTerminateExecutionInvoke()
+        {
+            GetInstance().OnTerminateExecution?.Invoke();
+        }
+
         #endregion
         #endregion
 
         #region Update host UI
         #region Events
-
         public delegate void ClearIOEvent();
         public event ClearIOEvent ClearAllIOEvent;
 

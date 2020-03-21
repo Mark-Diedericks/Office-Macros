@@ -9,7 +9,6 @@ namespace Macro_Engine.Engine
 {
     public class ExecutionEngineIO
     {
-
         private TextReader Input;
         private readonly TextWriter Output;
         private readonly TextWriter Error;

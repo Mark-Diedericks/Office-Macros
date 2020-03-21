@@ -769,8 +769,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void NewEvent()
         {
-            throw new NotImplementedException();
-            DockManager.Explorer.CreateMacro(MacroType.PYTHON);
+            DockManager.Explorer.CreateMacro();
         }
 
         #endregion
@@ -1265,9 +1264,9 @@ namespace Macro_UI.ViewModel
         /// <param name="lang">The language of macro</param>
         /// <param name="relativepath">The relativepath of the macro</param>
         /// <returns>Guid of the macro</returns>
-        public Guid CreateMacro(string lang, string relativepath)
+        public Guid CreateMacro(string relativepath)
         {
-            return FileManager.CreateMacro(lang, relativepath);
+            return FileManager.CreateMacro(relativepath);
         }
 
         /// <summary>
@@ -1362,11 +1361,8 @@ namespace Macro_UI.ViewModel
         /// <summary>
         /// Asynchronously creates a new macro, forwards to NewClick command
         /// </summary>
-        /// <param name="lang">The language of the macro</param>
-        public void CreateMacroAsync(string lang)
+        public void CreateMacroAsync()
         {
-            throw new NotImplementedException();
-
             if (NewClick.CanExecute(null))
                 NewClick.Execute(null);
         }

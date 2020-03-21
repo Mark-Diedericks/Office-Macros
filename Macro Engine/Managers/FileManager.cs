@@ -339,21 +339,23 @@ namespace Macro_Engine
         /// <param name="type">The type of the macro</param>
         /// <param name="relativepath">The relative filepath of the macro</param>
         /// <returns>The id of the newly created macro</returns>
-        public static Guid CreateMacro(string language, string relativepath)
+        public static Guid CreateMacro(string relativepath)
         {
             try
             {
-                MacroDeclaration declaration = new MacroDeclaration(language, Path.GetFileName(relativepath), relativepath);
-
                 string fullpath = CalculateFullPath(relativepath);
 
                 FileInfo fi = new FileInfo(fullpath);
                 if (!fi.Directory.Exists)
                     fi.Directory.Create();
 
+                string lang = MacroEngine.GetLangaugeFromFileExt(fi.Extension);
+
+                MacroDeclaration declaration = new MacroDeclaration(lang, Path.GetFileName(relativepath), relativepath);
+
                 File.CreateText(fullpath).Close();
 
-                Macro macro = LoadMacro(language, relativepath);
+                Macro macro = LoadMacro(lang, relativepath);
                 macro.CreateBlankMacro();
 
                 return MacroEngine.AddMacro(declaration, macro);

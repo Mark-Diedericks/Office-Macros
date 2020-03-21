@@ -54,9 +54,16 @@ namespace IronPython_Engine
                 if (m_BackgroundWorker != null)
                     m_BackgroundWorker.CancelAsync();
             };
+
+            EventManager.GetInstance().OnTerminateExecution += TerminateExecution;
         }
 
         public string GetLabel()
+        {
+            return Runtime;
+        }
+
+        public string GetVersion()
         {
             return "Python " + m_ScriptEngine.LanguageVersion.ToString();
         }

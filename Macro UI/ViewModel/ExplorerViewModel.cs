@@ -526,7 +526,7 @@ namespace Macro_UI.ViewModel
             mi_create.Header = "Create Macro";
             mi_create.Click += delegate (object sender, RoutedEventArgs args)
             {
-                CreateMacro(null, MacroType.PYTHON, "/");
+                CreateMacro(null, "/");
                 cm.IsOpen = false;
             };
             mi_create.Style = MenuItemStyle as Style;
@@ -581,7 +581,7 @@ namespace Macro_UI.ViewModel
             mi_create.Click += delegate (object sender, RoutedEventArgs args)
             {
                 item.IsExpanded = true;
-                CreateMacro(item, MacroType.PYTHON, path + "/" + name + "/");
+                CreateMacro(item, path + "/" + name + "/");
                 cm.IsOpen = false;
             };
             mi_create.Style = MenuItemStyle as Style;
@@ -808,11 +808,11 @@ namespace Macro_UI.ViewModel
                         return;
                     }
 
-                    if (!item.Header.EndsWith(FileManager.PYTHON_FILE_EXT))
-                        item.Header += FileManager.PYTHON_FILE_EXT;
+                    if (!Path.HasExtension(item.Header))
+                        item.Header += MacroEngine.GetFileExt(MacroEngine.GetDefaultRuntime());
 
 
-                    MainWindowViewModel.GetInstance().RenameMacro(id, item.Header);Rename(parentitem, item);
+                    MainWindowViewModel.GetInstance().RenameMacro(id, item.Header);
                     Rename(parentitem, item);
 
                     item.IsInputting = false;
@@ -986,25 +986,23 @@ namespace Macro_UI.ViewModel
         /// <summary>
         /// Creates a macro, through an appropriate method
         /// </summary>
-        /// <param name="lang">The language of the macro</param>
-        public void CreateMacro(string lang)
+        public void CreateMacro()
         {
-            CreateMacro(lang, null);
+            CreateMacro(null);
         }
 
         /// <summary>
         /// Creates a macro, using an appropriate method
         /// </summary>
-        /// <param name="lang">The language of the macro</param>
         /// <param name="OnReturn">The Action, and resulting guid of the created macro, to be fired when the task is completed</param>
-        public void CreateMacro(string lang, Action<Guid> OnReturn)
+        public void CreateMacro(Action<Guid> OnReturn)
         {
             if (SelectedItem == null)
-                CreateMacro(null, lang, "/", OnReturn);
+                CreateMacro(null, "/", OnReturn);
             else if (SelectedItem.IsFolder)
-                CreateMacro(SelectedItem, lang, SelectedItem.Root + '/' + SelectedItem.Header, OnReturn);
+                CreateMacro(SelectedItem, SelectedItem.Root + '/' + SelectedItem.Header, OnReturn);
             else if (!SelectedItem.IsFolder)
-                CreateMacro(SelectedItem.Parent, lang, SelectedItem.Root, OnReturn);
+                CreateMacro(SelectedItem.Parent, SelectedItem.Root, OnReturn);
         }
 
         /// <summary>
@@ -1013,9 +1011,9 @@ namespace Macro_UI.ViewModel
         /// <param name="parent">The parent item to which it'll be added</param>
         /// <param name="lang">The language of the macro</param>
         /// <param name="root">The root of the item's relative future directory</param>
-        public void CreateMacro(DisplayableTreeViewItem parent, string lang, string root)
+        public void CreateMacro(DisplayableTreeViewItem parent, string root)
         {
-            CreateMacro(parent, lang, root, null);
+            CreateMacro(parent, root, null);
         }
 
         /// <summary>
@@ -1025,7 +1023,7 @@ namespace Macro_UI.ViewModel
         /// <param name="lang">The language of the macro</param>
         /// <param name="root">The root of the item's relative future directory</param>
         /// <param name="OnReturn">The Action, and resulting guid of the created macro, to be fired when the task is completed</param>
-        public void CreateMacro(DisplayableTreeViewItem parent, string lang, string root, Action<Guid> OnReturn)
+        public void CreateMacro(DisplayableTreeViewItem parent, string root, Action<Guid> OnReturn)
         {
             if (m_IsCreating)
                 return;
@@ -1057,12 +1055,12 @@ namespace Macro_UI.ViewModel
                     return;
                 }
 
-                if (!item.Header.EndsWith(FileManager.PYTHON_FILE_EXT))
-                    item.Header += FileManager.PYTHON_FILE_EXT;
+                if (!Path.HasExtension(item.Header))
+                    item.Header += MacroEngine.GetFileExt(MacroEngine.GetDefaultRuntime());
 
                 item.Header = Regex.Replace(item.Header, "[^0-9a-zA-Z ._-]", "");
 
-                Guid id = MainWindowViewModel.GetInstance().CreateMacro(lang, root + "/" + item.Header);
+                Guid id = MainWindowViewModel.GetInstance().CreateMacro(root + "/" + item.Header);
                 Rename(parent, item);
 
                 if (id == Guid.Empty)

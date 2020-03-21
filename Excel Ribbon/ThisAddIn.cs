@@ -29,7 +29,6 @@ namespace Excel_Ribbon
                 string code = "print('hello')";
 
 
-
                 IExecutionEngine ipy = MacroEngine.GetExecutionEngine("IronPython 2.7.9.0");
                 System.Diagnostics.Debug.WriteLine(ipy);
                 if(ipy != null)

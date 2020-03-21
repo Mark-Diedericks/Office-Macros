@@ -45,7 +45,7 @@ namespace Macro_UI.View
             ConsoleModel.GetInstance().Output = new TextBoxWriter(txtOutput);
             ConsoleModel.GetInstance().Error = new TextBoxWriter(txtOutput);
 
-            Routing.EventManager.ChangeIO(ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error);
+            Routing.EventManager.ChangeIO(String.Empty, ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error, null);
         }
 
         /// <summary>
