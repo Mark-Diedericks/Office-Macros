@@ -18,6 +18,9 @@ namespace Excel_Ribbon
     {
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
+            if(false)
+                return;
+
             if (Application.ActiveSheet == null)
                 Application.Workbooks.Add();
 
