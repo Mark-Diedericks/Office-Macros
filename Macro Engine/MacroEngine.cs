@@ -128,7 +128,46 @@ namespace Macro_Engine
             Compose();
 
             //Events.OnHostExecute += ExecuteOnHost;
-            Events.SubscribeEvent("OnHostEvent", (Action<DispatcherPriority, Action>)ExecuteOnHost);
+            Events.SubscribeEvent("OnHostExecute", (Action<DispatcherPriority, Action>)ExecuteOnHost);
+            Events.SubscribeEvent("SetIO", (Action<string, TextWriter, TextWriter, TextReader>)SetIOStreams);
+            Events.SubscribeEvent("RibbonLoaded", (Action)LoadRibbonMacros);
+            Events.SubscribeEvent("LoadRibbonMacros", (Action)LoadRibbonMacros);
+            Events.SubscribeEvent("DeleteFolder", (Action<string, Action<bool>>)DeleteFolder);
+            Events.SubscribeEvent("RenameFolder", (Action<string, string, Action<HashSet<Guid>>>)RenameFolder);
+
+            //Macro declarations
+            Events.SubscribeEvent("GetDeclarations", new Action<Action<Dictionary<Guid, MacroDeclaration>>>((r) =>
+            {
+                r.Invoke(GetDeclarations());
+            }));
+            Events.SubscribeEvent("GetDeclaration", new Action<Action<MacroDeclaration>, Guid>((r, p) =>
+            {
+                r.Invoke(GetDeclaration(p));
+            }));
+            Events.SubscribeEvent("SetDeclaration", new Action<Guid, MacroDeclaration>((r, p) =>
+            {
+                SetDeclaration(r, p);
+            }));
+
+            //Macros
+            Events.SubscribeEvent("GetMacros", new Action<Action<Dictionary<Guid, IMacro>>>((r) =>
+            {
+                r.Invoke(GetMacros());
+            }));
+            Events.SubscribeEvent("GetMacro", new Action<Action<IMacro>, Guid>((r, p) =>
+            {
+                r.Invoke(GetMacro(p));
+            }));
+
+            //RelativePath and FileExtension
+            Events.SubscribeEvent("GetIDFromRelativePath", new Action<Action<Guid>, string>((r, p) =>
+            {
+                r.Invoke(GetIDFromRelativePath(p));
+            }));
+            Events.SubscribeEvent("GetIDFromRelativePath", new Action<Action<string>>((r) =>
+            {
+                r.Invoke(GetFileExt(GetDefaultRuntime()));
+            }));
 
             m_FileManager = new FileManager();
 
@@ -171,7 +210,8 @@ namespace Macro_Engine
                     GetInstance().m_Macros.Add(id, pair.Value);
                 }
 
-                Events.OnMacroCountChangedInvoke();
+                //Events.OnMacroCountChangedInvoke();
+                Events.InvokeEvent("OnMacroCountChanged");
 
                 //Get the active macro
                 if (!String.IsNullOrEmpty(state.ActiveMacro))
@@ -185,11 +225,14 @@ namespace Macro_Engine
                 else
                     GetInstance().m_Assemblies = new HashSet<AssemblyDeclaration>();
 
-                Events.OnAssembliesChangedInvoke();
+                //Events.OnAssembliesChangedInvoke();
+                Events.InvokeEvent("OnAssembliesChanged");
 
                 hostDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                     OnLoaded?.Invoke();
-                    Events.OnLoadedInvoke();
+
+                    //Events.OnLoadedInvoke();
+                    Events.InvokeEvent("OnLoaded");
                 }));
             }, cts.Token);
 
@@ -201,7 +244,8 @@ namespace Macro_Engine
         /// </summary>
         public static void Destroy()
         {
-            Events.OnDestroyedInvoke();
+            //Events.OnDestroyedInvoke();
+            Events.InvokeEvent("OnDestroyed");
         }
 
         #endregion
@@ -343,7 +387,7 @@ namespace Macro_Engine
         /// <param name="output">TextWriter for ouput stream</param>
         /// <param name="error">TextWriter for error stream</param>
         /// <param name="input">TextReader for inputstream</param>
-        public static void SetIOStreams(string runtime, TextWriter output, TextWriter error, TextReader input = null)
+        public static void SetIOStreams(string runtime, TextWriter output, TextWriter error, TextReader input)
         {
             IExecutionEngineIO manager = new ExecutionEngineIO().SetStreams(output, error, input);
 
@@ -357,7 +401,8 @@ namespace Macro_Engine
             else
                 GetInstance().m_IOManagers.Add(runtime, manager);
 
-           Events.OnIOChangedInvoke(runtime, GetInstance().m_IOManagers[runtime]);
+            //Events.OnIOChangedInvoke(runtime, manager);
+            Events.InvokeEvent("OnIOChanged", new object[] { runtime, manager });
         }
 
         /// <summary>
@@ -430,7 +475,8 @@ namespace Macro_Engine
             MacroDeclaration md = GetInstance().m_Declarations[id];
             IMacro macro = GetInstance().m_Macros[id];
 
-            Events.AddRibbonMacro(id, md.Name, md.RelativePath, () => macro.Execute(null, false));
+            //Events.AddRibbonMacro(id, md.Name, md.RelativePath, () => macro.Execute(null, false));
+            Events.InvokeEvent("AddRibbonMacro", new object[] { id, md.Name, md.RelativePath, new Action(() => macro.Execute(null, false)) });
         }
 
         /// <summary>
@@ -440,7 +486,8 @@ namespace Macro_Engine
         public static void RemoveRibbonMacro(Guid id)
         {
             GetInstance().m_RibbonMacros.Remove(id);
-            Events.RemoveRibbonMacro(id);
+            //Events.RemoveRibbonMacro(id);
+            Events.InvokeEvent("RemoveRibbonMacro", new object[] { id });
         }
 
         /// <summary>
@@ -452,7 +499,8 @@ namespace Macro_Engine
             GetInstance().m_RibbonMacros.Add(id);
 
             MacroDeclaration md = GetInstance().m_Declarations[id];
-            Events.RenameRibbonMacro(id, md.Name, md.RelativePath);
+            //Events.RenameRibbonMacro(id, md.Name, md.RelativePath);
+            Events.InvokeEvent("RenameRibbonMacro", new object[] { id, md.Name, md.RelativePath });
         }
 
         #endregion
@@ -466,7 +514,8 @@ namespace Macro_Engine
         public static void AddAssembly(AssemblyDeclaration ad)
         {
             GetInstance().m_Assemblies.Add(ad);
-            Events.OnAssembliesChangedInvoke();
+            //Events.OnAssembliesChangedInvoke();
+            Events.InvokeEvent("OnAssembliesChanged");
         }
 
         /// <summary>
@@ -476,7 +525,8 @@ namespace Macro_Engine
         public static void RemoveAssembly(AssemblyDeclaration ad)
         {
             GetInstance().m_Assemblies.Remove(ad);
-            Events.OnAssembliesChangedInvoke();
+            //Events.OnAssembliesChangedInvoke();
+            Events.InvokeEvent("OnAssembliesChanged");
         }
 
         /// <summary>
@@ -598,7 +648,8 @@ namespace Macro_Engine
 
             GetInstance().m_Declarations.Add(id, declaration);
             GetInstance().m_Macros.Add(id, macro);
-            Events.OnMacroCountChangedInvoke();
+            //Events.OnMacroCountChangedInvoke();
+            Events.InvokeEvent("OnMacroCountChanged");
 
             return id;
         }
@@ -610,7 +661,8 @@ namespace Macro_Engine
         public static void RemoveMacro(Guid id)
         {
             GetInstance().m_Macros.Remove(id);
-            Events.OnMacroCountChangedInvoke();
+            //Events.OnMacroCountChangedInvoke();
+            Events.InvokeEvent("OnMacroCountChanged");
         }
 
         /// <summary>
@@ -632,7 +684,8 @@ namespace Macro_Engine
             macro.Rename(newname);
             macro.Save();
 
-            Events.OnMacroRenamedInvoke(id);
+            //Events.OnMacroRenamedInvoke(id);
+            Events.InvokeEvent("OnMacroRenamed", new object[] { id });
         }
 
         /// <summary>
@@ -641,7 +694,7 @@ namespace Macro_Engine
         /// <param name="olddir">The folder's current relative path</param>
         /// <param name="newdir">The folder's desired relative path</param>
         /// <returns>A list (HashSet) of ids of effected macros</returns>
-        public static HashSet<Guid> RenameFolder(string olddir, string newdir)
+        public static void RenameFolder(string olddir, string newdir, Action<HashSet<Guid>> OnReturn)
         {
             HashSet<Guid> affectedMacros = new HashSet<Guid>();
 
@@ -657,7 +710,7 @@ namespace Macro_Engine
                 }
             }
 
-            return affectedMacros;
+            OnReturn.Invoke(affectedMacros);
         }
 
         /// <summary>
@@ -706,7 +759,8 @@ namespace Macro_Engine
         /// </summary>
         public static void FireShowEvent()
         {
-            Events.OnShownInvoke();
+            //Events.OnShownInvoke();
+            Events.InvokeEvent("OnShown");
         }
 
         /// <summary>
@@ -714,7 +768,8 @@ namespace Macro_Engine
         /// </summary>
         public static void FireFocusEvent()
         {
-            Events.OnFocusedInvoke();
+            //Events.OnFocusedInvoke();
+            Events.InvokeEvent("OnFocused");
         }
 
         /// <summary>
@@ -722,7 +777,8 @@ namespace Macro_Engine
         /// </summary>
         public static void FireHideEvent()
         {
-            Events.OnHiddenInvoke();
+            //Events.OnHiddenInvoke();
+            Events.InvokeEvent("OnHidden");
         }
 
         /// <summary>
@@ -731,7 +787,8 @@ namespace Macro_Engine
         /// <param name="enabled">Whether or not the host should be set as interactive</param>
         public static void SetInteractive(bool enabled)
         {
-            Events.SetInteractive(enabled);
+            //Events.SetInteractive(enabled);
+            Events.InvokeEvent("SetInteractive", new object[] { enabled });
         }
 
         #endregion

@@ -43,7 +43,9 @@ namespace Macro_UI.View
             InitializeComponent();
 
             ThemeChanged();
-            Routing.EventManager.ThemeChangedEvent += ThemeChanged;
+
+            Events.SubscribeEvent("ThemeChanged", (Action)ThemeChanged);
+            //Routing.EventManager.ThemeChangedEvent += ThemeChanged;
         }
         
         private ResourceDictionary ThemeDictionary

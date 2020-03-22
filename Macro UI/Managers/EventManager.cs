@@ -26,11 +26,8 @@ namespace Macro_UI.Routing
 {
     public class EventManager
     {
-        public delegate void ClearIOEvent();
+        /*public delegate void ClearIOEvent();
         public event ClearIOEvent ClearAllIOEvent;
-
-        public delegate void IOChangeEvent(string runtime, TextWriter output, TextWriter error, TextReader input);
-        public event IOChangeEvent IOChangedEvent;
 
         public delegate void MacroAddEvent(Guid id, string macroName, string macroPath, Action macroClickEvent);
         public event MacroAddEvent AddRibbonMacroEvent;
@@ -45,12 +42,6 @@ namespace Macro_UI.Routing
         public static event LoadEvent ApplicationLoadedEvent;
         public static event LoadEvent RibbonLoadedEvent;
         private event LoadEvent ShutdownEvent;
-        
-        public delegate void InputMessageEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult);
-        public event InputMessageEvent DisplayInputMessageEvent;
-
-        public delegate object InputMessageReturnEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type);
-        public event InputMessageReturnEvent DisplayInputMessageReturnEvent;
 
         public delegate void SetEnabled(bool enabled);
         public event SetEnabled SetInteractiveEvent;
@@ -59,7 +50,13 @@ namespace Macro_UI.Routing
         public static event ThemeEvent ThemeChangedEvent;
 
         public delegate void DocumentEvent(DocumentViewModel vm);
-        public static event DocumentEvent DocumentChangedEvent;
+        public static event DocumentEvent DocumentChangedEvent;*/
+
+        public delegate void InputMessageEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult);
+        public event InputMessageEvent DisplayInputMessageEvent;
+
+        public delegate object InputMessageReturnEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type);
+        public event InputMessageReturnEvent DisplayInputMessageReturnEvent;
 
         private static App s_UIApp;
 
@@ -113,8 +110,6 @@ namespace Macro_UI.Routing
         {
             new EventManager();
 
-            RibbonLoadedEvent += MacroEngine.LoadRibbonMacros;
-
             string[] workspaces = new string[] { Path.GetFullPath(Files.AssemblyDirectory + "/Macros/") };
             HostState state = new HostState(workspaces, RibbonMacros, Properties.Settings.Default.ActiveMacro, Properties.Settings.Default.IncludedLibraries);
 
@@ -123,9 +118,14 @@ namespace Macro_UI.Routing
 
             CancellationTokenSource cts = MacroEngine.Instantiate(dispatcher, state, new Action(() =>
             {
-                Events.OnFocused += WindowFocusEvent;
-                Events.OnShown += WindowShowEvent;
-                Events.OnHidden += WindowHideEvent;
+                //Events.OnFocused += WindowFocusEvent;
+                //Events.OnShown += WindowShowEvent;
+                //Events.OnHidden += WindowHideEvent;
+
+                Events.SubscribeEvent("OnFocused", (Action)FocusWindow);
+                Events.SubscribeEvent("OnShown", (Action)ShowWindow);
+                Events.SubscribeEvent("OnHidden", (Action)HideWindow);
+
 
                 Messages.DisplayOkMessageEvent += DisplayOkMessage;
                 Messages.DisplayYesNoMessageEvent += DisplayYesNoMessage;
@@ -134,25 +134,34 @@ namespace Macro_UI.Routing
                 Messages.DisplayInputMessageEvent += EventManager_DisplayInputMessageEvent;
                 Messages.DisplayInputMessageReturnEvent += EventManager_DisplayInputMessageReturnEvent;
 
-                Events.ClearAllIOEvent += ClearAllIO;
-                Events.AddRibbonMacroEvent += GetInstance().AddMacro;
-                Events.RemoveRibbonMacroEvent += GetInstance().RemoveMacro;
-                Events.RenameRibbonMacroEvent += GetInstance().RenameMacro;
-                
-                Events.SetInteractiveEvent += (enabled) => 
-                {
-                    GetInstance().SetInteractiveEvent?.Invoke(enabled);
-                };
 
-                GetInstance().IOChangedEvent += MacroEngine.SetIOStreams;
+                //Events.ClearAllIOEvent += ClearAllIO;
+                //Events.AddRibbonMacroEvent += GetInstance().AddMacro;
+                //Events.RemoveRibbonMacroEvent += GetInstance().RemoveMacro;
+                //Events.RenameRibbonMacroEvent += GetInstance().RenameMacro;
+
+                //Events.SubscribeEvent("ClearAllIO", (Action)ClearAllIO);
+                //Events.SubscribeEvent("AddRibbonMacro", (Action<Guid, string, string, Action>)GetInstance().AddMacro);
+                //Events.SubscribeEvent("RemoveRibbonMacro", (Action<Guid>)GetInstance().RemoveMacro);
+                //Events.SubscribeEvent("RenameRibbonMacro", (Action<Guid, string, string>)GetInstance().RenameMacro);
+
+                //Events.SubscribeEvent("SetInteractive", new Action<bool>((enabled) => 
+                //{
+                //    GetInstance().SetInteractiveEvent?.Invoke(enabled);
+                //}));
+
+                //GetInstance().IOChangedEvent += MacroEngine.SetIOStreams;
+                //GetInstance().IOChangedEvent += delegate(string runtime, TextWriter output, TextWriter error, TextReader input) 
+                //{ Events.InvokeEvent("SetIO", new object[] { runtime, output, error, input}); };
 
                 if (s_IsRibbonLoaded)
-                    MacroEngine.LoadRibbonMacros();
+                    Events.InvokeEvent("LoadRibbonMacros");
 
-                LoadCompleted();
+                s_IsLoaded = true;
+                Events.InvokeEvent("ApplicationLoaded");
             }));
 
-            GetInstance().ShutdownEvent += () =>
+            Events.SubscribeEvent("Shutdown", new Action(() =>
             {
                 try
                 {
@@ -196,31 +205,11 @@ namespace Macro_UI.Routing
                 {
                     s_UIApp.Shutdown();
                 }
-            };
+            }));
 
             s_UIApp.Run();
         }
 
-        #region UI Events
-
-        /// <summary>
-        /// Fires ThemeChanged event
-        /// </summary>
-        public static void ThemeChanged()
-        {
-            ThemeChangedEvent?.Invoke();
-        }
-
-        /// <summary>
-        /// Fires DocumentChanged event
-        /// </summary>
-        /// <param name="document"></param>
-        public static void DocumentChanged(DocumentViewModel document)
-        {
-            DocumentChangedEvent?.Invoke(document);
-        }
-
-        #endregion
 
         #region Main to UI to Excel Events
 
@@ -263,17 +252,9 @@ namespace Macro_UI.Routing
         #region Excel to UI Events
 
         /// <summary>
-        /// Fires Shutdown Event
-        /// </summary>
-        public void Shutdown()
-        {
-            GetInstance().ShutdownEvent?.Invoke();
-        }
-
-        /// <summary>
         /// Shows the main window
         /// </summary>
-        public void MacroEditorClickEvent()
+        public void MacroEditorClick()
         {
             if (MainWindowViewModel.GetInstance() == null || MainWindow.GetInstance() == null)
                 return;
@@ -287,7 +268,7 @@ namespace Macro_UI.Routing
         /// <summary>
         /// Shows the main window and creates new textual macro
         /// </summary>
-        public void NewMacroClickEvent()
+        public void NewMacroClick()
         {
             if (MainWindowViewModel.GetInstance() == null || MainWindow.GetInstance() == null)
                 return;
@@ -314,68 +295,14 @@ namespace Macro_UI.Routing
             });
         }
 
-        /// <summary>
-        /// Fires RibbonLoaded event
-        /// </summary>
-        public static void MacroRibbonLoaded()
-        {
-            s_IsRibbonLoaded = true;
-            RibbonLoadedEvent?.Invoke();
-        }
-
         #endregion
 
-        #region Main to Ribbon Events
-
-        /// <summary>
-        /// Fires AddMacro event
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="macroName"></param>
-        /// <param name="macroPath"></param>
-        /// <param name="OnClick"></param>
-        public void AddMacro(Guid id, string macroName, string macroPath, Action OnClick)
-        {
-            AddRibbonMacroEvent?.Invoke(id, macroName, macroPath, OnClick);
-        }
-
-        /// <summary>
-        /// Fires RemoveMacro event
-        /// </summary>
-        /// <param name="id"></param>
-        public void RemoveMacro(Guid id)
-        {
-            RemoveRibbonMacroEvent?.Invoke(id);
-        }
-
-        /// <summary>
-        /// Fires RenameMacro event
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="macroName"></param>
-        /// <param name="macroPath"></param>
-        public void RenameMacro(Guid id, string macroName, string macroPath)
-        {
-            RenameRibbonMacroEvent?.Invoke(id, macroName, macroPath);
-        }
-
-        /// <summary>
-        /// Fires ApplicationLoaded event
-        /// </summary>
-        public static void LoadCompleted()
-        {
-            s_IsLoaded = true;
-            ApplicationLoadedEvent?.Invoke();
-        }
-
-        #endregion
-
-        #region Main to UI Events
+        #region Main to UI
         
         /// <summary>
         /// Focuses main window
         /// </summary>
-        public static void WindowFocusEvent()
+        public static void FocusWindow()
         {
             MainWindowViewModel.GetInstance().TryFocus();
         }
@@ -383,7 +310,7 @@ namespace Macro_UI.Routing
         /// <summary>
         /// Shows main window
         /// </summary>
-        public static void WindowShowEvent()
+        public static void ShowWindow()
         {
             MainWindowViewModel.GetInstance().ShowWindow();
         }
@@ -391,7 +318,7 @@ namespace Macro_UI.Routing
         /// <summary>
         /// Hides main window
         /// </summary>
-        public static void WindowHideEvent()
+        public static void HideWindow()
         {
             MainWindowViewModel.GetInstance().HideWindow();
         }
@@ -440,24 +367,6 @@ namespace Macro_UI.Routing
         public static void DisplayYesNoCancelMessage(string message, string caption, string aux, Action<MessageDialogResult> OnReturn)
         {
             MainWindowViewModel.GetInstance().DisplayYesNoCancelMessage(message, caption, aux, OnReturn);
-        }
-        
-        /// <summary>
-        /// Fires ClearAllIO event
-        /// </summary>
-        public static void ClearAllIO()
-        {
-            GetInstance().ClearAllIOEvent?.Invoke();
-        }
-
-        /// <summary>
-        /// Fires IOChange event
-        /// </summary>
-        /// <param name="output">TextWriter for output stream</param>
-        /// <param name="error">TextWriter for error stream</param>
-        public static void ChangeIO(string runtime, TextWriter output, TextWriter error, TextReader input)
-        {
-            GetInstance().IOChangedEvent?.Invoke(runtime, output, error, input);
         }
 
         #endregion

@@ -23,14 +23,13 @@ namespace Excel_Ribbon
         {
             Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
 
-            m_Thread = new Thread(() =>
-            {
+            m_Thread = new Thread(() => {
                 Macro_UI.Routing.EventManager.CreateApplicationInstance(dispatcher, new string[] { });
             });
 
-            Macro_UI.Routing.EventManager.ApplicationLoadedEvent += delegate () {
-                Macro_UI.Routing.EventManager.WindowShowEvent();
-            };
+            Events.SubscribeEvent("ApplicationLoaded", new System.Action(() => {
+                Macro_UI.Routing.EventManager.ShowWindow();
+            }));
 
             m_Thread.SetApartmentState(ApartmentState.STA);
             m_Thread.IsBackground = true;
@@ -68,7 +67,7 @@ namespace Excel_Ribbon
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
-            Macro_UI.Routing.EventManager.GetInstance().Shutdown();
+            Events.InvokeEvent("Shutdown");
 
             try
             {

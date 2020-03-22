@@ -61,7 +61,9 @@ namespace Macro_UI.ViewModel
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         public override void Stop(Action OnComplete)
         {
-            Events.OnTerminateExecutionInvoke();
+            //Events.OnTerminateExecutionInvoke();
+            Events.InvokeEvent("OnTerminateExecution");
+
             base.Stop(null);
         }
 

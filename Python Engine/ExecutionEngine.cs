@@ -55,7 +55,7 @@ namespace Python_Engine
             m_IOManager = null;
 
             //Reset IO streams of ScriptEngine if they're changed
-            Events.OnIOChanged += (runtime, manager) =>
+            Events.SubscribeEvent("OnIOChanged", new Action<string, IExecutionEngineIO>((runtime, manager) =>
             {
                 if (!string.Equals(runtime, Runtime, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(runtime))
                     return;
@@ -66,10 +66,10 @@ namespace Python_Engine
                 //Console.SetOut(m_IOManager.GetOutput());
                 //Console.SetError(m_IOManager.GetError());
                 //Console.SetIn(m_IOManager.GetInput());
-            };
+            }));
 
             //End running tasks if program is exiting
-            Events.OnDestroyed += delegate ()
+            Events.SubscribeEvent("OnDestroyed", new Action(() =>
             {
                 if (m_BackgroundWorker != null)
                     m_BackgroundWorker.CancelAsync();
@@ -80,9 +80,9 @@ namespace Python_Engine
                     m_ScriptScope = null;
                 }
                 PythonEngine.Shutdown();
-            };
+            }));
 
-            Events.OnTerminateExecution += TerminateExecution;
+            Events.SubscribeEvent("OnTerminateExecution", (Action)TerminateExecution);
         }
 
         public string GetLabel()
@@ -184,7 +184,7 @@ namespace Python_Engine
         /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
         private void ExecuteSourceSynchronous(string source, Action OnCompletedAction)
         {
-            Events.OnHostExecuteInvoke(DispatcherPriority.Normal, new Action(() =>
+            Events.InvokeEvent("OnHostExecute", new object[] { DispatcherPriority.Normal, new Action(() =>
             {
                 int profileID = -1;
                 profileID = Utilities.BeginProfileSession();
@@ -202,7 +202,7 @@ namespace Python_Engine
 
                 m_IsExecuting = false;
                 OnCompletedAction?.Invoke();
-            }));
+            }) });
         }
 
         /// <summary>

@@ -42,7 +42,8 @@ namespace Macro_UI.View
             InitializeComponent();
 
             DataContextChanged += SettingsMenuView_DataContextChanged;
-            Routing.EventManager.ThemeChangedEvent += ThemeChangedEvent;
+            Events.SubscribeEvent("ThemeChanged", (Action)ThemeChangedEvent);
+            //Routing.EventManager.ThemeChangedEvent += ThemeChangedEvent;
         }
 
 

@@ -636,8 +636,9 @@ namespace Macro_UI.ViewModel
                         Properties.Settings.Default.Theme = name.Trim();
                         Properties.Settings.Default.Save();
                     }
-                    
-                    Routing.EventManager.ThemeChanged();
+
+                    //Routing.EventManager.ThemeChanged();
+                    Events.InvokeEvent("ThemeChanged");
 
                     InvokeWindow(() => ContextMenuThemeChange());
 
@@ -1259,14 +1260,15 @@ namespace Macro_UI.ViewModel
         }
 
         /// <summary>
-        /// Create a macro
+        /// Create a new macro
         /// </summary>
-        /// <param name="lang">The language of macro</param>
         /// <param name="relativepath">The relativepath of the macro</param>
+        /// <param name="OnReturn">The Action, and Guid of the new macro, which is fired when the task is completed</param>
         /// <returns>Guid of the macro</returns>
-        public Guid CreateMacro(string relativepath)
+        public void CreateMacro(string relativepath, Action<Guid> OnReturn)
         {
-            return FileManager.CreateMacro(relativepath);
+            //return FileManager.CreateMacro(relativepath);
+            Events.InvokeEvent("CreateMacro", new object[] { OnReturn, relativepath });
         }
 
         /// <summary>
@@ -1276,7 +1278,8 @@ namespace Macro_UI.ViewModel
         /// <param name="OnReturn">The Action, and Guid of the new macro, which is fired when the task is completed</param>
         public void ImportMacro(string relativepath, Action<Guid> OnReturn)
         {
-            FileManager.ImportMacro(relativepath, OnReturn);
+            //FileManager.ImportMacro(relativepath, OnReturn);
+            Events.InvokeEvent("ImportMacro", new object[] { OnReturn, relativepath });
         }
 
         /// <summary>

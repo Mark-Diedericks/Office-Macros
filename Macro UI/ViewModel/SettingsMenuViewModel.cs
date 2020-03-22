@@ -35,11 +35,16 @@ namespace Macro_UI.ViewModel
         {
             s_Instance = this;
             Model = new SettingsMenuModel();
-            Routing.EventManager.ThemeChangedEvent += ThemeChanged;
+
+            Events.SubscribeEvent("ThemeChanged", (Action)ThemeChanged);
+            //Routing.EventManager.ThemeChangedEvent += ThemeChanged;
+
             PreviousTheme = MainWindowViewModel.GetInstance().ActiveTheme.Name;
             LoadColors();
 
-            Events.OnAssembliesChanged += LoadAssemblies;
+            //Events.OnAssembliesChanged += LoadAssemblies;
+            Events.SubscribeEvent("OnAssembliesChanged", (Action)LoadAssemblies);
+
             LoadAssemblies();
         }
 
@@ -142,16 +147,16 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void AddLibrary()
         {
-            string path = FileManager.ImportAssembly();
+            Events.InvokeEvent("ImportAssembly", new object[] { new Action<string>((path) => {
+                if (path == String.Empty)
+                    return;
 
-            if (path == String.Empty)
-                return;
+                string name = System.Reflection.Assembly.LoadFrom(path).FullName;
 
-            string name = System.Reflection.Assembly.LoadFrom(path).FullName;
+                AssemblyDeclaration ad = new AssemblyDeclaration(name, path, false);
 
-            AssemblyDeclaration ad = new AssemblyDeclaration(name, path, false);
-
-            MacroEngine.AddAssembly(ad);
+                MacroEngine.AddAssembly(ad);
+            }) });
         }
 
         #endregion

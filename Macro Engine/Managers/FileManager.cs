@@ -16,6 +16,29 @@ namespace Macro_Engine
             return MacroEngine.GetFileManager();
         }
 
+        public FileManager()
+        {
+            Events.SubscribeEvent("CreateFolder", new Action<Action<bool>, string>((r, p) =>
+            {
+                r.Invoke(CreateFolder(p));
+            }));
+
+            Events.SubscribeEvent("ImportAssembly", new Action<Action<string>>((r) =>
+            {
+                r.Invoke(ImportAssembly());
+            }));
+
+            Events.SubscribeEvent("CreateMacro", new Action<Action<Guid>, string>((r, p) =>
+            {
+                r.Invoke(CreateMacro(p));
+            }));
+
+            Events.SubscribeEvent("ImportMacro", new Action<Action<Guid>, string>((r, p) =>
+            {
+                ImportMacro(p, r);
+            }));
+        }
+
         #region MACRO_LOADING
 
         /// <summary>

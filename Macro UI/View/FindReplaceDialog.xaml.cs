@@ -23,6 +23,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Macro_Engine;
 
 namespace Macro_UI.View
 {
@@ -57,7 +58,8 @@ namespace Macro_UI.View
             cbWildcards.IsChecked = useWildcards;
             cbSearchUp.IsChecked = searchUp;
 
-            Routing.EventManager.ThemeChangedEvent += ThemeChangedEvent;
+            Events.SubscribeEvent("ThemeChanged", (Action)ThemeChangedEvent);
+            //Routing.EventManager.ThemeChangedEvent += ThemeChangedEvent;
             ThemeChangedEvent();
         }
 

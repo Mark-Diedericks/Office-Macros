@@ -5,6 +5,7 @@
  * Console view
  */
 
+using Macro_Engine;
 using Macro_UI.Model;
 using Macro_UI.Utilities;
 using Macro_UI.ViewModel;
@@ -37,15 +38,17 @@ namespace Macro_UI.View
         {
             InitializeComponent();
 
-            Routing.EventManager.GetInstance().ClearAllIOEvent += () =>
+            //Routing.EventManager.GetInstance().ClearAllIOEvent += () =>
+            Events.SubscribeEvent("ClearAllIO", new Action(() =>
             {
                 txtOutput.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => txtOutput.Clear()));
-            };
+            }));
 
             ConsoleModel.GetInstance().Output = new TextBoxWriter(txtOutput);
             ConsoleModel.GetInstance().Error = new TextBoxWriter(txtOutput);
 
-            Routing.EventManager.ChangeIO(String.Empty, ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error, null);
+            //Routing.EventManager.ChangeIO(String.Empty, ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error, null);
+            Events.InvokeEvent("SetIO", new object[] { String.Empty, ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error, null });
         }
 
         /// <summary>

@@ -52,7 +52,6 @@
     <Compile Include="Macros\IMacro.cs" />
     <Compile Include="Macros\MacroDeclaration.cs" />
     <Compile Include="Program\Files.cs" />
-    <Compile Include="Program\MEvents.cs" />
     <Compile Include="Program\Events.cs" />
     <Compile Include="Program\HostState.cs" />
     <Compile Include="Program\Messages.cs" />

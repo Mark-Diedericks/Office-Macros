@@ -36,19 +36,47 @@ namespace Macro_Engine
 
         public static void SubscribeEvent(string name, Delegate callback)
         {
-            if (Instance.m_Events.ContainsKey(name))
-                Instance.m_Events[name] = Delegate.Combine(Instance.m_Events[name], callback);
-            else
-                Instance.m_Events.Add(name, callback);
+            try
+            {
+                if (Instance.m_Events.ContainsKey(name))
+                    Instance.m_Events[name] = Delegate.Combine(Instance.m_Events[name], callback);
+                else
+                    Instance.m_Events.Add(name, callback);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
+        }
+        public static void UnsubscribeEvent(string name, Delegate callback)
+        {
+            try
+            {
+                if (Instance.m_Events.ContainsKey(name))
+                    Instance.m_Events[name] = Delegate.Remove(Instance.m_Events[name], callback);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
         }
 
         public static void InvokeEvent(string name, object[] args = null)
         {
-            if (args == null)
-                args = new object[] { };
+            try
+            {
+                if (args == null)
+                    args = new object[] { };
 
-            if (Instance.m_Events.ContainsKey(name))
-                Instance.m_Events[name]?.DynamicInvoke(args);
+                if (Instance.m_Events.ContainsKey(name))
+                    Instance.m_Events[name]?.DynamicInvoke(args);
+                else
+                    System.Diagnostics.Debug.WriteLine("Tried to invoke non-existent event: " + name);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
         }
     }
 }
