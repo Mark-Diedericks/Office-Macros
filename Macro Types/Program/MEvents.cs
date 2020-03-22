@@ -1,138 +1,143 @@
-﻿using System;
+﻿using Macro_Engine.Engine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace Macro_Engine
 {
-    public class EventManager
+    public class MEvents
     {
-        public static EventManager GetInstance()
-        {
-            return MacroEngine.GetEventManager();
-        }
-
-        #region MacroEngine events
-        #region Events
+        /*
+        #region MacroEngine Events
 
         //OnLoaded event, for all Forms and GUIs
         public delegate void OnLoadedEvent();
-        public event OnLoadedEvent OnLoaded;
+        public static event OnLoadedEvent OnLoaded;
 
         //OnDestroyed event, for all Forms and GUIs
         public delegate void DestroyEvent();
-        public event DestroyEvent OnDestroyed;
+        public static event DestroyEvent OnDestroyed;
 
         //OnFocused event, for all Forms and GUIs
         public delegate void FocusEvent();
-        public event FocusEvent OnFocused;
+        public static event FocusEvent OnFocused;
 
         //OnShown event, for all Forms and GUIs
         public delegate void ShowEvent();
-        public event ShowEvent OnShown;
+        public static event ShowEvent OnShown;
 
         //OnHidden event, for all Forms and GUIs
         public delegate void HideEvent();
-        public event HideEvent OnHidden;
+        public static event HideEvent OnHidden;
 
         //OnIOChanged event, for all Forms and GUIs
-        public delegate void IOChangedEvent();
-        public event IOChangedEvent OnIOChanged;
+        public delegate void IOChangedEvent(string runtime, IExecutionEngineIO manager);
+        public static event IOChangedEvent OnIOChanged;
 
-        //OnLoaded event, for all Forms and GUIs
+        //OnHostExecute event, for executing macros synchronously 
+        public delegate void OnHostExecuteEvent(DispatcherPriority priority, Action task);
+        public static event OnHostExecuteEvent OnHostExecute;
+
+        //OnTerminateExecution event, for all macros
         public delegate void TerminateExecutionEvent();
-        public event TerminateExecutionEvent OnTerminateExecution;
+        public static event TerminateExecutionEvent OnTerminateExecution;
 
         //OnAssembliesChanged event, for all Forms and GUIs
         public delegate void AssembliesChangedEvent();
-        public event AssembliesChangedEvent OnAssembliesChanged;
+        public static event AssembliesChangedEvent OnAssembliesChanged;
 
         //OnMacroCountChanged event, for all Forms and GUIs
         public delegate void MacroCountChangedEvent();
-        public event MacroCountChangedEvent OnMacroCountChanged;
+        public static event MacroCountChangedEvent OnMacroCountChanged;
 
         //MacroRenamed event, for all Forms and GUIs
         public delegate void MacroRenameEvent(Guid id);
-        public event MacroRenameEvent OnMacroRenamed;
+        public static event MacroRenameEvent OnMacroRenamed;
 
         #endregion
 
-        #region Event Firing
+        #region Update host UI Events
+
+        public delegate void ClearIOEvent();
+        public static event ClearIOEvent ClearAllIOEvent;
+
+        public delegate void MacroAddEvent(Guid id, string macroName, string macroPath, Action macroClickEvent);
+        public static event MacroAddEvent AddRibbonMacroEvent;
+
+        public delegate void MacroRemoveEvent(Guid id);
+        public static event MacroRemoveEvent RemoveRibbonMacroEvent;
+
+        public delegate void MacroEditEvent(Guid id, string macroName, string macroPath);
+        public static event MacroEditEvent RenameRibbonMacroEvent;
+
+        public delegate void SetEnabled(bool enabled);
+        public static event SetEnabled SetInteractiveEvent;
+
+        #endregion
+
+        #region Event Firing MacroEngine
 
         public static void OnLoadedInvoke()
         {
-            GetInstance().OnLoaded?.Invoke();
+            OnLoaded?.Invoke();
         }
 
         public static void OnDestroyedInvoke()
         {
-            GetInstance().OnDestroyed?.Invoke();
+            OnDestroyed?.Invoke();
         }
 
         public static void OnFocusedInvoke()
         {
-            GetInstance().OnFocused?.Invoke();
+            OnFocused?.Invoke();
         }
 
         public static void OnShownInvoke()
         {
-            GetInstance().OnShown?.Invoke();
+            OnShown?.Invoke();
         }
 
         public static void OnHiddenInvoke()
         {
-            GetInstance().OnHidden?.Invoke();
+            OnHidden?.Invoke();
         }
 
-        public static void OnIOChangedInvoke()
+        public static void OnIOChangedInvoke(string runtime, IExecutionEngineIO manager)
         {
-            GetInstance().OnIOChanged?.Invoke();
+            OnIOChanged?.Invoke(runtime, manager);
+        }
+
+        public static void OnHostExecuteInvoke(DispatcherPriority priority, Action task)
+        {
+            OnHostExecute?.Invoke(priority, task);
         }
 
         public static void OnAssembliesChangedInvoke()
         {
-            GetInstance().OnAssembliesChanged?.Invoke();
+            OnAssembliesChanged?.Invoke();
         }
 
         public static void OnMacroCountChangedInvoke()
         {
-            GetInstance().OnMacroCountChanged?.Invoke();
+            OnMacroCountChanged?.Invoke();
         }
 
         public static void OnMacroRenamedInvoke(Guid id)
         {
-            GetInstance().OnMacroRenamed?.Invoke(id);
+            OnMacroRenamed?.Invoke(id);
         }
 
         public static void OnTerminateExecutionInvoke()
         {
-            GetInstance().OnTerminateExecution?.Invoke();
+            OnTerminateExecution?.Invoke();
         }
 
         #endregion
-        #endregion
 
-        #region Update host UI
-        #region Events
-        public delegate void ClearIOEvent();
-        public event ClearIOEvent ClearAllIOEvent;
-
-        public delegate void MacroAddEvent(Guid id, string macroName, string macroPath, Action macroClickEvent);
-        public event MacroAddEvent AddRibbonMacroEvent;
-
-        public delegate void MacroRemoveEvent(Guid id);
-        public event MacroRemoveEvent RemoveRibbonMacroEvent;
-
-        public delegate void MacroEditEvent(Guid id, string macroName, string macroPath);
-        public event MacroEditEvent RenameRibbonMacroEvent;
-
-        public delegate void SetEnabled(bool enabled);
-        public event SetEnabled SetInteractiveEvent;
-
-        #endregion
-
-        #region Event Firing
+        #region Event Firing Host UI
 
         /// <summary>
         /// Fires SetExcelIneractive event
@@ -140,7 +145,7 @@ namespace Macro_Engine
         /// <param name="enabled">Whether or not Excel should be set as interactive</param>
         public static void SetInteractive(bool enabled)
         {
-            GetInstance().SetInteractiveEvent?.Invoke(enabled);
+            SetInteractiveEvent?.Invoke(enabled);
         }
 
         /// <summary>
@@ -152,7 +157,7 @@ namespace Macro_Engine
         /// <param name="macroClickEvent">Event callback for when the macro is clicked</param>
         public static void AddRibbonMacro(Guid id, string macroName, string macroPath, Action macroClickEvent)
         {
-            GetInstance().AddRibbonMacroEvent?.Invoke(id, macroName, macroPath, macroClickEvent);
+            AddRibbonMacroEvent?.Invoke(id, macroName, macroPath, macroClickEvent);
         }
 
         /// <summary>
@@ -161,7 +166,7 @@ namespace Macro_Engine
         /// <param name="id">The macro's id</param>
         public static void RemoveRibbonMacro(Guid id)
         {
-            GetInstance().RemoveRibbonMacroEvent?.Invoke(id);
+            RemoveRibbonMacroEvent?.Invoke(id);
         }
 
         /// <summary>
@@ -172,7 +177,7 @@ namespace Macro_Engine
         /// <param name="macroPath">The macro's relative path</param>
         public static void RenameRibbonMacro(Guid id, string macroName, string macroPath)
         {
-            GetInstance().RenameRibbonMacroEvent?.Invoke(id, macroName, macroPath);
+            RenameRibbonMacroEvent?.Invoke(id, macroName, macroPath);
         }
 
         /// <summary>
@@ -180,10 +185,10 @@ namespace Macro_Engine
         /// </summary>
         public static void ClearAllIO()
         {
-            GetInstance().ClearAllIOEvent?.Invoke();
+            ClearAllIOEvent?.Invoke();
         }
 
         #endregion
-        #endregion
+        */
     }
 }

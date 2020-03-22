@@ -36,10 +36,7 @@ namespace Excel_Ribbon
             m_Thread.IsBackground = true;
             m_Thread.Start();
 
-            if (true)
-                return;
-
-            if (Application.ActiveSheet == null)
+            /*if (Application.ActiveSheet == null)
                 Application.Workbooks.Add();
 
             MacroEngine.Instantiate(Dispatcher.CurrentDispatcher, new HostState(), () =>
@@ -66,7 +63,7 @@ namespace Excel_Ribbon
 
                 Macro mpy = new Macro("Python", code);
                 mpy.Execute(() => { if (Application.ActiveSheet != null) Application.ActiveSheet.Cells(5, 1).Value = "YAY"; }, false);
-            });            
+            });*/   
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)

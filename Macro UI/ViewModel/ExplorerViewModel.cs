@@ -381,7 +381,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void Initialize()
         {
-            Dictionary<Guid, Macro>.KeyCollection keys = MacroEngine.GetMacros().Keys;
+            Dictionary<Guid, IMacro>.KeyCollection keys = MacroEngine.GetMacros().Keys;
             HashSet<DataTreeViewItem> items = CreateTreeViewItemStructure(keys.ToList<Guid>());
 
             foreach (DataTreeViewItem item in items)
@@ -394,7 +394,7 @@ namespace Macro_UI.ViewModel
 
             Sort();
             CheckVisibility();
-            MacroEngine.GetEventManager().OnMacroCountChanged += CheckVisibility;
+            Events.OnMacroCountChanged += CheckVisibility;
         }
 
         /// <summary>
@@ -705,7 +705,7 @@ namespace Macro_UI.ViewModel
                 return null;
             }
 
-            Macro macro = MacroEngine.GetMacro(id);
+            IMacro macro = MacroEngine.GetMacro(id);
 
             MenuItem mi_edit = new MenuItem();
             mi_edit.Header = "Edit";
@@ -921,7 +921,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         /// <param name="item">The item to be deleted</param>
         /// <param name="macro">The macro attached to the item, to be deleted</param>
-        public void DeleteMacro(DisplayableTreeViewItem item, Macro macro)
+        public void DeleteMacro(DisplayableTreeViewItem item, IMacro macro)
         {
             macro.Delete((result) =>
             {
@@ -1173,7 +1173,7 @@ namespace Macro_UI.ViewModel
         /// <param name="id">The id of the macro</param>
         /// <param name="macro">The macro the executed</param>
         /// <param name="async">Bool which indicates whether the execution should be asynchronous or not (synchronous)</param>
-        public void ExecuteMacro(Guid id, Macro macro, bool async)
+        public void ExecuteMacro(Guid id, IMacro macro, bool async)
         {
             if (MainWindow.GetInstance().IsActive)
             {

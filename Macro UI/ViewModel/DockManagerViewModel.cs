@@ -152,7 +152,7 @@ namespace Macro_UI.ViewModel
             {
                 if(document.Model.Macro != Guid.Empty)
                 {
-                    Macro macro = MacroEngine.GetMacro(document.Model.Macro);
+                    IMacro macro = MacroEngine.GetMacro(document.Model.Macro);
 
                     if(macro != null)
                     {

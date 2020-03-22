@@ -7,22 +7,41 @@ using System.Threading.Tasks;
 
 namespace Macro_Engine.Engine
 {
-    public class ExecutionEngineIO
+    public class ExecutionEngineIO : IExecutionEngineIO
     {
         private TextReader Input;
-        private readonly TextWriter Output;
-        private readonly TextWriter Error;
+        private TextWriter Output;
+        private TextWriter Error;
 
         /// <summary>
         /// Initialize EngineIOManager
         /// </summary>
-        /// <param name="output">Console Output TextWriter</param>
-        /// <param name="error">Console Error TextWriter</param>
-        public ExecutionEngineIO(TextWriter output, TextWriter error, TextReader input = null)
+        public ExecutionEngineIO()
         {
-            Input = input;
-            Output = output;
-            Error = error;
+            Input = null;
+            Output = null;
+            Error = null;
+        }
+
+        /// <summary>
+        /// Set the streams of the IO manager, remains unchanged if parameter is null
+        /// </summary>
+        /// <param name="output">Output stream writer</param>
+        /// <param name="error">Error stream writer</param>
+        /// <param name="input">Input stream reader</param>
+        /// <returns>Current instance of IExecutionEngineIO</returns>
+        public IExecutionEngineIO SetStreams(TextWriter output = null, TextWriter error = null, TextReader input = null)
+        {
+            if (input != null)
+                Input = input;
+
+            if (output != null)
+                Output = output;
+
+            if (error != null)
+                Error = error;
+
+            return this;
         }
 
         /// <summary>
@@ -33,7 +52,8 @@ namespace Macro_Engine.Engine
             Output.Flush();
             Error.Flush();
 
-            EventManager.ClearAllIO();
+            //Events.ClearAllIO();
+            Events.InvokeEvent("ClearAllIO");
         }
 
         /// <summary>

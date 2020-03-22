@@ -82,21 +82,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\ExecutionEngineIO.cs" />
-    <Compile Include="Engine\HighPrecisionTimer.cs" />
-    <Compile Include="Engine\IExecutionEngine.cs" />
-    <Compile Include="Engine\ProfileInfo.cs" />
-    <Compile Include="Interop\AssemblyDeclaration.cs" />
-    <Compile Include="Interop\InteropInfo.cs" />
-    <Compile Include="Interop\InteropTools.cs" />
     <Compile Include="Macros\Macro.cs" />
-    <Compile Include="Macros\MacroDeclaration.cs" />
-    <Compile Include="Managers\EventManager.cs" />
     <Compile Include="MacroEngine.cs" />
     <Compile Include="Managers\FileManager.cs" />
-    <Compile Include="Managers\HostState.cs" />
-    <Compile Include="Managers\MessageManager.cs" />
-    <Compile Include="Managers\Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Macro Types\Macro Types.csproj">
+      <Project>{ae8374ae-e21c-4591-ab39-c6e9c8316a25}</Project>
+      <Name>Macro Types</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

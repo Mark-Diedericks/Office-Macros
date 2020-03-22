@@ -115,7 +115,7 @@ namespace Macro_UI.Routing
 
             RibbonLoadedEvent += MacroEngine.LoadRibbonMacros;
 
-            string[] workspaces = new string[] { Path.GetFullPath(FileManager.AssemblyDirectory + "/Macros/") };
+            string[] workspaces = new string[] { Path.GetFullPath(Files.AssemblyDirectory + "/Macros/") };
             HostState state = new HostState(workspaces, RibbonMacros, Properties.Settings.Default.ActiveMacro, Properties.Settings.Default.IncludedLibraries);
 
             s_UIApp = new App();
@@ -123,23 +123,23 @@ namespace Macro_UI.Routing
 
             CancellationTokenSource cts = MacroEngine.Instantiate(dispatcher, state, new Action(() =>
             {
-                MacroEngine.GetEventManager().OnFocused += WindowFocusEvent;
-                MacroEngine.GetEventManager().OnShown += WindowShowEvent;
-                MacroEngine.GetEventManager().OnHidden += WindowHideEvent;
+                Events.OnFocused += WindowFocusEvent;
+                Events.OnShown += WindowShowEvent;
+                Events.OnHidden += WindowHideEvent;
 
-                MessageManager.GetInstance().DisplayOkMessageEvent += DisplayOkMessage;
-                MessageManager.GetInstance().DisplayYesNoMessageEvent += DisplayYesNoMessage;
-                MessageManager.GetInstance().DisplayYesNoMessageReturnEvent += DisplayYesNoMessageReturn;
+                Messages.DisplayOkMessageEvent += DisplayOkMessage;
+                Messages.DisplayYesNoMessageEvent += DisplayYesNoMessage;
+                Messages.DisplayYesNoMessageReturnEvent += DisplayYesNoMessageReturn;
 
-                MessageManager.GetInstance().DisplayInputMessageEvent += EventManager_DisplayInputMessageEvent;
-                MessageManager.GetInstance().DisplayInputMessageReturnEvent += EventManager_DisplayInputMessageReturnEvent;
+                Messages.DisplayInputMessageEvent += EventManager_DisplayInputMessageEvent;
+                Messages.DisplayInputMessageReturnEvent += EventManager_DisplayInputMessageReturnEvent;
 
-                MacroEngine.GetEventManager().ClearAllIOEvent += ClearAllIO;
-                MacroEngine.GetEventManager().AddRibbonMacroEvent += GetInstance().AddMacro;
-                MacroEngine.GetEventManager().RemoveRibbonMacroEvent += GetInstance().RemoveMacro;
-                MacroEngine.GetEventManager().RenameRibbonMacroEvent += GetInstance().RenameMacro;
+                Events.ClearAllIOEvent += ClearAllIO;
+                Events.AddRibbonMacroEvent += GetInstance().AddMacro;
+                Events.RemoveRibbonMacroEvent += GetInstance().RemoveMacro;
+                Events.RenameRibbonMacroEvent += GetInstance().RenameMacro;
                 
-                MacroEngine.GetEventManager().SetInteractiveEvent += (enabled) => 
+                Events.SetInteractiveEvent += (enabled) => 
                 {
                     GetInstance().SetInteractiveEvent?.Invoke(enabled);
                 };
@@ -167,8 +167,9 @@ namespace Macro_UI.Routing
                 {
                     MainWindow.GetInstance().Dispatcher.BeginInvoke(DispatcherPriority.Send, new Action(() =>
                     {
-                        if (MacroEngine.GetDeclaration(MacroEngine.GetActiveMacro()) != null)
-                            Properties.Settings.Default.ActiveMacro = MacroEngine.GetDeclaration(MacroEngine.GetActiveMacro()).RelativePath;
+                        MacroDeclaration md = MacroEngine.GetDeclaration(MacroEngine.GetActiveMacro());
+                        if (md != null)
+                            Properties.Settings.Default.ActiveMacro = md.RelativePath;
 
                         Properties.Settings.Default.IncludedLibraries = MacroEngine.GetAssemblies().ToArray<AssemblyDeclaration>();
 
@@ -288,8 +289,6 @@ namespace Macro_UI.Routing
         /// </summary>
         public void NewMacroClickEvent()
         {
-            throw new NotImplementedException();
-
             if (MainWindowViewModel.GetInstance() == null || MainWindow.GetInstance() == null)
                 return;
 
@@ -357,7 +356,6 @@ namespace Macro_UI.Routing
         /// <param name="macroPath"></param>
         public void RenameMacro(Guid id, string macroName, string macroPath)
         {
-            MacroDeclaration md = MacroEngine.GetDeclaration(id);
             RenameRibbonMacroEvent?.Invoke(id, macroName, macroPath);
         }
 

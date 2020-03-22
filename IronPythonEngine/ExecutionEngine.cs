@@ -28,6 +28,8 @@ namespace IronPython_Engine
         private BackgroundWorker m_BackgroundWorker;
         private bool m_IsExecuting;
 
+        private IExecutionEngineIO m_IOManager;
+
         private ExecutionEngine()
         {
             Dictionary<string, object> args = new Dictionary<string, object>();
@@ -37,25 +39,34 @@ namespace IronPython_Engine
             m_ScriptScope = m_ScriptEngine.CreateScope();
 
             m_IsExecuting = false;
+
             m_BackgroundWorker = new BackgroundWorker();
             m_BackgroundWorker.WorkerSupportsCancellation = true;
 
+            m_IOManager = null;
+
             //Reset IO streams of ScriptEngine if they're changed
-            EventManager.GetInstance().OnIOChanged += () =>
+            Events.OnIOChanged += (runtime, manager) =>
             {
+                if (!string.Equals(runtime, Runtime, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(runtime))
+                    return;
+
+                m_IOManager = manager;
+
                 m_ScriptEngine.Runtime.IO.RedirectToConsole();
-                Console.SetOut(MacroEngine.GetEngineIOManager(Runtime).GetOutput());
-                Console.SetError(MacroEngine.GetEngineIOManager(Runtime).GetError());
+                Console.SetOut(m_IOManager.GetOutput());
+                Console.SetError(m_IOManager.GetError());
+                Console.SetIn(m_IOManager.GetInput());
             };
 
             //End running tasks if program is exiting
-            EventManager.GetInstance().OnDestroyed += delegate ()
+            Events.OnDestroyed += delegate ()
             {
                 if (m_BackgroundWorker != null)
                     m_BackgroundWorker.CancelAsync();
             };
 
-            EventManager.GetInstance().OnTerminateExecution += TerminateExecution;
+            Events.OnTerminateExecution += TerminateExecution;
         }
 
         public string GetLabel()
@@ -120,10 +131,10 @@ namespace IronPython_Engine
 
             m_BackgroundWorker.RunWorkerCompleted += (s, args) =>
             {
-                if (MacroEngine.GetEngineIOManager(Runtime) != null)
+                if (m_IOManager != null)
                 {
-                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Asynchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
-                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
+                    m_IOManager.GetOutput().WriteLine("Asynchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
+                    m_IOManager.GetOutput().Flush();
                 }
 
                 Utilities.EndProfileSession(profileID);
@@ -148,7 +159,7 @@ namespace IronPython_Engine
         /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
         private void ExecuteSourceSynchronous(string source, Action OnCompletedAction)
         {
-            MacroEngine.GetHostDispatcher().BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            Events.OnHostExecuteInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 int profileID = -1;
                 profileID = Utilities.BeginProfileSession();
@@ -156,10 +167,10 @@ namespace IronPython_Engine
                 m_IsExecuting = true;
                 ExecuteSource(source);
 
-                if (MacroEngine.GetEngineIOManager(Runtime) != null)
+                if (m_IOManager != null)
                 {
-                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Synchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
-                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
+                    m_IOManager.GetOutput().WriteLine("Synchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
+                    m_IOManager.GetOutput().Flush();
                 }
 
                 Utilities.EndProfileSession(profileID);
@@ -185,8 +196,8 @@ namespace IronPython_Engine
                 m_ScriptScope.SetVariable("MissingType", Type.Missing);
             }*/
 
-            if (MacroEngine.GetEngineIOManager(Runtime) != null)
-                MacroEngine.GetEngineIOManager(Runtime).ClearAllStreams();
+            if (m_IOManager != null)
+                m_IOManager.ClearAllStreams();
                 
             try
             {
@@ -196,20 +207,20 @@ namespace IronPython_Engine
             {
                 System.Diagnostics.Debug.WriteLine("Execution Error: " + tae.Message);
 
-                if (MacroEngine.GetEngineIOManager(Runtime) != null)
+                if (m_IOManager != null)
                 {
-                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
-                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
+                    m_IOManager.GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
+                    m_IOManager.GetOutput().Flush();
                 }
             }
             catch (Exception e)
             {
                 System.Diagnostics.Debug.WriteLine("Execution Error: " + e.Message);
 
-                if (MacroEngine.GetEngineIOManager(Runtime) != null)
+                if (m_IOManager != null)
                 {
-                    MacroEngine.GetEngineIOManager(Runtime).GetError().WriteLine("Execution Error: " + e.Message);
-                    MacroEngine.GetEngineIOManager(Runtime).GetOutput().Flush();
+                    m_IOManager.GetError().WriteLine("Execution Error: " + e.Message);
+                    m_IOManager.GetOutput().Flush();
                 }
             }
         }

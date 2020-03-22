@@ -50,8 +50,8 @@ namespace Macro_UI.ViewModel
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         public override void Start(Action OnComplete)
         {
-            Macro m = MacroEngine.GetMacro(Macro);
-            m.ExecuteSource(Source.Text, OnComplete, MainWindowViewModel.GetInstance().AsyncExecution);
+            IMacro m = MacroEngine.GetMacro(Macro);
+            m.ExecuteSource(OnComplete, Source.Text, MainWindowViewModel.GetInstance().AsyncExecution);
             base.Stop(null);
         }
 
@@ -61,7 +61,7 @@ namespace Macro_UI.ViewModel
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         public override void Stop(Action OnComplete)
         {
-            Macro_Engine.EventManager.OnTerminateExecutionInvoke();
+            Events.OnTerminateExecutionInvoke();
             base.Stop(null);
         }
 

@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Macro_Engine.Macros
 {
-    public class Macro
+    public class Macro : IMacro
     {
-        public string Language { get; }
-        private Guid m_ID;
-        private string m_Source;
+        public string Language { get; set; }
+        public Guid ID { get; set; }
+        public string Source { get; set; }
 
         /// <summary>
         /// Intialize new instance of TextualMacro
@@ -20,8 +20,8 @@ namespace Macro_Engine.Macros
         public Macro(string lang, string source)
         {
             Language = lang;
-            m_Source = source;
-            m_ID = Guid.Empty;
+            Source = source;
+            ID = Guid.Empty;
         }
 
         /// <summary>
@@ -29,43 +29,7 @@ namespace Macro_Engine.Macros
         /// </summary>
         public void CreateBlankMacro()
         {
-            m_Source = "";
-        }
-
-        /// <summary>
-        /// Get the ID of the macro
-        /// </summary>
-        /// <returns>Guid of the macro</returns>
-        public Guid GetID()
-        {
-            return m_ID;
-        }
-
-        /// <summary>
-        /// Set the ID of the macro
-        /// </summary>
-        /// <param name="id">Guid to set</param>
-        public void SetID(Guid id)
-        {
-            m_ID = id;
-        }
-
-        /// <summary>
-        /// Set the source of the macro
-        /// </summary>
-        /// <param name="source">Source code (python)</param>
-        public void SetSource(string source)
-        {
-            m_Source = source;
-        }
-
-        /// <summary>
-        /// Get the source code of the macro
-        /// </summary>
-        /// <returns>Source code (python)</returns>
-        public string GetSource()
-        {
-            return m_Source;
+            Source = "";
         }
 
         /// <summary>
@@ -74,19 +38,22 @@ namespace Macro_Engine.Macros
         /// <param name="name">New name of the macro</param>
         public void Rename(string name)
         {
-            FileManager.RenameMacro(m_ID, name);
+            FileManager.RenameMacro(ID, name);
 
-            if (MacroEngine.IsRibbonMacro(m_ID))
-                MacroEngine.RenameRibbonMacro(m_ID);
+            if (MacroEngine.IsRibbonMacro(ID))
+                MacroEngine.RenameRibbonMacro(ID);
         }
 
         /// <summary>
         /// Gets the name of the macro
         /// </summary>
         /// <returns>Name of the macro</returns>
-        public string GetName()
+        public string Name
         {
-            return MacroEngine.GetDeclaration(m_ID).Name;
+            get
+            {
+                return MacroEngine.GetDeclaration(ID).Name;
+            }
         }
 
         /// <summary>
@@ -95,7 +62,7 @@ namespace Macro_Engine.Macros
         /// <returns>Relative file path</returns>
         public string GetRelativePath()
         {
-            return MacroEngine.GetDeclaration(m_ID).RelativePath;
+            return MacroEngine.GetDeclaration(ID).RelativePath;
         }
 
         /// <summary>
@@ -103,7 +70,7 @@ namespace Macro_Engine.Macros
         /// </summary>
         public void Save()
         {
-            FileManager.SaveMacro(m_ID, m_Source);
+            FileManager.SaveMacro(ID, Source);
         }
 
         /// <summary>
@@ -111,7 +78,7 @@ namespace Macro_Engine.Macros
         /// </summary>
         public void Export()
         {
-            FileManager.ExportMacro(m_ID, m_Source);
+            FileManager.ExportMacro(ID, Source);
         }
 
         /// <summary>
@@ -120,10 +87,10 @@ namespace Macro_Engine.Macros
         /// <param name="OnReturn">Action, containing the bool result, to be fired when the task is completed</param>
         public void Delete(Action<bool> OnReturn)
         {
-            FileManager.DeleteMacro(m_ID, OnReturn);
+            FileManager.DeleteMacro(ID, OnReturn);
 
-            if (MacroEngine.IsRibbonMacro(m_ID))
-                MacroEngine.RemoveRibbonMacro(m_ID);
+            if (MacroEngine.IsRibbonMacro(ID))
+                MacroEngine.RemoveRibbonMacro(ID);
         }
 
         /// <summary>
@@ -132,9 +99,9 @@ namespace Macro_Engine.Macros
         /// <param name="OnCompletedAction">Action to be fire when the task is completed</param>
         /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
         /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
-        public void Execute(Action OnCompletedAction, bool async, string runtime = "")
+        public void Execute(Action OnCompleted, bool async, string runtime = "")
         {
-            ExecuteSource(m_Source, OnCompletedAction, async, runtime);
+            ExecuteSource(OnCompleted, Source, async, runtime);
         }
 
         /// <summary>
@@ -144,14 +111,14 @@ namespace Macro_Engine.Macros
         /// <param name="OnCompletedAction">Action to be fire when the task is completed</param>
         /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
         /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
-        public void ExecuteSource(string Source, Action OnCompletedAction, bool async, string runtime = "")
+        public void ExecuteSource(Action OnCompleted, string source, bool async, string runtime = "")
         {
             if (string.IsNullOrEmpty(runtime))
                 runtime = GetDefaultRuntime();
 
             IExecutionEngine engine = MacroEngine.GetExecutionEngine(runtime);
             if (engine != null)
-                engine.ExecuteMacro(Source, OnCompletedAction, async);
+                engine.ExecuteMacro(source, OnCompleted, async);
         }
 
         /// <summary>

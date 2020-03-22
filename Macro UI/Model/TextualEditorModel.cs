@@ -27,16 +27,16 @@ namespace Macro_UI.Model
         {
             if(id != Guid.Empty)
             {
-                Macro macro = MacroEngine.GetMacro(id);
+                IMacro macro = MacroEngine.GetMacro(id);
 
                 if (macro != null)
                 {
-                    Title = macro.GetName();
+                    Title = macro.Name;
                     ToolTip = macro.GetRelativePath();
                     ContentId = macro.GetRelativePath();
                     Macro = id;
                     IsClosed = false;
-                    Source = new TextDocument(macro.GetSource());
+                    Source = new TextDocument(macro.Source);
                     IsSaved = true;
                     return;
                 }

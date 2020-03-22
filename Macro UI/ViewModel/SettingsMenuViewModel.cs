@@ -39,7 +39,7 @@ namespace Macro_UI.ViewModel
             PreviousTheme = MainWindowViewModel.GetInstance().ActiveTheme.Name;
             LoadColors();
 
-            MacroEngine.GetEventManager().OnAssembliesChanged += LoadAssemblies;
+            Events.OnAssembliesChanged += LoadAssemblies;
             LoadAssemblies();
         }
 

@@ -95,9 +95,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Macro Engine\Macro Engine.csproj">
-      <Project>{1c58f68f-e109-4a24-b8ea-fa7b10465813}</Project>
-      <Name>Macro Engine</Name>
+    <ProjectReference Include="..\Macro Types\Macro Types.csproj">
+      <Project>{ae8374ae-e21c-4591-ab39-c6e9c8316a25}</Project>
+      <Name>Macro Types</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

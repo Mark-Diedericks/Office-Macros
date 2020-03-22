@@ -818,7 +818,7 @@ namespace Macro_UI.ViewModel
             if (DockManager.ActiveDocument == null)
                 return;
 
-            Macro macro = MacroEngine.GetMacro(DockManager.ActiveDocument.Macro);
+            IMacro macro = MacroEngine.GetMacro(DockManager.ActiveDocument.Macro);
 
             if (macro == null)
                 return;

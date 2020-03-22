@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Macro_Engine.Engine
 {
-    internal class HighPrecisionTimer
+    public class HighPrecisionTimer
     {
         //
         // From:     CodeProject
