@@ -272,7 +272,7 @@
                     <Rectangle Width="1" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="178,4,0,4" Fill="{DynamicResource GrayBrush8}" />
 
                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="182,0,0,0">
-                        <ComboBox x:Name="cbRuntimes" IsEditable="True" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="True" ItemsSource="{Binding RuntimeItems}" SelectedItem="{Binding SelectedRuntime, Mode=TwoWay}" HorizontalAlignment="Left" Width="180" Height="18"/>
+                        <ComboBox x:Name="cbRuntimes" IsEditable="True" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="True" ItemsSource="{Binding RuntimeItems}" SelectedItem="{Binding SelectedRuntime, Mode=TwoWay}" HorizontalAlignment="Left" Width="180" Height="18" Margin="4,0,0,0"/>
 
                         <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="192,0,0,0">
                             <Button Command="{Binding RunClick}" Visibility="{Binding IsEditing, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" IsEnabled="{Binding IsEditing}" Padding="2,2,2,2" BorderThickness="0" ToolTip="Start" Margin="0,0,0,0" VerticalAlignment="Stretch" HorizontalAlignment="Left" Background="Transparent">

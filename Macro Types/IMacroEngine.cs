@@ -14,6 +14,7 @@ namespace Macro_Engine
     public interface IMacroEngine
     {
         CancellationTokenSource Instantiate(HostState state, Action OnCompleted);
+        void Destroy();
 
         //Runtimes
         HashSet<string> GetRuntimes(string language = "");

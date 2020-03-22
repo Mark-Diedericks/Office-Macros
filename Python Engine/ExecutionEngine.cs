@@ -120,6 +120,12 @@ namespace Python_Engine
         /// <returns></returns>
         public bool ExecuteMacro(string source, Action OnCompletedAction, bool async)
         {
+            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>>");
+            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>>");
+            System.Diagnostics.Debug.WriteLine(m_IOManager);
+            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>>");
+            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>>");
+
             if (m_IsExecuting)
                 return false;
 
@@ -229,7 +235,6 @@ namespace Python_Engine
                 using(Py.GIL())
                 {
                     m_ScriptScope.Exec(source);
-                    System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>> Executed successfully");
                 }
             }
             catch (ThreadAbortException tae)

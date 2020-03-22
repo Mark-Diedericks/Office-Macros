@@ -67,11 +67,9 @@ namespace Excel_Ribbon
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
-            Events.InvokeEvent("Shutdown");
-
             try
             {
-                m_Thread.Join();
+                MacroUI.GetInstance().Destroy();
                 m_Thread.Abort();
             }
             catch(Exception ex)

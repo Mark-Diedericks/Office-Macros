@@ -214,7 +214,7 @@ namespace Macro_Engine
         /// <summary>
         /// Fires OnDestroyed event
         /// </summary>
-        public static void Destroy()
+        public void Destroy()
         {
             Events.InvokeEvent("OnDestroyed");
             foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)

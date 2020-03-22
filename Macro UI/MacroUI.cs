@@ -93,6 +93,14 @@ namespace Macro_UI
             return null;
         }
 
+        public void Destroy()
+        {
+            GetInstance().MainWindow.Close();
+            GetInstance().MacroEngine.Destroy();
+
+            Events.InvokeEvent("Shutdown");
+        }
+
         /// <summary>
         /// Gets instance of EventManager
         /// </summary>
@@ -141,8 +149,6 @@ namespace Macro_UI
 
             Events.SubscribeEvent("Shutdown", new Action(() =>
             {
-                MainWindow.GetInstance().Close();
-
                 try
                 {
                     cts_eng?.Cancel();
