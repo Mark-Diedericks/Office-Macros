@@ -41,9 +41,6 @@
     <Setting Name="WindowLeft" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="ExecutionTypeIndex" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
-    </Setting>
     <Setting Name="ConsoleTextWrap" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
@@ -55,6 +52,9 @@
     </Setting>
     <Setting Name="IncludedLibraries" Type="Macro_Engine.Interop.AssemblyDeclaration[]" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ExecutionTypeIndex" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>
 </SettingsFile>

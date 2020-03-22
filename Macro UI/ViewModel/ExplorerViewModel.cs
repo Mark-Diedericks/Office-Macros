@@ -37,7 +37,7 @@ namespace Macro_UI.ViewModel
         {
             Model = new ExplorerModel();
 
-            if (Routing.EventManager.IsLoaded())
+            if (MacroUI.IsLoaded())
                 Initialize();
             else
                 Events.SubscribeEvent("ApplicationLoaded", (Action)Initialize);
@@ -382,24 +382,21 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void Initialize()
         {
-            //Dictionary<Guid, IMacro>.KeyCollection keys = MacroEngine.GetMacros().Keys;
-            Events.InvokeEvent("GetMacros", new object[] { new Action<Dictionary<Guid, IMacro>>((dict) => {
-                Dictionary<Guid, IMacro>.KeyCollection keys = dict.Keys;
-                HashSet<DataTreeViewItem> items = CreateTreeViewItemStructure(keys.ToList<Guid>());
+            Dictionary<Guid, IMacro>.KeyCollection keys = MacroUI.GetInstance().GetMacros().Keys;
+            HashSet<DataTreeViewItem> items = CreateTreeViewItemStructure(keys.ToList<Guid>());
 
-                foreach (DataTreeViewItem item in items)
-                {
-                    DisplayableTreeViewItem tvi = CreateTreeViewItem(null, item);
+            foreach (DataTreeViewItem item in items)
+            {
+                DisplayableTreeViewItem tvi = CreateTreeViewItem(null, item);
 
-                    if (tvi != null)
-                        ItemSource.Add(tvi);
-                }
+                if (tvi != null)
+                    ItemSource.Add(tvi);
+            }
 
-                Sort();
-                CheckVisibility();
-                //Events.OnMacroCountChanged += CheckVisibility;
-                Events.SubscribeEvent("OnMacroCountChanged", (Action)CheckVisibility);
-            }) });
+            Sort();
+            CheckVisibility();
+            //Events.OnMacroCountChanged += CheckVisibility;
+            Events.SubscribeEvent("OnMacroCountChanged", (Action)CheckVisibility);
         }
 
         /// <summary>
@@ -433,7 +430,7 @@ namespace Macro_UI.ViewModel
             item.IsFolder = data.folder;
             item.IsExpanded = false;
             item.Parent = parent;
-            item.IsRibbonMacro = MacroEngine.IsRibbonMacro(data.macro);
+            item.IsRibbonMacro = MacroUI.GetInstance().IsRibbonMacro(data.macro);
 
             if (data.children != null)
             {
@@ -472,42 +469,40 @@ namespace Macro_UI.ViewModel
 
             foreach (Guid id in macros)
             {
-                //MacroEngine.GetDeclaration(id)
-                Events.InvokeEvent("GetDeclaration", new object[] { new Action<MacroDeclaration>((md) => {
-                    string path = Regex.Replace(md.RelativePath, @"/+", System.IO.Path.DirectorySeparatorChar.ToString());
-                    string[] fileitems = path.Split(System.IO.Path.DirectorySeparatorChar).Where<string>(x => !String.IsNullOrEmpty(x)).ToArray<string>();
+                MacroDeclaration md = MacroUI.GetInstance().GetDeclaration(id);
+                string path = Regex.Replace(md.RelativePath, @"/+", System.IO.Path.DirectorySeparatorChar.ToString());
+                string[] fileitems = path.Split(System.IO.Path.DirectorySeparatorChar).Where<string>(x => !String.IsNullOrEmpty(x)).ToArray<string>();
 
-                    if (fileitems.Any())
+                if (fileitems.Any())
+                {
+                    DataTreeViewItem root = items.FirstOrDefault(x => x.name.Equals(fileitems[0]) && x.level.Equals(1));
+
+                    if (root == null)
                     {
-                        DataTreeViewItem root = items.FirstOrDefault(x => x.name.Equals(fileitems[0]) && x.level.Equals(1));
+                        root = new DataTreeViewItem() { level = 1, name = fileitems[0], macro = id, root = "/", folder = !Path.HasExtension(fileitems[0]), children = new List<DataTreeViewItem>() };
+                        items.Add(root);
+                    }
 
-                        if (root == null)
+                    if (fileitems.Length > 1)
+                    {
+                        DataTreeViewItem parent = root;
+                        int lev = 2;
+
+                        for (int i = 1; i < fileitems.Length; i++)
                         {
-                            root = new DataTreeViewItem() { level = 1, name = fileitems[0], macro = id, root = "/", folder = !fileitems[0].ToLower().EndsWith(".ipy"), children = new List<DataTreeViewItem>() };
-                            items.Add(root);
-                        }
+                            DataTreeViewItem child = parent.children.FirstOrDefault(x => x.name.Equals(fileitems[i]) && x.level.Equals(lev));
 
-                        if (fileitems.Length > 1)
-                        {
-                            DataTreeViewItem parent = root;
-                            int lev = 2;
-
-                            for (int i = 1; i < fileitems.Length; i++)
+                            if (child == null)
                             {
-                                DataTreeViewItem child = parent.children.FirstOrDefault(x => x.name.Equals(fileitems[i]) && x.level.Equals(lev));
-
-                                if (child == null)
-                                {
-                                    child = new DataTreeViewItem() { level = lev, name = fileitems[i], macro = id, root = parent.root + "/" + parent.name, folder = !fileitems[i].ToLower().EndsWith(".ipy"), children = new List<DataTreeViewItem>() };
-                                    parent.children.Add(child);
-                                }
-
-                                parent = child;
-                                lev++;
+                                child = new DataTreeViewItem() { level = lev, name = fileitems[i], macro = id, root = parent.root + "/" + parent.name, folder = !Path.HasExtension(fileitems[i]), children = new List<DataTreeViewItem>() };
+                                parent.children.Add(child);
                             }
+
+                            parent = child;
+                            lev++;
                         }
                     }
-                }), id });
+                }
             }
 
             return items;
@@ -668,7 +663,7 @@ namespace Macro_UI.ViewModel
 
                     if (String.IsNullOrEmpty(item.Header))
                     {
-                        Routing.EventManager.DisplayOkMessage("Please enter a valid name.", "Invalid Name");
+                        MacroUI.DisplayOkMessage("Please enter a valid name.", "Invalid Name");
                         item.IsInputting = true;
                         return;
                     }
@@ -707,156 +702,154 @@ namespace Macro_UI.ViewModel
 
             DisplayableTreeViewItem parentitem = item.Parent;
 
-            //IMacro macro = MacroEngine.GetMacro(id);
-            Events.SubscribeEvent("GetMacro", new object[] { new Action<IMacro>((macro) => {
-                if (macro == null)
+            IMacro macro = MacroUI.GetInstance().GetMacro(id);
+            if (macro == null)
+            {
+                MacroUI.DisplayOkMessage("Could not find the macro (when attempting to create a context menu): " + name, "Macro Error");
+                return null;
+            }
+
+            MenuItem mi_edit = new MenuItem();
+            mi_edit.Header = "Edit";
+            mi_edit.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                OpenMacro(id);
+                args.Handled = true;
+                cm.IsOpen = false;
+            };
+            mi_edit.Style = MenuItemStyle as Style;
+            cm.Items.Add(mi_edit);
+
+            MenuItem mi_execute = new MenuItem();
+            mi_execute.Header = "Synchronous Execute";
+            mi_execute.ToolTip = "Synchronous executions cannot be terminated.";
+            mi_execute.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                ExecuteMacro(id, macro, false);
+                args.Handled = true;
+                cm.IsOpen = false;
+            };
+            mi_execute.Style = MenuItemStyle as Style;
+            cm.Items.Add(mi_execute);
+
+            MenuItem mi_executea = new MenuItem();
+            mi_executea.Header = "Asynchronous Execute";
+            mi_executea.ToolTip = "Asynchronous executions can be terminated.";
+            mi_executea.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                ExecuteMacro(id, macro, true);
+                args.Handled = true;
+                cm.IsOpen = false;
+            };
+            mi_executea.Style = MenuItemStyle as Style;
+            cm.Items.Add(mi_executea);
+
+            Separator sep1 = new Separator();
+            sep1.Style = SeparatorStyle as Style;
+            cm.Items.Add(sep1);
+
+            MenuItem mi_export = new MenuItem();
+            mi_export.Header = "Export";
+            mi_export.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                macro.Export();
+                args.Handled = true;
+                cm.IsOpen = false;
+            };
+            mi_export.Style = MenuItemStyle as Style;
+            cm.Items.Add(mi_export);
+
+            MenuItem mi_del = new MenuItem();
+            mi_del.Header = "Delete";
+            mi_del.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                DeleteMacro(item, macro);
+
+                args.Handled = true;
+                cm.IsOpen = false;
+            };
+            mi_del.Style = MenuItemStyle as Style;
+            cm.Items.Add(mi_del);
+
+            MenuItem mi_rename = new MenuItem();
+            mi_rename.Header = "Rename";
+            mi_rename.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                args.Handled = true;
+                cm.IsOpen = false;
+
+                string previousname = item.Header;
+
+                item.KeyUpEvent = delegate (object s, KeyEventArgs a)
                 {
-                    Routing.EventManager.DisplayOkMessage("Could not find the macro (when attempting to create a context menu): " + name, "Macro Error");
-                    return;
-                }
-
-                MenuItem mi_edit = new MenuItem();
-                mi_edit.Header = "Edit";
-                mi_edit.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    OpenMacro(id);
-                    args.Handled = true;
-                    cm.IsOpen = false;
-                };
-                mi_edit.Style = MenuItemStyle as Style;
-                cm.Items.Add(mi_edit);
-
-                MenuItem mi_execute = new MenuItem();
-                mi_execute.Header = "Synchronous Execute";
-                mi_execute.ToolTip = "Synchronous executions cannot be terminated.";
-                mi_execute.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    ExecuteMacro(id, macro, false);
-                    args.Handled = true;
-                    cm.IsOpen = false;
-                };
-                mi_execute.Style = MenuItemStyle as Style;
-                cm.Items.Add(mi_execute);
-
-                MenuItem mi_executea = new MenuItem();
-                mi_executea.Header = "Asynchronous Execute";
-                mi_executea.ToolTip = "Asynchronous executions can be terminated.";
-                mi_executea.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    ExecuteMacro(id, macro, true);
-                    args.Handled = true;
-                    cm.IsOpen = false;
-                };
-                mi_executea.Style = MenuItemStyle as Style;
-                cm.Items.Add(mi_executea);
-
-                Separator sep1 = new Separator();
-                sep1.Style = SeparatorStyle as Style;
-                cm.Items.Add(sep1);
-
-                MenuItem mi_export = new MenuItem();
-                mi_export.Header = "Export";
-                mi_export.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    macro.Export();
-                    args.Handled = true;
-                    cm.IsOpen = false;
-                };
-                mi_export.Style = MenuItemStyle as Style;
-                cm.Items.Add(mi_export);
-
-                MenuItem mi_del = new MenuItem();
-                mi_del.Header = "Delete";
-                mi_del.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    DeleteMacro(item, macro);
-
-                    args.Handled = true;
-                    cm.IsOpen = false;
-                };
-                mi_del.Style = MenuItemStyle as Style;
-                cm.Items.Add(mi_del);
-
-                MenuItem mi_rename = new MenuItem();
-                mi_rename.Header = "Rename";
-                mi_rename.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    args.Handled = true;
-                    cm.IsOpen = false;
-
-                    string previousname = item.Header;
-
-                    item.KeyUpEvent = delegate (object s, KeyEventArgs a)
+                    if (a.Key == Key.Return)
                     {
-                        if (a.Key == Key.Return)
-                        {
-                            Focus();
-                            Keyboard.ClearFocus();
-                        }
-                        else if (a.Key == Key.Escape)
-                        {
-                            item.Header = previousname;
-                            Focus();
-                            Keyboard.ClearFocus();
-                        }
-                    };
-
-                    item.FocusLostEvent = delegate (object s, RoutedEventArgs a)
+                        Focus();
+                        Keyboard.ClearFocus();
+                    }
+                    else if (a.Key == Key.Escape)
                     {
-                        if (item.Header == previousname)
-                        {
-                            item.IsInputting = false;
-                            return;
-                        }
+                        item.Header = previousname;
+                        Focus();
+                        Keyboard.ClearFocus();
+                    }
+                };
 
-                        if (String.IsNullOrEmpty(item.Header))
-                        {
-                            Routing.EventManager.DisplayOkMessage("Please enter a valid name.", "Invalid Name");
-                            item.IsInputting = true;
-                            return;
-                        }
-
-                        if (!Path.HasExtension(item.Header))
-                            item.Header += MacroEngine.GetFileExt(MacroEngine.GetDefaultRuntime());
-
-
-                        MainWindowViewModel.GetInstance().RenameMacro(id, item.Header);
-                        Rename(parentitem, item);
-
+                item.FocusLostEvent = delegate (object s, RoutedEventArgs a)
+                {
+                    if (item.Header == previousname)
+                    {
                         item.IsInputting = false;
-                    };
+                        return;
+                    }
 
-                    item.IsInputting = true;
-                };
-                mi_rename.Style = MenuItemStyle as Style;
-                cm.Items.Add(mi_rename);
+                    if (String.IsNullOrEmpty(item.Header))
+                    {
+                        MacroUI.DisplayOkMessage("Please enter a valid name.", "Invalid Name");
+                        item.IsInputting = true;
+                        return;
+                    }
 
-                Separator sep2 = new Separator();
-                sep2.Style = SeparatorStyle;
-                cm.Items.Add(sep2);
+                    if (!Path.HasExtension(item.Header))
+                        item.Header += MacroUI.GetInstance().GetDefaultFileExtension();
 
-                MenuItem mi_add = new MenuItem();
 
-                mi_add.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    if (MacroEngine.IsRibbonMacro(id))
-                        item.IsRibbonMacro = false;
-                    else
-                        item.IsRibbonMacro = true;
+                    MainWindowViewModel.GetInstance().RenameMacro(id, item.Header);
+                    Rename(parentitem, item);
 
-                    UpdateRibbon();
-
-                    mi_add.Header = MacroEngine.IsRibbonMacro(id) ? "Remove From Ribbon" : "Add To Ribbon";
-                    args.Handled = true;
-                    cm.IsOpen = false;
+                    item.IsInputting = false;
                 };
 
-                mi_add.Header = MacroEngine.IsRibbonMacro(id) ? "Remove From Ribbon" : "Add To Ribbon";
-                mi_add.Style = MenuItemStyle as Style;
-                cm.Items.Add(mi_add);
+                item.IsInputting = true;
+            };
+            mi_rename.Style = MenuItemStyle as Style;
+            cm.Items.Add(mi_rename);
 
-                return cm;
-            }), id });
+            Separator sep2 = new Separator();
+            sep2.Style = SeparatorStyle;
+            cm.Items.Add(sep2);
+
+            MenuItem mi_add = new MenuItem();
+
+            mi_add.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                if (MacroUI.GetInstance().IsRibbonMacro(id))
+                    item.IsRibbonMacro = false;
+                else
+                    item.IsRibbonMacro = true;
+
+                UpdateRibbon();
+
+                mi_add.Header = MacroUI.GetInstance().IsRibbonMacro(id) ? "Remove From Ribbon" : "Add To Ribbon";
+                args.Handled = true;
+                cm.IsOpen = false;
+            };
+
+            mi_add.Header = MacroUI.GetInstance().IsRibbonMacro(id) ? "Remove From Ribbon" : "Add To Ribbon";
+            mi_add.Style = MenuItemStyle as Style;
+            cm.Items.Add(mi_add);
+
+            return cm;
         }
 
         private void TreeViewItem_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs args)
@@ -911,7 +904,7 @@ namespace Macro_UI.ViewModel
         /// <param name="name">The name of the folder</param>
         public void DeleteFolder(DisplayableTreeViewItem item, string path, string name)
         {
-            MacroEngine.DeleteFolder(path + "/" + name, (result) =>
+            MacroUI.GetInstance().DeleteFolder(path + "/" + name, (result) =>
             {
                 if (result)
                 {
@@ -972,7 +965,7 @@ namespace Macro_UI.ViewModel
                     return;
 
                 DisplayableTreeViewItem item = new DisplayableTreeViewItem();
-                item.Header = MacroEngine.GetDeclaration(id).Name;
+                item.Header = MacroUI.GetInstance().GetDeclaration(id).Name;
                 item.IsFolder = false;
                 item.ID = id;
 
@@ -1065,7 +1058,7 @@ namespace Macro_UI.ViewModel
                 }
 
                 if (!Path.HasExtension(item.Header))
-                    item.Header += MacroEngine.GetFileExt(MacroEngine.GetDefaultRuntime());
+                    item.Header += MacroUI.GetInstance().GetDefaultFileExtension();
 
                 item.Header = Regex.Replace(item.Header, "[^0-9a-zA-Z ._-]", "");
 
@@ -1078,7 +1071,7 @@ namespace Macro_UI.ViewModel
                         return;
                     }
 
-                    item.Header = MacroEngine.GetDeclaration(id).Name;
+                    item.Header = MacroUI.GetInstance().GetDeclaration(id).Name;
                     item.ID = id;
                     item.Root = root;
                     item.Parent = parent;

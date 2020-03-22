@@ -124,7 +124,7 @@ namespace Macro_UI.ViewModel
 
             foreach(string s in paths)
             {
-                Guid id = MacroEngine.GetIDFromRelativePath(s);
+                Guid id = MacroUI.GetInstance().GetIDFromRelativePath(s);
                 if (id != Guid.Empty)
                 {
                     DocumentModel model = DocumentModel.Create(id);
@@ -152,7 +152,7 @@ namespace Macro_UI.ViewModel
             {
                 if(document.Model.Macro != Guid.Empty)
                 {
-                    IMacro macro = MacroEngine.GetMacro(document.Model.Macro);
+                    IMacro macro = MacroUI.GetInstance().GetMacro(document.Model.Macro);
 
                     if(macro != null)
                     {

@@ -85,7 +85,7 @@ namespace Macro_Engine
                     if (!fi.Directory.Exists)
                         fi.Directory.Create();
 
-                    string lang = MacroEngine.GetLangaugeFromFileExt(Path.GetExtension(file));
+                    string lang = MacroEngine.GetInstance().GetLangaugeFromFileExt(Path.GetExtension(file));
 
                     if (string.IsNullOrEmpty(lang))
                         continue;
@@ -128,7 +128,7 @@ namespace Macro_Engine
         /// <param name="source">The source code (python) to be saved</param>
         public static void SaveMacro(Guid id, string source)
         {
-            MacroDeclaration md = MacroEngine.GetDeclaration(id);
+            MacroDeclaration md = MacroEngine.GetInstance().GetDeclaration(id);
             if (md == null)
                 return;
 
@@ -183,13 +183,13 @@ namespace Macro_Engine
         /// <param name="source">The source code (python) of the macro</param>
         public static void ExportMacro(Guid id, string source)
         {
-            MacroDeclaration md = MacroEngine.GetDeclaration(id);
+            MacroDeclaration md = MacroEngine.GetInstance().GetDeclaration(id);
             if (md == null)
                 return;
 
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.FileName = md.Name;
-            sfd.Filter = md.Language + " | *" + MacroEngine.GetMacro(md.ID).GetDefaultFileExtension();
+            sfd.Filter = md.Language + " | *" + MacroEngine.GetInstance().GetMacro(md.ID).GetDefaultFileExtension();
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
@@ -237,7 +237,7 @@ namespace Macro_Engine
                 MacroEngine.FireShowFocusEvent();
 
                 string fileExt = Path.GetExtension(ofd.FileName).ToLower().Trim();
-                string lang = MacroEngine.GetLangaugeFromFileExt(fileExt);
+                string lang = MacroEngine.GetInstance().GetLangaugeFromFileExt(fileExt);
 
                 if(string.IsNullOrEmpty(lang))
                 {
@@ -270,7 +270,7 @@ namespace Macro_Engine
                 MacroDeclaration declaration = new MacroDeclaration(lang, ofd.SafeFileName, relativepath);
                 IMacro macro = LoadMacro(lang, relativepath);
 
-                OnReturn?.Invoke(MacroEngine.AddMacro(declaration, macro));
+                OnReturn?.Invoke(MacroEngine.GetInstance().AddMacro(declaration, macro));
             }
 
             MacroEngine.FireShowFocusEvent();
@@ -286,7 +286,7 @@ namespace Macro_Engine
         /// <returns>Bool identifying if the operation is successful</returns>
         public static bool RenameMacro(Guid id, string name)
         {
-            MacroDeclaration md = MacroEngine.GetDeclaration(id);
+            MacroDeclaration md = MacroEngine.GetInstance().GetDeclaration(id);
             if (md == null)
                 return false;
 
@@ -298,7 +298,7 @@ namespace Macro_Engine
                 declaration.ID = id;
 
                 File.Move(CalculateFullPath(md.RelativePath), CalculateFullPath(declaration.RelativePath));
-                MacroEngine.SetDeclaration(id, declaration);
+                MacroEngine.GetInstance().SetDeclaration(id, declaration);
 
                 return true;
             }
@@ -326,7 +326,7 @@ namespace Macro_Engine
                 if (!fi.Directory.Exists)
                     fi.Directory.Create();
 
-                string lang = MacroEngine.GetLangaugeFromFileExt(fi.Extension);
+                string lang = MacroEngine.GetInstance().GetLangaugeFromFileExt(fi.Extension);
 
                 MacroDeclaration declaration = new MacroDeclaration(lang, Path.GetFileName(relativepath), relativepath);
 
@@ -335,7 +335,7 @@ namespace Macro_Engine
                 IMacro macro = LoadMacro(lang, relativepath);
                 macro.CreateBlankMacro();
 
-                return MacroEngine.AddMacro(declaration, macro);
+                return MacroEngine.GetInstance().AddMacro(declaration, macro);
             }
             catch (Exception e)
             {
@@ -421,7 +421,7 @@ namespace Macro_Engine
         /// <param name="OnReturn">The Action, and bool identifying if the operation was successful, to be fired when the task is completed</param>
         public static void DeleteMacro(Guid id, Action<bool> OnReturn)
         {
-            MacroDeclaration md = MacroEngine.GetDeclaration(id);
+            MacroDeclaration md = MacroEngine.GetInstance().GetDeclaration(id);
             if (md == null)
                 return;
 
@@ -433,7 +433,7 @@ namespace Macro_Engine
                     {
                         System.Diagnostics.Debug.WriteLine("Deleting...");
                         File.Delete(CalculateFullPath(md.RelativePath));
-                        MacroEngine.RemoveMacro(id);
+                        MacroEngine.GetInstance().RemoveMacro(id);
 
                         OnReturn?.Invoke(true);
                     }

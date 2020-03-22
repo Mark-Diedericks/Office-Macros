@@ -12,7 +12,9 @@ namespace Macro_Engine.Engine
         string GetVersion();
         bool ExecuteMacro(string source, Action OnCompleted, bool async);
         void TerminateExecution();
+        void Destroy();
         void ClearContext();
+        void SetIO(IExecutionEngineIO manager);
     }
 
     public interface IExecutionEngineData

@@ -169,11 +169,7 @@
     <Compile Include="View\TextualEditorView.xaml.cs">
       <DependentUpon>TextualEditorView.xaml</DependentUpon>
     </Compile>
-    <Page Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Include="Managers\EventManager.cs" />
+    <Compile Include="MacroUI.cs" />
     <Compile Include="Managers\FocusUtility.cs" />
     <Compile Include="Managers\PaneStyleSelector.cs" />
     <Compile Include="Managers\RelayCommand.cs" />
@@ -201,10 +197,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Model\Base\DocumentModel.cs" />
     <Compile Include="Model\Base\Model.cs" />
     <Compile Include="Model\Base\ToolModel.cs" />

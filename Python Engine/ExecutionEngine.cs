@@ -53,36 +53,36 @@ namespace Python_Engine
             m_BackgroundWorker.WorkerSupportsCancellation = true;
 
             m_IOManager = null;
+        }
 
-            //Reset IO streams of ScriptEngine if they're changed
-            Events.SubscribeEvent("OnIOChanged", new Action<string, IExecutionEngineIO>((runtime, manager) =>
+        public void SetIO(IExecutionEngineIO manager)
+        {
+
+            m_IOManager = manager;
+
+            /*m_ScriptEngine.Runtime.IO.RedirectToConsole();
+
+            if (m_IOManager.GetOutput() != null)
+                Console.SetOut(m_IOManager.GetOutput());
+
+            if (m_IOManager.GetError() != null)
+                Console.SetError(m_IOManager.GetError());
+
+            if (m_IOManager.GetInput() != null)
+                Console.SetIn(m_IOManager.GetInput());*/
+        }
+
+        public void Destroy()
+        {
+            if (m_BackgroundWorker != null)
+                m_BackgroundWorker.CancelAsync();
+
+            using (Py.GIL())
             {
-                if (!string.Equals(runtime, Runtime, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(runtime))
-                    return;
-
-                m_IOManager = manager;
-
-                //m_ScriptEngine.Runtime.IO.RedirectToConsole();
-                //Console.SetOut(m_IOManager.GetOutput());
-                //Console.SetError(m_IOManager.GetError());
-                //Console.SetIn(m_IOManager.GetInput());
-            }));
-
-            //End running tasks if program is exiting
-            Events.SubscribeEvent("OnDestroyed", new Action(() =>
-            {
-                if (m_BackgroundWorker != null)
-                    m_BackgroundWorker.CancelAsync();
-
-                using (Py.GIL())
-                {
-                    m_ScriptScope.Dispose();
-                    m_ScriptScope = null;
-                }
-                PythonEngine.Shutdown();
-            }));
-
-            Events.SubscribeEvent("OnTerminateExecution", (Action)TerminateExecution);
+                m_ScriptScope.Dispose();
+                m_ScriptScope = null;
+            }
+            PythonEngine.Shutdown();
         }
 
         public string GetLabel()

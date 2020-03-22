@@ -46,6 +46,7 @@
     <Compile Include="Engine\IExecutionEngineIO.cs" />
     <Compile Include="Engine\IExecutionEngine.cs" />
     <Compile Include="Engine\ProfileInfo.cs" />
+    <Compile Include="IMacroEngine.cs" />
     <Compile Include="Interop\AssemblyDeclaration.cs" />
     <Compile Include="Interop\InteropInfo.cs" />
     <Compile Include="Interop\InteropTools.cs" />

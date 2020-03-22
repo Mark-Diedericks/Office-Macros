@@ -55,7 +55,7 @@ namespace Macro_UI.ViewModel
         {
             LibraryItems.Clear();
 
-            foreach (AssemblyDeclaration ad in MacroEngine.GetAssemblies())
+            foreach (AssemblyDeclaration ad in MacroUI.GetInstance().GetAssemblies())
                 LibraryItems.Add(new DisplayableListViewItem(ad));
 
             OnPropertyChanged(nameof(LabelVisible));
@@ -155,7 +155,7 @@ namespace Macro_UI.ViewModel
 
                 AssemblyDeclaration ad = new AssemblyDeclaration(name, path, false);
 
-                MacroEngine.AddAssembly(ad);
+                MacroUI.GetInstance().AddAssembly(ad);
             }) });
         }
 
@@ -179,7 +179,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void RemoveLibrary()
         {
-            MacroEngine.RemoveAssembly(SelectedLibrary.declaration);
+            MacroUI.GetInstance().RemoveAssembly(SelectedLibrary.declaration);
         }
 
         #endregion

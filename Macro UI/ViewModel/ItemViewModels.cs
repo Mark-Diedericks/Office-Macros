@@ -248,7 +248,7 @@ namespace Macro_UI.ViewModel
         {
             get
             {
-                return MacroEngine.IsRibbonMacro(ID);
+                return MacroUI.GetInstance().IsRibbonMacro(ID);
             }
             set
             {
@@ -256,9 +256,9 @@ namespace Macro_UI.ViewModel
                     return;
 
                 if (value)
-                    MacroEngine.AddRibbonMacro(ID);
+                    MacroUI.GetInstance().AddRibbonMacro(ID);
                 else
-                    MacroEngine.RemoveRibbonMacro(ID);
+                    MacroUI.GetInstance().RemoveRibbonMacro(ID);
 
                 OnPropertyChanged(nameof(IsRibbonMacro));
             }

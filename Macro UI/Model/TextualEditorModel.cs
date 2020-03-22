@@ -27,7 +27,7 @@ namespace Macro_UI.Model
         {
             if(id != Guid.Empty)
             {
-                IMacro macro = MacroEngine.GetMacro(id);
+                IMacro macro = MacroUI.GetInstance().GetMacro(id);
 
                 if (macro != null)
                 {

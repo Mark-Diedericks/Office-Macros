@@ -39,9 +39,9 @@ namespace Macro_UI.ViewModel
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         public override void Save(Action OnComplete)
         {
-            MacroEngine.GetMacro(Macro).SetSource(Source.Text);
-            MacroEngine.GetMacro(Macro).Save();
-            base.Stop(OnComplete);
+            MacroUI.GetInstance().GetMacro(Macro).Source = Source.Text;
+            MacroUI.GetInstance().GetMacro(Macro).Save();
+            base.Save(OnComplete);
         }
 
         /// <summary>
@@ -50,9 +50,11 @@ namespace Macro_UI.ViewModel
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         public override void Start(Action OnComplete)
         {
-            IMacro m = MacroEngine.GetMacro(Macro);
-            m.ExecuteSource(OnComplete, Source.Text, MainWindowViewModel.GetInstance().AsyncExecution);
-            base.Stop(null);
+            IMacro m = MacroUI.GetInstance().GetMacro(Macro);
+            string runtime = (string)MainWindowViewModel.GetInstance().SelectedRuntime.Tag;
+
+            m.ExecuteSource(OnComplete, Source.Text, MainWindowViewModel.GetInstance().AsyncExecution, runtime);
+            base.Start(null);
         }
 
         /// <summary>

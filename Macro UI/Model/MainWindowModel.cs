@@ -137,6 +137,49 @@ namespace Macro_UI.Model
 
         #endregion
 
+        #region RuntimeItems
+
+        private ObservableCollection<ComboBoxItem> m_RuntimeItems;
+        public ObservableCollection<ComboBoxItem> RuntimeItems
+        {
+            get
+            {
+                return m_RuntimeItems;
+            }
+
+            set
+            {
+                if (m_RuntimeItems != value)
+                {
+                    m_RuntimeItems = value;
+                    OnPropertyChanged(nameof(RuntimeItems));
+                }
+            }
+        }
+
+        #endregion
+
+        #region SelectedRuntime
+
+        private ComboBoxItem m_SelectedRuntime;
+        public ComboBoxItem SelectedRuntime
+        {
+            get
+            {
+                return m_SelectedRuntime;
+            }
+            set
+            {
+                if (m_SelectedRuntime != value)
+                {
+                    m_SelectedRuntime = value;
+                    OnPropertyChanged(nameof(SelectedRuntime));
+                }
+            }
+        }
+
+        #endregion
+
         #region SettingsMenu
 
         private SettingsMenuViewModel m_SettingsMenu;

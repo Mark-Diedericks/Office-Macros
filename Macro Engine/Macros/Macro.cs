@@ -40,8 +40,8 @@ namespace Macro_Engine.Macros
         {
             FileManager.RenameMacro(ID, name);
 
-            if (MacroEngine.IsRibbonMacro(ID))
-                MacroEngine.RenameRibbonMacro(ID);
+            if (MacroEngine.GetInstance().IsRibbonMacro(ID))
+                MacroEngine.GetInstance().RenameRibbonMacro(ID);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Macro_Engine.Macros
         {
             get
             {
-                return MacroEngine.GetDeclaration(ID).Name;
+                return MacroEngine.GetInstance().GetDeclaration(ID).Name;
             }
         }
 
@@ -62,7 +62,7 @@ namespace Macro_Engine.Macros
         /// <returns>Relative file path</returns>
         public string GetRelativePath()
         {
-            return MacroEngine.GetDeclaration(ID).RelativePath;
+            return MacroEngine.GetInstance().GetDeclaration(ID).RelativePath;
         }
 
         /// <summary>
@@ -89,8 +89,8 @@ namespace Macro_Engine.Macros
         {
             FileManager.DeleteMacro(ID, OnReturn);
 
-            if (MacroEngine.IsRibbonMacro(ID))
-                MacroEngine.RemoveRibbonMacro(ID);
+            if (MacroEngine.GetInstance().IsRibbonMacro(ID))
+                MacroEngine.GetInstance().RemoveRibbonMacro(ID);
         }
 
         /// <summary>
@@ -116,9 +116,11 @@ namespace Macro_Engine.Macros
             if (string.IsNullOrEmpty(runtime))
                 runtime = GetDefaultRuntime();
 
-            IExecutionEngine engine = MacroEngine.GetExecutionEngine(runtime);
+            IExecutionEngine engine = MacroEngine.GetInstance().GetExecutionEngine(runtime);
             if (engine != null)
                 engine.ExecuteMacro(source, OnCompleted, async);
+            else
+                MacroEngine.GetInstance().GetExecutionEngine(GetDefaultRuntime())?.ExecuteMacro(source, OnCompleted, async);
         }
 
         /// <summary>
@@ -127,7 +129,7 @@ namespace Macro_Engine.Macros
         /// <returns>Default runtime</returns>
         public string GetDefaultRuntime()
         {
-            return MacroEngine.GetRuntimes(Language).FirstOrDefault<string>();
+            return MacroEngine.GetInstance().GetRuntimes(Language).FirstOrDefault<string>();
         }
 
         /// <summary>
@@ -136,7 +138,7 @@ namespace Macro_Engine.Macros
         /// <returns>Default file extension</returns>
         public string GetDefaultFileExtension()
         {
-            return MacroEngine.GetFileExt(GetDefaultRuntime());
+            return MacroEngine.GetInstance().GetFileExt(GetDefaultRuntime());
         }
     }
 }

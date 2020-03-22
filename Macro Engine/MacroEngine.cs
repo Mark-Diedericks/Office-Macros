@@ -20,7 +20,7 @@ using Macro_Engine.Macros;
 
 namespace Macro_Engine
 {
-    public class MacroEngine
+    public class MacroEngine : IMacroEngine
     {
 
         #region Extensibility
@@ -113,60 +113,32 @@ namespace Macro_Engine
         //User Included Assemblies
         private HashSet<AssemblyDeclaration> m_Assemblies;
 
-        //IO Management
-        private Dictionary<string, IExecutionEngineIO> m_IOManagers;
+        //All runtimes
+        private HashSet<string> m_Runtimes;
 
         /// <summary>
         /// Private constructor
         /// </summary>
         /// <param name="dispatcher">Host application UI dispatcher</param>
-        private MacroEngine(Dispatcher dispatcher, HostState state)
+        private MacroEngine(Dispatcher dispatcher)
         {
             s_Instance = this;
             m_HostDispatcher = dispatcher;
 
             Compose();
 
-            //Events.OnHostExecute += ExecuteOnHost;
+            m_Runtimes = new HashSet<string>();
+            foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)
+                m_Runtimes.Add(pair.Metadata.Runtime);
+
             Events.SubscribeEvent("OnHostExecute", (Action<DispatcherPriority, Action>)ExecuteOnHost);
             Events.SubscribeEvent("SetIO", (Action<string, TextWriter, TextWriter, TextReader>)SetIOStreams);
             Events.SubscribeEvent("RibbonLoaded", (Action)LoadRibbonMacros);
             Events.SubscribeEvent("LoadRibbonMacros", (Action)LoadRibbonMacros);
-            Events.SubscribeEvent("DeleteFolder", (Action<string, Action<bool>>)DeleteFolder);
-            Events.SubscribeEvent("RenameFolder", (Action<string, string, Action<HashSet<Guid>>>)RenameFolder);
 
-            //Macro declarations
-            Events.SubscribeEvent("GetDeclarations", new Action<Action<Dictionary<Guid, MacroDeclaration>>>((r) =>
-            {
-                r.Invoke(GetDeclarations());
-            }));
-            Events.SubscribeEvent("GetDeclaration", new Action<Action<MacroDeclaration>, Guid>((r, p) =>
-            {
-                r.Invoke(GetDeclaration(p));
-            }));
-            Events.SubscribeEvent("SetDeclaration", new Action<Guid, MacroDeclaration>((r, p) =>
-            {
-                SetDeclaration(r, p);
-            }));
-
-            //Macros
-            Events.SubscribeEvent("GetMacros", new Action<Action<Dictionary<Guid, IMacro>>>((r) =>
-            {
-                r.Invoke(GetMacros());
-            }));
-            Events.SubscribeEvent("GetMacro", new Action<Action<IMacro>, Guid>((r, p) =>
-            {
-                r.Invoke(GetMacro(p));
-            }));
-
-            //RelativePath and FileExtension
-            Events.SubscribeEvent("GetIDFromRelativePath", new Action<Action<Guid>, string>((r, p) =>
-            {
-                r.Invoke(GetIDFromRelativePath(p));
-            }));
-            Events.SubscribeEvent("GetIDFromRelativePath", new Action<Action<string>>((r) =>
-            {
-                r.Invoke(GetFileExt(GetDefaultRuntime()));
+            Events.SubscribeEvent("OnTerminateExecution", new Action(() => {
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)
+                    pair.Value?.TerminateExecution();
             }));
 
             m_FileManager = new FileManager();
@@ -175,9 +147,20 @@ namespace Macro_Engine
             m_Macros = new Dictionary<Guid, IMacro>();
 
             m_RibbonMacros = new HashSet<Guid>();
+            m_RibbonMacroPaths = new string[] { };
+        }
+
+        private void SetState(HostState state)
+        {
+            m_ActiveMacro = GetIDFromRelativePath(state.ActiveMacro);
+
             m_RibbonMacroPaths = state.RibbonMacros;
 
-            m_IOManagers = new Dictionary<string, IExecutionEngineIO>();
+            //Get Assemblies
+            if (state.Assemblies != null)
+                m_Assemblies = new HashSet<AssemblyDeclaration>(state.Assemblies);
+            else
+                m_Assemblies = new HashSet<AssemblyDeclaration>();
         }
 
         /// <summary>
@@ -187,18 +170,15 @@ namespace Macro_Engine
         /// <param name="state">Host application state; ribbon macros, active macro, assemblies and workspaces</param>
         /// <param name="OnLoaded">Action to be fired once MacroEngine is fully initialized</param>
         /// <returns>The initialization task thread</returns>
-        public static CancellationTokenSource Instantiate(Dispatcher hostDispatcher, HostState state, Action OnLoaded)
+        public CancellationTokenSource Instantiate(HostState state, Action OnLoaded)
         {
-            if (GetInstance() != null)
-                System.Diagnostics.Debug.WriteLine("Overriding existing MacroEngine!");
-
             CancellationTokenSource cts = new CancellationTokenSource();
             Task init = Task.Run(() =>
             {
-                MacroEngine me = new MacroEngine(hostDispatcher, state);
+                SetState(state);
 
                 //Load all macros in workspaces
-                Dictionary<MacroDeclaration, IMacro> macros = new Dictionary<MacroDeclaration, IMacro>();//FileManager.LoadAllMacros(state.Workspaces);
+                Dictionary<MacroDeclaration, IMacro> macros = FileManager.LoadAllMacros(state.Workspaces);
                 foreach(KeyValuePair<MacroDeclaration, IMacro> pair in macros)
                 {
                     Guid id = Guid.NewGuid();
@@ -206,8 +186,8 @@ namespace Macro_Engine
                     pair.Key.ID = id;
                     pair.Value.ID = id;
 
-                    GetInstance().m_Declarations.Add(id, pair.Key);
-                    GetInstance().m_Macros.Add(id, pair.Value);
+                    m_Declarations.Add(id, pair.Key);
+                    m_Macros.Add(id, pair.Value);
                 }
 
                 //Events.OnMacroCountChangedInvoke();
@@ -215,24 +195,16 @@ namespace Macro_Engine
 
                 //Get the active macro
                 if (!String.IsNullOrEmpty(state.ActiveMacro))
-                    GetInstance().m_ActiveMacro = GetIDFromRelativePath(state.ActiveMacro);
+                    m_ActiveMacro = GetIDFromRelativePath(state.ActiveMacro);
                 else
-                    GetInstance().m_ActiveMacro = GetInstance().m_Macros.Keys.FirstOrDefault<Guid>();
+                    m_ActiveMacro = m_Macros.Keys.FirstOrDefault<Guid>();
 
-                //Get Assemblies
-                if (state.Assemblies != null)
-                    GetInstance().m_Assemblies = new HashSet<AssemblyDeclaration>(state.Assemblies);
-                else
-                    GetInstance().m_Assemblies = new HashSet<AssemblyDeclaration>();
 
                 //Events.OnAssembliesChangedInvoke();
                 Events.InvokeEvent("OnAssembliesChanged");
 
-                hostDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                GetHostDispatcher().BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                     OnLoaded?.Invoke();
-
-                    //Events.OnLoadedInvoke();
-                    Events.InvokeEvent("OnLoaded");
                 }));
             }, cts.Token);
 
@@ -244,8 +216,14 @@ namespace Macro_Engine
         /// </summary>
         public static void Destroy()
         {
-            //Events.OnDestroyedInvoke();
             Events.InvokeEvent("OnDestroyed");
+            foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)
+                pair.Value?.Destroy();
+        }
+
+        public static MacroEngine CreateApplicationInstance(Dispatcher dispatcher)
+        {
+            return new MacroEngine(dispatcher);
         }
 
         #endregion
@@ -259,12 +237,12 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="runtime">The specified runtime</param>
         /// <returns>IExecutionEngine of the langauge</returns>
-        public static IExecutionEngine GetExecutionEngine(string runtime)
+        public IExecutionEngine GetExecutionEngine(string runtime)
         {
             try
             {
                 string value = runtime.ToLower().Trim();
-                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in m_ExecutionEngineImplementations)
                     if (engine.Metadata.Runtime.Equals(value, StringComparison.OrdinalIgnoreCase))
                         return engine.Value;
             }
@@ -281,14 +259,16 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="language">The specified language</param>
         /// <returns>Runtime(s) of the language</returns>
-        public static List<string> GetRuntimes(string language)
+        public HashSet<string> GetRuntimes(string language = "")
         {
-            List<string> runtimes = new List<string>();
+            if (string.IsNullOrEmpty(language))
+                return m_Runtimes;
 
+            HashSet<string> runtimes = new HashSet<string>();
             try
             {
                 string value = language.ToLower().Trim();
-                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in m_ExecutionEngineImplementations)
                     if (engine.Metadata.Language.Equals(value, StringComparison.OrdinalIgnoreCase))
                         runtimes.Add(engine.Metadata.Runtime);
             }
@@ -305,12 +285,12 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="runtime">The specified runtime</param>
         /// <returns>Language of the runtime</returns>
-        public static string GetLangauge(string runtime)
+        public string GetLangauge(string runtime)
         {
             try
             {
                 string value = runtime.ToLower().Trim();
-                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in m_ExecutionEngineImplementations)
                     if (engine.Metadata.Runtime.Equals(value, StringComparison.OrdinalIgnoreCase))
                         return engine.Metadata.Language;
             }
@@ -327,12 +307,12 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="fileExt">The specified fileExt</param>
         /// <returns>Language of the File Extension</returns>
-        public static string GetLangaugeFromFileExt(string fileExt)
+        public string GetLangaugeFromFileExt(string fileExt)
         {
             try
             {
                 string value = fileExt.ToLower().Trim();
-                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in m_ExecutionEngineImplementations)
                     if (engine.Metadata.FileExt.Equals(value, StringComparison.OrdinalIgnoreCase))
                         return engine.Metadata.Language;
             }
@@ -349,12 +329,12 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="runtime">The specified runtime</param>
         /// <returns>FileExt of the runtime</returns>
-        public static string GetFileExt(string runtime)
+        public string GetFileExt(string runtime)
         {
             try
             {
                 string value = runtime.ToLower().Trim();
-                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in GetInstance().m_ExecutionEngineImplementations)
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> engine in m_ExecutionEngineImplementations)
                     if (engine.Metadata.Runtime.Equals(value, StringComparison.OrdinalIgnoreCase))
                         return engine.Metadata.FileExt;
             }
@@ -370,14 +350,23 @@ namespace Macro_Engine
         /// Get the appropriate default IExecutionEngine runtime
         /// </summary>
         /// <param name="runtime">The specified runtime</param>
-        /// <returns>FileExt of the runtime</returns>
-        public static string GetDefaultRuntime()
+        /// <returns>Defaulr runtime</returns>
+        public string GetDefaultRuntime()
         {
-            Lazy<IExecutionEngine, IExecutionEngineData> engine = GetInstance().m_ExecutionEngineImplementations.FirstOrDefault<Lazy<IExecutionEngine, IExecutionEngineData>>();
+            Lazy<IExecutionEngine, IExecutionEngineData> engine = m_ExecutionEngineImplementations.FirstOrDefault<Lazy<IExecutionEngine, IExecutionEngineData>>();
             if (engine.Value == null)
                 return "";
 
             return GetFileExt(engine.Metadata.Runtime);
+        }
+
+        /// <summary>
+        /// Get the appropriate default runtime file extension
+        /// </summary>
+        /// <returns>FileExt of the default runtime</returns>
+        public string GetDefaultFileExtension()
+        {
+            return GetFileExt(GetDefaultRuntime());
         }
 
         /// <summary>
@@ -387,35 +376,15 @@ namespace Macro_Engine
         /// <param name="output">TextWriter for ouput stream</param>
         /// <param name="error">TextWriter for error stream</param>
         /// <param name="input">TextReader for inputstream</param>
-        public static void SetIOStreams(string runtime, TextWriter output, TextWriter error, TextReader input)
+        public void SetIOStreams(string runtime, TextWriter output, TextWriter error, TextReader input)
         {
             IExecutionEngineIO manager = new ExecutionEngineIO().SetStreams(output, error, input);
 
             if (string.IsNullOrEmpty(runtime))
-                foreach (string key in GetInstance().m_IOManagers.Keys)
-                    GetInstance().m_IOManagers[key] = manager;
-
-            else if (GetInstance().m_IOManagers.ContainsKey(runtime))
-                GetInstance().m_IOManagers[runtime] = manager;
-
+                foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in m_ExecutionEngineImplementations)
+                    pair.Value?.SetIO(manager);
             else
-                GetInstance().m_IOManagers.Add(runtime, manager);
-
-            //Events.OnIOChangedInvoke(runtime, manager);
-            Events.InvokeEvent("OnIOChanged", new object[] { runtime, manager });
-        }
-
-        /// <summary>
-        /// Gets the ExecutionEngineIO instance
-        /// </summary>
-        /// <param name="runtime">The runtime whose IO manager to get</param>
-        /// <returns>IO Manager for specified language</returns>
-        public static IExecutionEngineIO GetEngineIOManager(string runtime)
-        {
-            if (GetInstance().m_IOManagers.ContainsKey(runtime))
-                return GetInstance().m_IOManagers[runtime];
-
-            return null;
+                GetExecutionEngine(runtime)?.SetIO(manager);
         }
 
         #endregion
@@ -425,11 +394,11 @@ namespace Macro_Engine
         /// <summary>
         /// Loads all ribbon macros from serialized list
         /// </summary>
-        public static void LoadRibbonMacros()
+        public void LoadRibbonMacros()
         {
-            GetInstance().m_RibbonMacros.Clear();
+            m_RibbonMacros.Clear();
 
-            foreach (string file in GetInstance().m_RibbonMacroPaths)
+            foreach (string file in m_RibbonMacroPaths)
                 AddRibbonMacro(GetIDFromRelativePath(file));
         }
 
@@ -437,7 +406,7 @@ namespace Macro_Engine
         /// Gets the ID of the active macro
         /// </summary>
         /// <returns>ID of active macro</returns>
-        public static Guid GetActiveMacro()
+        public Guid GetActiveMacro()
         {
             return s_Instance.m_ActiveMacro;
         }
@@ -446,9 +415,10 @@ namespace Macro_Engine
         /// Sets the active macro
         /// </summary>
         /// <param name="macro">The macro's ID</param>
-        public static void SetActiveMacro(Guid macro)
+        public void SetActiveMacro(Guid macro)
         {
             s_Instance.m_ActiveMacro = macro;
+            Events.InvokeEvent("ActiveMacroChanged");
         }
 
         /// <summary>
@@ -456,24 +426,24 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="id">The macro's id</param>
         /// <returns></returns>
-        public static bool IsRibbonMacro(Guid id)
+        public bool IsRibbonMacro(Guid id)
         {
-            return GetInstance().m_RibbonMacros.Contains(id);
+            return m_RibbonMacros.Contains(id);
         }
 
         /// <summary>
         /// Adds a macro to the ribbon
         /// </summary>
         /// <param name="id">The macro's id</param>
-        public static void AddRibbonMacro(Guid id)
+        public void AddRibbonMacro(Guid id)
         {
             if (id == Guid.Empty || IsRibbonMacro(id))
                 return;
 
-            GetInstance().m_RibbonMacros.Add(id);
+            m_RibbonMacros.Add(id);
 
-            MacroDeclaration md = GetInstance().m_Declarations[id];
-            IMacro macro = GetInstance().m_Macros[id];
+            MacroDeclaration md = m_Declarations[id];
+            IMacro macro = m_Macros[id];
 
             //Events.AddRibbonMacro(id, md.Name, md.RelativePath, () => macro.Execute(null, false));
             Events.InvokeEvent("AddRibbonMacro", new object[] { id, md.Name, md.RelativePath, new Action(() => macro.Execute(null, false)) });
@@ -483,9 +453,9 @@ namespace Macro_Engine
         /// Removes a macro from the ribbon
         /// </summary>
         /// <param name="id">The macro's id</param>
-        public static void RemoveRibbonMacro(Guid id)
+        public void RemoveRibbonMacro(Guid id)
         {
-            GetInstance().m_RibbonMacros.Remove(id);
+            m_RibbonMacros.Remove(id);
             //Events.RemoveRibbonMacro(id);
             Events.InvokeEvent("RemoveRibbonMacro", new object[] { id });
         }
@@ -494,11 +464,11 @@ namespace Macro_Engine
         /// Renames a ribbon macro
         /// </summary>
         /// <param name="id">The macro's id</param>
-        public static void RenameRibbonMacro(Guid id)
+        public void RenameRibbonMacro(Guid id)
         {
-            GetInstance().m_RibbonMacros.Add(id);
+            m_RibbonMacros.Add(id);
 
-            MacroDeclaration md = GetInstance().m_Declarations[id];
+            MacroDeclaration md = m_Declarations[id];
             //Events.RenameRibbonMacro(id, md.Name, md.RelativePath);
             Events.InvokeEvent("RenameRibbonMacro", new object[] { id, md.Name, md.RelativePath });
         }
@@ -511,9 +481,9 @@ namespace Macro_Engine
         /// Adds an assembly to the assembly list
         /// </summary>
         /// <param name="ad">AssemblyDeclaration of assembly</param>
-        public static void AddAssembly(AssemblyDeclaration ad)
+        public void AddAssembly(AssemblyDeclaration ad)
         {
-            GetInstance().m_Assemblies.Add(ad);
+            m_Assemblies.Add(ad);
             //Events.OnAssembliesChangedInvoke();
             Events.InvokeEvent("OnAssembliesChanged");
         }
@@ -522,9 +492,9 @@ namespace Macro_Engine
         /// Removes an assembly from the assembly list
         /// </summary>
         /// <param name="ad">AssemblyDeclaration of the assembly</param>
-        public static void RemoveAssembly(AssemblyDeclaration ad)
+        public void RemoveAssembly(AssemblyDeclaration ad)
         {
-            GetInstance().m_Assemblies.Remove(ad);
+            m_Assemblies.Remove(ad);
             //Events.OnAssembliesChangedInvoke();
             Events.InvokeEvent("OnAssembliesChanged");
         }
@@ -533,9 +503,9 @@ namespace Macro_Engine
         /// Gets the list of Assemblies
         /// </summary>
         /// <returns>Gets list (HashSet) of assemblies</returns>
-        public static HashSet<AssemblyDeclaration> GetAssemblies()
+        public HashSet<AssemblyDeclaration> GetAssemblies()
         {
-            return GetInstance().m_Assemblies;
+            return m_Assemblies;
         }
 
         /// <summary>
@@ -543,9 +513,9 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="longname">An assembly's longname</param>
         /// <returns>The respective AssemblyDeclaration</returns>
-        public static AssemblyDeclaration GetAssemblyByLongName(string longname)
+        public AssemblyDeclaration GetAssemblyByLongName(string longname)
         {
-            foreach (AssemblyDeclaration ad in GetInstance().m_Assemblies)
+            foreach (AssemblyDeclaration ad in m_Assemblies)
                 if (ad.filepath == longname)
                     return ad;
 
@@ -560,18 +530,18 @@ namespace Macro_Engine
         /// Gets the list of macro declarations
         /// </summary>
         /// <returns>Dictionary of MacroDeclarations to their respective IDs</returns>
-        public static Dictionary<Guid, MacroDeclaration> GetDeclarations()
+        public Dictionary<Guid, MacroDeclaration> GetDeclarations()
         {
-            return GetInstance().m_Declarations;
+            return m_Declarations;
         }
 
         /// <summary>
         /// Gets the list of macro objects
         /// </summary>
         /// <returns>Dictionary of Macros and their respective IDs</returns>
-        public static Dictionary<Guid, IMacro> GetMacros()
+        public Dictionary<Guid, IMacro> GetMacros()
         {
-            return GetInstance().m_Macros;
+            return m_Macros;
         }
 
         /// <summary>
@@ -579,12 +549,12 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="id">The macro's id</param>
         /// <returns>Macro of the given id</returns>
-        public static IMacro GetMacro(Guid id)
+        public IMacro GetMacro(Guid id)
         {
-            if (!GetInstance().m_Macros.ContainsKey(id))
+            if (!m_Macros.ContainsKey(id))
                 return null;
 
-            return GetInstance().m_Macros[id];
+            return m_Macros[id];
         }
 
         /// <summary>
@@ -592,12 +562,12 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="id">The macro's id</param>
         /// <returns>MacroDeclaration of the given id</returns>
-        public static MacroDeclaration GetDeclaration(Guid id)
+        public MacroDeclaration GetDeclaration(Guid id)
         {
-            if (!GetInstance().m_Declarations.ContainsKey(id))
+            if (!m_Declarations.ContainsKey(id))
                 return null;
 
-            return GetInstance().m_Declarations[id];
+            return m_Declarations[id];
         }
 
         /// <summary>
@@ -605,11 +575,11 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="relativepath">The macro's relative path</param>
         /// <returns>Guid of the macro</returns>
-        public static Guid GetIDFromRelativePath(string relativepath)
+        public Guid GetIDFromRelativePath(string relativepath)
         {
             string path = relativepath.ToLower().Trim();
 
-            foreach (MacroDeclaration macro in GetInstance().m_Declarations.Values)
+            foreach (MacroDeclaration macro in m_Declarations.Values)
                 if (macro.RelativePath.ToLower().Trim() == path)
                     return macro.ID;
 
@@ -621,12 +591,12 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="id">The macro's id</param>
         /// <param name="declaration">The macro's MacroDeclaration</param>
-        public static void SetDeclaration(Guid id, MacroDeclaration declaration)
+        public void SetDeclaration(Guid id, MacroDeclaration declaration)
         {
-            if (!GetInstance().m_Declarations.ContainsKey(id))
-                GetInstance().m_Declarations.Add(id, declaration);
+            if (!m_Declarations.ContainsKey(id))
+                m_Declarations.Add(id, declaration);
             else
-                GetInstance().m_Declarations[id] = declaration;
+                m_Declarations[id] = declaration;
         }
 
         #endregion
@@ -639,15 +609,15 @@ namespace Macro_Engine
         /// <param name="declaration">The macro's macro declaration</param>
         /// <param name="macro">The macro</param>
         /// <returns>The macro's assigned ID</returns>
-        public static Guid AddMacro(MacroDeclaration declaration, IMacro macro)
+        public Guid AddMacro(MacroDeclaration declaration, IMacro macro)
         {
             Guid id = Guid.NewGuid();
 
             declaration.ID = id;
             macro.ID = id;
 
-            GetInstance().m_Declarations.Add(id, declaration);
-            GetInstance().m_Macros.Add(id, macro);
+            m_Declarations.Add(id, declaration);
+            m_Macros.Add(id, macro);
             //Events.OnMacroCountChangedInvoke();
             Events.InvokeEvent("OnMacroCountChanged");
 
@@ -658,9 +628,9 @@ namespace Macro_Engine
         /// Removes a macro from the registry
         /// </summary>
         /// <param name="id">The macro's id</param>
-        public static void RemoveMacro(Guid id)
+        public void RemoveMacro(Guid id)
         {
-            GetInstance().m_Macros.Remove(id);
+            m_Macros.Remove(id);
             //Events.OnMacroCountChangedInvoke();
             Events.InvokeEvent("OnMacroCountChanged");
         }
@@ -670,15 +640,15 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="id">The macro's id</param>
         /// <param name="newname">The macro's new name</param>
-        public static void RenameMacro(Guid id, string newname)
+        public void RenameMacro(Guid id, string newname)
         {
-            if (!GetInstance().m_Macros.ContainsKey(id))
+            if (!m_Macros.ContainsKey(id))
             {
                 Messages.DisplayOkMessage("Could not find the macro: " + GetDeclaration(id).Name, "Rename Macro Error");
                 return;
             }
 
-            IMacro macro = GetInstance().m_Macros[id];
+            IMacro macro = m_Macros[id];
 
             macro.Save();
             macro.Rename(newname);
@@ -694,23 +664,23 @@ namespace Macro_Engine
         /// <param name="olddir">The folder's current relative path</param>
         /// <param name="newdir">The folder's desired relative path</param>
         /// <returns>A list (HashSet) of ids of effected macros</returns>
-        public static void RenameFolder(string olddir, string newdir, Action<HashSet<Guid>> OnReturn)
+        public HashSet<Guid> RenameFolder(string olddir, string newdir)
         {
             HashSet<Guid> affectedMacros = new HashSet<Guid>();
 
             FileManager.RenameFolder(olddir, newdir);
             string relativepath = FileManager.CalculateRelativePath(FileManager.CalculateFullPath(olddir));
 
-            foreach (Guid id in GetInstance().m_Declarations.Keys)
+            foreach (Guid id in m_Declarations.Keys)
             {
                 if (GetDeclaration(id).RelativePath.ToLower().Trim().StartsWith(relativepath.ToLower().Trim()))
                 {
                     affectedMacros.Add(id);
-                    GetInstance().m_Declarations[id].RelativePath = GetDeclaration(id).RelativePath.Replace(relativepath, FileManager.CalculateRelativePath(FileManager.CalculateFullPath(newdir)));
+                    m_Declarations[id].RelativePath = GetDeclaration(id).RelativePath.Replace(relativepath, FileManager.CalculateRelativePath(FileManager.CalculateFullPath(newdir)));
                 }
             }
 
-            OnReturn.Invoke(affectedMacros);
+            return affectedMacros;
         }
 
         /// <summary>
@@ -718,7 +688,7 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="directory">The relative path of the folder</param>
         /// <param name="OnReturn">The Action, a bool representing the operations success, to be fired when the task is completed</param>
-        public static void DeleteFolder(string directory, Action<bool> OnReturn)
+        public void DeleteFolder(string directory, Action<bool> OnReturn)
         {
             HashSet<Guid> affectedMacros = new HashSet<Guid>();
 
@@ -730,12 +700,12 @@ namespace Macro_Engine
                 string relativepath = FileManager.CalculateRelativePath(FileManager.CalculateFullPath(directory)).ToLower().Trim();
 
                 HashSet<Guid> toremove = new HashSet<Guid>();
-                foreach (Guid id in GetInstance().m_Declarations.Keys)
+                foreach (Guid id in m_Declarations.Keys)
                     if (GetDeclaration(id).RelativePath.ToLower().Trim().Contains(relativepath))
                         toremove.Add(id);
 
                 foreach (Guid id in toremove)
-                    GetInstance().m_Declarations.Remove(id);
+                    m_Declarations.Remove(id);
 
                 OnReturn?.Invoke(true);
             }));

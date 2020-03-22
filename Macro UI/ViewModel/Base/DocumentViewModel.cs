@@ -42,7 +42,7 @@ namespace Macro_UI.ViewModel.Base
         {
             if (!IsSaved)
             {
-                EventManager.DisplayYesNoCancelMessage(Title + " has unsaved changed. Do you want to save the changes?", "Confirmation", "Discard", new Action<MessageDialogResult>((result) =>
+                MacroUI.DisplayYesNoCancelMessage(Title + " has unsaved changed. Do you want to save the changes?", "Confirmation", "Discard", new Action<MessageDialogResult>((result) =>
                 {
                     if (result == MessageDialogResult.Affirmative)
                         SaveCommand.Execute(new Action(() => IsClosed = true));

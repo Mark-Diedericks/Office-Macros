@@ -272,14 +272,9 @@
                     <Rectangle Width="1" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="178,4,0,4" Fill="{DynamicResource GrayBrush8}" />
 
                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="182,0,0,0">
-                        <ComboBox IsEditable="True" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="True" SelectedIndex="{Binding Source={x:Static properties:Settings.Default}, Path=ExecutionTypeIndex, Mode=TwoWay}" HorizontalAlignment="Left" Width="112" Height="16">
-                            <ComboBox.Items>
-                                <ComboBoxItem ToolTip="Slowest execution that can be terminated.">Debug</ComboBoxItem> <!-- Asynchronous -->
-                                <ComboBoxItem ToolTip="Fastest execution which cannot be terminated.">Release</ComboBoxItem> <!-- Synchronous -->
-                            </ComboBox.Items>
-                        </ComboBox>
+                        <ComboBox x:Name="cbRuntimes" IsEditable="True" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="True" ItemsSource="{Binding RuntimeItems}" SelectedItem="{Binding SelectedRuntime, Mode=TwoWay}" HorizontalAlignment="Left" Width="180" Height="18"/>
 
-                        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="116,0,0,0">
+                        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="192,0,0,0">
                             <Button Command="{Binding RunClick}" Visibility="{Binding IsEditing, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" IsEnabled="{Binding IsEditing}" Padding="2,2,2,2" BorderThickness="0" ToolTip="Start" Margin="0,0,0,0" VerticalAlignment="Stretch" HorizontalAlignment="Left" Background="Transparent">
                                 <Button.Template>
                                     <ControlTemplate TargetType="{x:Type Button}">
@@ -328,9 +323,9 @@
                         </Grid>
                     </Grid>
 
-                    <Rectangle Width="1" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="358,4,0,4" Fill="{DynamicResource GrayBrush8}"  Visibility="{Binding IsVisual, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <Rectangle Width="1" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="434,4,0,4" Fill="{DynamicResource GrayBrush8}"  Visibility="{Binding IsVisual, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="362,0,0,0">
+                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="438,0,0,0">
                         <!-- Convert Python -->
                         <Button Command="{Binding ConvertCommand}" Visibility="{Binding IsVisual, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" Padding="2,2,2,2" BorderThickness="0" ToolTip="Convert To New Python Macro" Margin="0,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Background="Transparent">
                             <Button.Template>

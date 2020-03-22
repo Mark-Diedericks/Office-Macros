@@ -181,18 +181,6 @@ namespace Macro_UI.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int ExecutionTypeIndex {
-            get {
-                return ((int)(this["ExecutionTypeIndex"]));
-            }
-            set {
-                this["ExecutionTypeIndex"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool ConsoleTextWrap {
             get {
@@ -235,6 +223,18 @@ namespace Macro_UI.Properties {
             }
             set {
                 this["IncludedLibraries"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ExecutionTypeIndex {
+            get {
+                return ((int)(this["ExecutionTypeIndex"]));
+            }
+            set {
+                this["ExecutionTypeIndex"] = value;
             }
         }
     }

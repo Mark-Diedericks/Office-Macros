@@ -55,6 +55,15 @@ namespace Macro_UI.ViewModel
             DockManager = new DockManagerViewModel(Properties.Settings.Default.OpenDocuments);
 
             SettingsMenu = new SettingsMenuViewModel();
+
+            RuntimeItems = new ObservableCollection<ComboBoxItem>();
+
+            if (MacroUI.IsLoaded())
+                Initialize();
+            else
+                Events.SubscribeEvent("ApplicationLoaded", (Action)Initialize);
+
+            Events.SubscribeEvent("ActiveMacroChanged", (Action)ActiveMacroChanged);
         }
 
         /// <summary>
@@ -94,6 +103,43 @@ namespace Macro_UI.ViewModel
                 MainWindow.GetInstance().Dispatcher.BeginInvoke(DispatcherPriority.Normal, a);
         }
 
+        /// <summary>
+        /// Populate drop down box with runtimes
+        /// </summary>
+        private void Initialize()
+        {
+            ObservableCollection<ComboBoxItem> items = new ObservableCollection<ComboBoxItem>();
+            foreach (string runtime in MacroUI.GetInstance().GetRuntimes())
+                items.Add(new ComboBoxItem() { Content = runtime, ToolTip = runtime, Tag = runtime });
+
+            RuntimeItems = items;
+            ActiveMacroChanged();
+        }
+
+        /// <summary>
+        /// Change which runtime is selected
+        /// </summary>
+        private void ActiveMacroChanged()
+        {
+            Guid id = MacroUI.GetInstance().GetActiveMacro();
+
+            if(id == Guid.Empty)
+            {
+                SelectedRuntime = RuntimeItems.FirstOrDefault<ComboBoxItem>();
+                return;
+            }
+
+            IMacro macro = MacroUI.GetInstance().GetMacro(id);
+            string runtime = macro.GetDefaultRuntime();
+            foreach (ComboBoxItem item in RuntimeItems)
+            {
+                if(string.Equals((string)item.Tag, runtime, StringComparison.OrdinalIgnoreCase))
+                {
+                    SelectedRuntime = item;
+                    return;
+                }
+            }
+        }
 
         #region Model
 
@@ -240,6 +286,46 @@ namespace Macro_UI.ViewModel
                 {
                     IsExecuting = !value;
                     OnPropertyChanged(nameof(IsEditing));
+                }
+            }
+        }
+
+        #endregion
+
+        #region RuntimeItems
+
+        public ObservableCollection<ComboBoxItem> RuntimeItems
+        {
+            get
+            {
+                return Model.RuntimeItems;
+            }
+            set
+            {
+                if (Model.RuntimeItems != value)
+                {
+                    Model.RuntimeItems = value;
+                    OnPropertyChanged(nameof(RuntimeItems));
+                }
+            }
+        }
+
+        #endregion
+
+        #region SelectedRuntime
+
+        public ComboBoxItem SelectedRuntime
+        {
+            get
+            {
+                return Model.SelectedRuntime;
+            }
+            set
+            {
+                if (Model.SelectedRuntime != value)
+                {
+                    Model.SelectedRuntime = value;
+                    OnPropertyChanged(nameof(SelectedRuntime));
                 }
             }
         }
@@ -819,7 +905,7 @@ namespace Macro_UI.ViewModel
             if (DockManager.ActiveDocument == null)
                 return;
 
-            IMacro macro = MacroEngine.GetMacro(DockManager.ActiveDocument.Macro);
+            IMacro macro = MacroUI.GetInstance().GetMacro(DockManager.ActiveDocument.Macro);
 
             if (macro == null)
                 return;
@@ -1289,12 +1375,12 @@ namespace Macro_UI.ViewModel
         /// <param name="newdir">The desired relativepath of the folder</param>
         public void RenameFolder(string olddir, string newdir)
         {
-            foreach (Guid id in MacroEngine.RenameFolder(olddir, newdir))
+            foreach (Guid id in MacroUI.GetInstance().RenameFolder(olddir, newdir))
             {
                 DocumentViewModel dvm = DockManager.GetDocument(id);
                 if (dvm != null)
                 {
-                    string p = MacroEngine.GetDeclaration(id).RelativePath;
+                    string p = MacroUI.GetInstance().GetDeclaration(id).RelativePath;
                     dvm.ToolTip = p;
                     dvm.ContentId = p;
                 }
@@ -1308,12 +1394,12 @@ namespace Macro_UI.ViewModel
         /// <param name="newName">The new name of the macro</param>
         public void RenameMacro(Guid id, string newName)
         {
-            MacroEngine.RenameMacro(id, newName);
+            MacroUI.GetInstance().RenameMacro(id, newName);
 
             DocumentViewModel dvm = DockManager.GetDocument(id);
             if (dvm != null)
             {
-                MacroDeclaration md = MacroEngine.GetDeclaration(id);
+                MacroDeclaration md = MacroUI.GetInstance().GetDeclaration(id);
                 dvm.Title = md.Name;
                 dvm.ContentId = md.RelativePath;
             }
@@ -1335,7 +1421,7 @@ namespace Macro_UI.ViewModel
                 return;
             }
 
-            MacroEngine.SetActiveMacro(id);
+            MacroUI.GetInstance().SetActiveMacro(id);
             if (id != Guid.Empty)
             {
                 DocumentModel model = DocumentModel.Create(id);

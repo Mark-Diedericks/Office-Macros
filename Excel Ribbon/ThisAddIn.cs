@@ -7,11 +7,10 @@ using Excel = Microsoft.Office.Interop.Excel;
 using Office = Microsoft.Office.Core;
 using Microsoft.Office.Tools.Excel;
 using System.Windows.Threading;
+using System.Threading;
 
 using Macro_Engine;
-using Macro_Engine.Macros;
-using Macro_Engine.Engine;
-using System.Threading;
+using Macro_UI;
 
 namespace Excel_Ribbon
 {
@@ -24,11 +23,12 @@ namespace Excel_Ribbon
             Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
 
             m_Thread = new Thread(() => {
-                Macro_UI.Routing.EventManager.CreateApplicationInstance(dispatcher, new string[] { });
+                MacroEngine engine = MacroEngine.CreateApplicationInstance(dispatcher);
+                MacroUI.CreateApplicationInstance(dispatcher, engine, new string[] { });
             });
 
             Events.SubscribeEvent("ApplicationLoaded", new System.Action(() => {
-                Macro_UI.Routing.EventManager.ShowWindow();
+                MacroUI.ShowWindow();
             }));
 
             m_Thread.SetApartmentState(ApartmentState.STA);

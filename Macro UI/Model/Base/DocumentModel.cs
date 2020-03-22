@@ -33,7 +33,7 @@ namespace Macro_UI.Model.Base
         /// <returns></returns>
         public static DocumentModel Create(Guid id)
         {
-            MacroDeclaration declaration = MacroEngine.GetDeclaration(id);
+            MacroDeclaration declaration = MacroUI.GetInstance().GetDeclaration(id);
 
             if (declaration == null)
                 return null;

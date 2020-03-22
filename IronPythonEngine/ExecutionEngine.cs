@@ -44,29 +44,28 @@ namespace IronPython_Engine
             m_BackgroundWorker.WorkerSupportsCancellation = true;
 
             m_IOManager = null;
+        }
 
-            //Reset IO streams of ScriptEngine if they're changed
-            Events.SubscribeEvent("OnIOChanged", new Action<string, IExecutionEngineIO>((runtime, manager) =>
-            {
-                if (!string.Equals(runtime, Runtime, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(runtime))
-                    return;
+        public void SetIO(IExecutionEngineIO manager)
+        {
+            m_IOManager = manager;
 
-                m_IOManager = manager;
+            m_ScriptEngine.Runtime.IO.RedirectToConsole();
 
-                m_ScriptEngine.Runtime.IO.RedirectToConsole();
+            if (m_IOManager.GetOutput() != null)
                 Console.SetOut(m_IOManager.GetOutput());
+
+            if (m_IOManager.GetError() != null)
                 Console.SetError(m_IOManager.GetError());
+
+            if (m_IOManager.GetInput() != null)
                 Console.SetIn(m_IOManager.GetInput());
-            }));
+        }
 
-            //End running tasks if program is exiting
-            Events.SubscribeEvent("OnDestroyed", new Action(() =>
-            {
-                if (m_BackgroundWorker != null)
-                    m_BackgroundWorker.CancelAsync();
-            }));
-
-            Events.SubscribeEvent("OnTerminateExecution", (Action)TerminateExecution);
+        public void Destroy()
+        {
+            if (m_BackgroundWorker != null)
+                m_BackgroundWorker.CancelAsync();
         }
 
         public string GetLabel()
