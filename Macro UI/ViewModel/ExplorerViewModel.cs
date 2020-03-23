@@ -1136,7 +1136,7 @@ namespace Macro_UI.ViewModel
 
                 //FileManager.CreateFolder((root + "/" + item.Header).Replace('\\', '/').Replace("//", "/"))
 
-                Events.InvokeEvent("CreateFolder", new object[] { new Action<bool>((result) => {
+                Events.InvokeEvent("CreateFolder", new Action<bool>((result) => {
                     if (!result)
                     {
                         Remove(parent, item);
@@ -1156,7 +1156,7 @@ namespace Macro_UI.ViewModel
 
                         m_IsCreating = false;
                     }
-                }), (root + "/" + item.Header).Replace('\\', '/').Replace("//", "/") });
+                }), (root + "/" + item.Header).Replace('\\', '/').Replace("//", "/"));
             };
 
             //tvi.Items.SortDescriptions.Add(new SortDescription("Header", ListSortDirection.Ascending));

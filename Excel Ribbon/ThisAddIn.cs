@@ -32,7 +32,6 @@ namespace Excel_Ribbon
             }));
 
             m_Thread.SetApartmentState(ApartmentState.STA);
-            m_Thread.IsBackground = true;
             m_Thread.Start();
 
             /*if (Application.ActiveSheet == null)
@@ -70,7 +69,7 @@ namespace Excel_Ribbon
             try
             {
                 MacroUI.GetInstance().Destroy();
-                m_Thread.Abort();
+                m_Thread.Join();
             }
             catch(Exception ex)
             {

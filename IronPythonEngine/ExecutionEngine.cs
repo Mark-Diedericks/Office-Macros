@@ -158,7 +158,7 @@ namespace IronPython_Engine
         /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
         private void ExecuteSourceSynchronous(string source, Action OnCompletedAction)
         {
-            Events.InvokeEvent("OnHostExecute", new object[] { DispatcherPriority.Normal, new Action(() =>
+            Events.InvokeEvent("OnHostExecute", DispatcherPriority.Normal, new Action(() =>
             {
                 int profileID = -1;
                 profileID = Utilities.BeginProfileSession();
@@ -176,7 +176,7 @@ namespace IronPython_Engine
 
                 m_IsExecuting = false;
                 OnCompletedAction?.Invoke();
-            }) });
+            }));
         }
 
         /// <summary>

@@ -123,6 +123,7 @@ namespace Macro_Engine
         private MacroEngine(Dispatcher dispatcher)
         {
             s_Instance = this;
+
             m_HostDispatcher = dispatcher;
 
             Compose();
@@ -446,7 +447,7 @@ namespace Macro_Engine
             IMacro macro = m_Macros[id];
 
             //Events.AddRibbonMacro(id, md.Name, md.RelativePath, () => macro.Execute(null, false));
-            Events.InvokeEvent("AddRibbonMacro", new object[] { id, md.Name, md.RelativePath, new Action(() => macro.Execute(null, false)) });
+            Events.InvokeEvent("AddRibbonMacro", id, md.Name, md.RelativePath, new Action(() => macro.Execute(null, false)));
         }
 
         /// <summary>
@@ -457,7 +458,7 @@ namespace Macro_Engine
         {
             m_RibbonMacros.Remove(id);
             //Events.RemoveRibbonMacro(id);
-            Events.InvokeEvent("RemoveRibbonMacro", new object[] { id });
+            Events.InvokeEvent("RemoveRibbonMacro", id);
         }
 
         /// <summary>
@@ -470,7 +471,7 @@ namespace Macro_Engine
 
             MacroDeclaration md = m_Declarations[id];
             //Events.RenameRibbonMacro(id, md.Name, md.RelativePath);
-            Events.InvokeEvent("RenameRibbonMacro", new object[] { id, md.Name, md.RelativePath });
+            Events.InvokeEvent("RenameRibbonMacro", id, md.Name, md.RelativePath);
         }
 
         #endregion
@@ -655,7 +656,7 @@ namespace Macro_Engine
             macro.Save();
 
             //Events.OnMacroRenamedInvoke(id);
-            Events.InvokeEvent("OnMacroRenamed", new object[] { id });
+            Events.InvokeEvent("OnMacroRenamed", id);
         }
 
         /// <summary>
@@ -758,7 +759,7 @@ namespace Macro_Engine
         public static void SetInteractive(bool enabled)
         {
             //Events.SetInteractive(enabled);
-            Events.InvokeEvent("SetInteractive", new object[] { enabled });
+            Events.InvokeEvent("SetInteractive", enabled);
         }
 
         #endregion

@@ -1354,7 +1354,7 @@ namespace Macro_UI.ViewModel
         public void CreateMacro(string relativepath, Action<Guid> OnReturn)
         {
             //return FileManager.CreateMacro(relativepath);
-            Events.InvokeEvent("CreateMacro", new object[] { OnReturn, relativepath });
+            Events.InvokeEvent("CreateMacro", OnReturn, relativepath);
         }
 
         /// <summary>
@@ -1365,7 +1365,7 @@ namespace Macro_UI.ViewModel
         public void ImportMacro(string relativepath, Action<Guid> OnReturn)
         {
             //FileManager.ImportMacro(relativepath, OnReturn);
-            Events.InvokeEvent("ImportMacro", new object[] { OnReturn, relativepath });
+            Events.InvokeEvent("ImportMacro", OnReturn, relativepath);
         }
 
         /// <summary>

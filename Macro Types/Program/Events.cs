@@ -61,13 +61,10 @@ namespace Macro_Engine
             }
         }
 
-        public static void InvokeEvent(string name, object[] args = null)
+        public static void InvokeEvent(string name, params object[] args)
         {
             try
             {
-                if (args == null)
-                    args = new object[] { };
-
                 if (Instance.m_Events.ContainsKey(name))
                     Instance.m_Events[name]?.DynamicInvoke(args);
                 else

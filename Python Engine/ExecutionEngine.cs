@@ -23,15 +23,16 @@ namespace Python_Engine
     {
         private readonly string Runtime = "PythonNET 3.5.0";
 
-        private PyScope m_ScriptScope;
-
         private BackgroundWorker m_BackgroundWorker;
         private bool m_IsExecuting;
 
         private IExecutionEngineIO m_IOManager;
 
+        private PyObject CLR;
+
         private ExecutionEngine()
-        {
+        { 
+            //TODO CHANGE HOME AND PATH
             string py_home = @"D:\Mark Diedericks\Documents\Visual Studio 2019\Projects\Office Python\Dependencies\Python35\";
             string py_path = py_home + @"\Scripts;" + py_home + @"\lib;" + py_home + @"lib\site-packages";
 
@@ -43,10 +44,10 @@ namespace Python_Engine
             PythonEngine.PythonPath = py_path;
 
             PythonEngine.Initialize();
+            PythonEngine.BeginAllowThreads();
+
             using (Py.GIL())
-            {
-                m_ScriptScope = Py.CreateScope();
-            }
+                CLR = PythonEngine.ImportModule("clr");
 
             m_IsExecuting = false;
             m_BackgroundWorker = new BackgroundWorker();
@@ -77,11 +78,6 @@ namespace Python_Engine
             if (m_BackgroundWorker != null)
                 m_BackgroundWorker.CancelAsync();
 
-            using (Py.GIL())
-            {
-                m_ScriptScope.Dispose();
-                m_ScriptScope = null;
-            }
             PythonEngine.Shutdown();
         }
 
@@ -92,21 +88,15 @@ namespace Python_Engine
 
         public string GetVersion()
         {
+            string v = "";
             using(Py.GIL())
-            {
-                return "Python " + PythonEngine.Version.Split(' ').FirstOrDefault<string>();
-            }
+                v = PythonEngine.Version.Split(' ').FirstOrDefault<string>();
+
+            return "Python " + v;
         }
 
         public void ClearContext()
         {
-            using(Py.GIL())
-            {
-                if(m_ScriptScope != null)
-                    m_ScriptScope.Dispose();
-
-                m_ScriptScope = Py.CreateScope();
-            }
         }
 
         #region Execution
@@ -120,12 +110,6 @@ namespace Python_Engine
         /// <returns></returns>
         public bool ExecuteMacro(string source, Action OnCompletedAction, bool async)
         {
-            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>>");
-            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>>");
-            System.Diagnostics.Debug.WriteLine(m_IOManager);
-            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>>");
-            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>>");
-
             if (m_IsExecuting)
                 return false;
 
@@ -190,7 +174,7 @@ namespace Python_Engine
         /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
         private void ExecuteSourceSynchronous(string source, Action OnCompletedAction)
         {
-            Events.InvokeEvent("OnHostExecute", new object[] { DispatcherPriority.Normal, new Action(() =>
+            Events.InvokeEvent("OnHostExecute", DispatcherPriority.Normal, new Action(() =>
             {
                 int profileID = -1;
                 profileID = Utilities.BeginProfileSession();
@@ -208,7 +192,7 @@ namespace Python_Engine
 
                 m_IsExecuting = false;
                 OnCompletedAction?.Invoke();
-            }) });
+            }));
         }
 
         /// <summary>
@@ -229,12 +213,12 @@ namespace Python_Engine
 
             if (m_IOManager != null)
                 m_IOManager.ClearAllStreams();
-                
+
             try
             {
                 using(Py.GIL())
                 {
-                    m_ScriptScope.Exec(source);
+                    PythonEngine.Exec(source);
                 }
             }
             catch (ThreadAbortException tae)

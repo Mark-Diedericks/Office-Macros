@@ -147,7 +147,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void AddLibrary()
         {
-            Events.InvokeEvent("ImportAssembly", new object[] { new Action<string>((path) => {
+            Events.InvokeEvent("ImportAssembly", new Action<string>((path) => {
                 if (path == String.Empty)
                     return;
 
@@ -156,7 +156,7 @@ namespace Macro_UI.ViewModel
                 AssemblyDeclaration ad = new AssemblyDeclaration(name, path, false);
 
                 MacroUI.GetInstance().AddAssembly(ad);
-            }) });
+            }));
         }
 
         #endregion

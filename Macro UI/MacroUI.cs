@@ -41,6 +41,8 @@ namespace Macro_UI
 
         #endregion
 
+        #region Instance & Instance Variables
+
         public delegate void InputMessageEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult);
         public event InputMessageEvent DisplayInputMessageEvent;
 
@@ -50,8 +52,10 @@ namespace Macro_UI
         private static MacroUI s_Instance;
         private static bool s_IsLoaded;
         private static bool s_IsRibbonLoaded;
+
         public IMacroEngine MacroEngine { get; private set; }
         public MainWindow MainWindow { get; private set; }
+        public Dispatcher UIDispatcher { get; private set; }
 
         /// <summary>
         /// Instiantiation of EventManager
@@ -64,6 +68,20 @@ namespace Macro_UI
             m_HostDispatcher = dispatcher;
             MacroEngine = engine;
         }
+
+        /// <summary>
+        /// Gets instance of EventManager
+        /// </summary>
+        /// <returns></returns>
+        public static MacroUI GetInstance()
+        {
+            return s_Instance;
+        }
+
+        #endregion
+
+        #region Creating/Destroying Instance
+
         public CancellationTokenSource Instantiate(HostState state, Action OnLoaded)
         {
             Events.SubscribeEvent("OnFocused", (Action)FocusWindow);
@@ -84,8 +102,6 @@ namespace Macro_UI
             MainWindow = new MainWindow() { DataContext = new MainWindowViewModel() };
             ((MainWindowViewModel)MainWindow.DataContext).SetTheme(Macro_UI.Properties.Settings.Default.Theme);
 
-            System.Diagnostics.Debug.WriteLine(">>>> >>>> >>>> >>>> " + MainWindow.DataContext);
-            
             GetHostDispatcher().BeginInvoke(DispatcherPriority.Normal, new Action(() => {
                 OnLoaded?.Invoke();
             }));
@@ -95,20 +111,12 @@ namespace Macro_UI
 
         public void Destroy()
         {
-            GetInstance().MainWindow.Close();
-            GetInstance().MacroEngine.Destroy();
-
             Events.InvokeEvent("Shutdown");
         }
 
-        /// <summary>
-        /// Gets instance of EventManager
-        /// </summary>
-        /// <returns></returns>
-        public static MacroUI GetInstance()
-        {
-            return s_Instance;
-        }
+        #endregion
+
+        #region Loading & Entry 
 
         /// <summary>
         /// Returns whether or not the application has been loaded
@@ -145,6 +153,8 @@ namespace Macro_UI
 
                 s_IsLoaded = true;
                 Events.InvokeEvent("ApplicationLoaded");
+
+                Dispatcher.Run();
             }));
 
             Events.SubscribeEvent("Shutdown", new Action(() =>
@@ -158,36 +168,34 @@ namespace Macro_UI
                     System.Diagnostics.Debug.WriteLine(ex.Message);
                 }
 
-                if(MainWindow.GetInstance() != null)
+                MacroDeclaration md = GetInstance().GetDeclaration(GetInstance().GetActiveMacro());
+                if (md != null)
+                    Properties.Settings.Default.ActiveMacro = md.RelativePath;
+
+                Properties.Settings.Default.IncludedLibraries = GetInstance().GetAssemblies().ToArray<AssemblyDeclaration>();
+
+                if (MainWindowViewModel.GetInstance() != null)
                 {
-                    MainWindow.GetInstance().Dispatcher.BeginInvoke(DispatcherPriority.Send, new Action(() =>
+                    MainWindowViewModel.GetInstance().SaveAll();
+                    List<DocumentViewModel> unsaved = MainWindowViewModel.GetInstance().DockManager.GetUnsavedDocuments();
+
+                    if (unsaved.Count > 0)
                     {
-                        MacroDeclaration md = GetInstance().GetDeclaration(GetInstance().GetActiveMacro());
-                        if (md != null)
-                            Properties.Settings.Default.ActiveMacro = md.RelativePath;
+                        bool save = DisplayYesNoMessageReturn("You have unsaved documents. Would you like to save them?", "Unsaved Documents");
 
-                        Properties.Settings.Default.IncludedLibraries = GetInstance().GetAssemblies().ToArray<AssemblyDeclaration>();
-
-                        if (MainWindowViewModel.GetInstance() != null)
-                        {
-                            MainWindowViewModel.GetInstance().SaveAll();
-                            List<DocumentViewModel> unsaved = MainWindowViewModel.GetInstance().DockManager.GetUnsavedDocuments();
-
-                            if (unsaved.Count > 0)
-                            {
-                                bool save = DisplayYesNoMessageReturn("You have unsaved documents. Would you like to save them?", "Unsaved Documents");
-
-                                if (save)
-                                    foreach (DocumentViewModel document in unsaved)
-                                        if (document is TextualEditorViewModel)
-                                            document.Save(null);
-                            }
-                        }
-                    }));
+                        if (save)
+                            foreach (DocumentViewModel document in unsaved)
+                                if (document is TextualEditorViewModel)
+                                    document.Save(null);
+                    }
                 }
+
+                GetInstance().MacroEngine?.Destroy();
+                GetInstance()?.UIDispatcher?.InvokeShutdown();
             }));
         }
 
+        #endregion
 
         #region Main to UI to Excel Events
 
