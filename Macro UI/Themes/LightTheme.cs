@@ -22,13 +22,18 @@ namespace Macro_UI.Themes
         {
             UriList = new List<Uri>
             {
-                //new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml"),
-                //new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml"),
-                //new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml"),
-                //new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml"),
-                //new Uri("pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml"),
                 new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml"),
-                new Uri("pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml"),
+                new Uri("pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml"),
+                new Uri("pack://application:,,,/AvalonDock.Themes.VS2012;component/LightTheme.xaml"),
+            };
+        }
+
+        public void SetAccent(Uri resource)
+        {
+            UriList = new List<Uri>
+            {
+                new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml"),
+                resource,
                 new Uri("pack://application:,,,/AvalonDock.Themes.VS2012;component/LightTheme.xaml"),
             };
         }

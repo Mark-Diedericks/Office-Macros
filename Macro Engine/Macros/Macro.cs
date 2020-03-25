@@ -96,7 +96,7 @@ namespace Macro_Engine.Macros
         /// <summary>
         /// Execute the macro using the source saved in macro
         /// </summary>
-        /// <param name="OnCompletedAction">Action to be fire when the task is completed</param>
+        /// <param name="OnCompleted">Action to be fire when the task is completed</param>
         /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
         /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
         public void Execute(Action OnCompleted, bool async, string runtime = "")
@@ -107,8 +107,8 @@ namespace Macro_Engine.Macros
         /// <summary>
         /// Execute the macro using the with given source
         /// </summary>
-        /// <param name="Source">Code to be executed</param>
-        /// <param name="OnCompletedAction">Action to be fire when the task is completed</param>
+        /// <param name="OnCompleted">Action to be fire when the task is completed</param>
+        /// <param name="source">Code to be executed</param>
         /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
         /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
         public void ExecuteSource(Action OnCompleted, string source, bool async, string runtime = "")

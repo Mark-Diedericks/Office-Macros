@@ -52,6 +52,7 @@
     <Compile Include="Interop\InteropTools.cs" />
     <Compile Include="Macros\IMacro.cs" />
     <Compile Include="Macros\MacroDeclaration.cs" />
+    <Compile Include="Program\Executor.cs" />
     <Compile Include="Program\Files.cs" />
     <Compile Include="Program\Events.cs" />
     <Compile Include="Program\HostState.cs" />

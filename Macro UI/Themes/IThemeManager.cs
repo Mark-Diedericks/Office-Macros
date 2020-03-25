@@ -17,12 +17,15 @@ namespace Macro_UI.Themes
 {
     public interface IThemeManager
     {
-
+        Dictionary<string, Uri> Accents { get; }
         ObservableCollection<ITheme> Themes { get; }
         ITheme ActiveTheme { get; }
+        string ActiveAccent { get; }
 
         bool AddTheme(ITheme theme);
         bool SetTheme(string name);
 
+        bool AddAccent(string name, Uri resource);
+        bool SetAccent(string name);
     }
 }

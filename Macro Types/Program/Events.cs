@@ -63,6 +63,7 @@ namespace Macro_Engine
 
         public static void InvokeEvent(string name, params object[] args)
         {
+            //System.Diagnostics.Debug.WriteLine(">>>> Executing '" + name + "' with " + args.Length + " args.");
             try
             {
                 if (Instance.m_Events.ContainsKey(name))

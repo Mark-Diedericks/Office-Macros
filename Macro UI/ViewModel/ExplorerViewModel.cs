@@ -663,7 +663,7 @@ namespace Macro_UI.ViewModel
 
                     if (String.IsNullOrEmpty(item.Header))
                     {
-                        MacroUI.DisplayOkMessage("Please enter a valid name.", "Invalid Name");
+                        MacroUI.GetInstance().DisplayOkMessage("Please enter a valid name.", "Invalid Name");
                         item.IsInputting = true;
                         return;
                     }
@@ -705,7 +705,7 @@ namespace Macro_UI.ViewModel
             IMacro macro = MacroUI.GetInstance().GetMacro(id);
             if (macro == null)
             {
-                MacroUI.DisplayOkMessage("Could not find the macro (when attempting to create a context menu): " + name, "Macro Error");
+                MacroUI.GetInstance().DisplayOkMessage("Could not find the macro (when attempting to create a context menu): " + name, "Macro Error");
                 return null;
             }
 
@@ -805,7 +805,7 @@ namespace Macro_UI.ViewModel
 
                     if (String.IsNullOrEmpty(item.Header))
                     {
-                        MacroUI.DisplayOkMessage("Please enter a valid name.", "Invalid Name");
+                        MacroUI.GetInstance().DisplayOkMessage("Please enter a valid name.", "Invalid Name");
                         item.IsInputting = true;
                         return;
                     }

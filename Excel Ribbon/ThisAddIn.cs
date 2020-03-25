@@ -17,58 +17,44 @@ namespace Excel_Ribbon
     public partial class ThisAddIn
     {
         private Thread m_Thread;
+        private MacroEngine m_Engine;
+        private MacroUI m_UI;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+            Executor executor = new Executor(new Action<System.Action>((a) =>
+            {
+                dispatcher.BeginInvoke(DispatcherPriority.Normal, a);
+            }));
+
 
             m_Thread = new Thread(() => {
-                MacroEngine engine = MacroEngine.CreateApplicationInstance(dispatcher);
-                MacroUI.CreateApplicationInstance(dispatcher, engine, new string[] { });
-            });
+                m_Engine = MacroEngine.CreateApplicationInstance(executor);
+                m_UI = MacroUI.CreateApplicationInstance(m_Engine, new string[] { });
 
-            Events.SubscribeEvent("ApplicationLoaded", new System.Action(() => {
-                MacroUI.ShowWindow();
-            }));
+                m_UI.AddAccent("ExcelAccent", new Uri("pack://application:,,,/Excel Ribbon;component/Resources/ExcelAccent.xaml"));
+                m_UI.SetAccent("ExcelAccent");
+                
+                Events.InvokeEvent("ApplicationLoaded");
+                m_UI.ShowWindow();
+
+                m_UI.Run();
+            });
 
             m_Thread.SetApartmentState(ApartmentState.STA);
             m_Thread.Start();
-
-            /*if (Application.ActiveSheet == null)
-                Application.Workbooks.Add();
-
-            MacroEngine.Instantiate(Dispatcher.CurrentDispatcher, new HostState(), () =>
-            {
-                string code = "print('hello')";
-
-
-                IExecutionEngine ipy = MacroEngine.GetExecutionEngine("IronPython 2.7.9.0");
-                System.Diagnostics.Debug.WriteLine(ipy);
-                if(ipy != null)
-                    if(Application.ActiveSheet != null)
-                        Application.ActiveSheet.Cells(1, 1).Value = ipy.GetLabel();
-
-                Macro mipy = new Macro("IronPython", code);
-                mipy.Execute(() => { if (Application.ActiveSheet != null) Application.ActiveSheet.Cells(2, 1).Value = "YAY"; }, false);
-
-                
-
-                IExecutionEngine py = MacroEngine.GetExecutionEngine("PythonNET 3.5.0");
-                System.Diagnostics.Debug.WriteLine(py);
-                if (py != null)
-                    if (Application.ActiveSheet != null)
-                        Application.ActiveSheet.Cells(4, 1).Value = py.GetLabel();
-
-                Macro mpy = new Macro("Python", code);
-                mpy.Execute(() => { if (Application.ActiveSheet != null) Application.ActiveSheet.Cells(5, 1).Value = "YAY"; }, false);
-            });*/   
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
             try
             {
-                MacroUI.GetInstance().Destroy();
+                m_UI.MainWindow.Dispatcher.Invoke(new System.Action(() => 
+                {
+                    m_UI.Destroy();
+                }));
+
                 m_Thread.Join();
             }
             catch(Exception ex)

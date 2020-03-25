@@ -26,14 +26,14 @@
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
                         <!-- Accent -->
-                        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
-                        <ResourceDictionary Source="pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml" />
+                        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Steel.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary x:Name="ThemeDictionary">
                     <ResourceDictionary.MergedDictionaries>
                         <!-- AppTheme setting -->
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+                        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Steel.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary>
@@ -132,12 +132,12 @@
                                         <Trigger Property="IsMouseOver" Value="true">
                                             <Setter TargetName="Grid" Property="Background" Value="#22808080"/>
                                             <Setter TargetName="Column" Property="Width" Value="1"/>
-                                            <Setter TargetName="Rectangle" Property="Fill" Value="#882e9b5f"/>
+                                            <Setter TargetName="Rectangle" Property="Fill" Value="{StaticResource AccentColorBrush3}"/>
                                         </Trigger>
                                         <Trigger Property="IsChecked" Value="true">
                                             <Setter TargetName="Grid" Property="Background" Value="#44808080"/>
                                             <Setter TargetName="Column" Property="Width" Value="2"/>
-                                            <Setter TargetName="Rectangle" Property="Fill" Value="#bb2e9b5f"/>
+                                            <Setter TargetName="Rectangle" Property="Fill" Value="{StaticResource AccentColorBrush}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -151,7 +151,17 @@
         </ResourceDictionary>
     </Controls:Flyout.Resources>
 
-    <Grid Margin="0,0,0,0">
+    <Grid x:Name="FlyoutContent" Margin="0,0,0,0">
+        <Grid.Resources>
+            <ResourceDictionary x:Name="GridThemeDictionary">
+                <ResourceDictionary.MergedDictionaries>
+                    <!-- AppTheme setting -->
+                    <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+                    <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Steel.xaml" />
+                </ResourceDictionary.MergedDictionaries>
+            </ResourceDictionary>
+        </Grid.Resources>
+        
         <Grid.ColumnDefinitions>
             <ColumnDefinition MinWidth="112" Width="112" MaxWidth="112"/>
             <ColumnDefinition MinWidth="1" Width="1" MaxWidth="1"/>
@@ -194,13 +204,13 @@
             </ToggleButton>
         </Grid>
 
-        <Rectangle Grid.Column="1" Margin="0,8,0,8" Fill="#CC227447" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+        <Rectangle Grid.Column="1" Margin="0,8,0,8" Fill="{StaticResource AccentColorBrush2}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
 
         <Grid Grid.Column="2" Background="{DynamicResource ControlBackgroundBrush}">
             <!-- TAB CONTENT -->
             <Grid Background="{DynamicResource ControlBackgroundBrush}" Visibility="{Binding StyleActive, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="0,4,0,0" TextAlignment="Center">Customize Editor Styling</TextBlock>
-                <Rectangle VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="16,23,16,0" Height="1" Fill="#CC227447"/>
+                <Rectangle VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="16,23,16,0" Height="1" Fill="{DynamicResource AccentColorBrush2}"/>
 
                 <Grid Margin="16,38,16,0" VerticalAlignment="Top" HorizontalAlignment="Center">
                     <CheckBox VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,0,0,0" IsChecked="{Binding Source={x:Static properties:Settings.Default}, Path=EditorShowLineNumbers, Mode=TwoWay}">Show Line Numbers</CheckBox>

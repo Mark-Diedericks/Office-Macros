@@ -57,8 +57,8 @@ namespace Macro_UI.View
 
             InitializeComponent();
 
-            ThemeManager.AddAccent("ExcelAccent", new Uri("pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml"));
-            ThemeManager.ChangeAppStyle(this, ThemeManager.GetAccent("ExcelAccent"), ThemeManager.GetAppTheme("BaseLight"));
+            ThemeManager.AddAccent("BaseAccent", new Uri("pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml"));
+            ThemeManager.ChangeAppStyle(this, ThemeManager.GetAccent("BaseAccent"), ThemeManager.GetAppTheme("BaseLight"));
 
             this.DataContextChanged += MainWindow_DataContextChanged;
 
@@ -173,6 +173,15 @@ namespace Macro_UI.View
         public ResourceDictionary GetResources()
         {
             return Resources;
+        }
+
+        #endregion
+
+        #region Custom Accent
+        public void UpdateThemeManager(Uri accent, ITheme theme)
+        {
+            ThemeManager.AddAccent("BaseAccent", accent);
+            ThemeManager.ChangeAppStyle(this, ThemeManager.GetAccent("BaseAccent"), ThemeManager.GetAppTheme("Base" + theme.Name));
         }
 
         #endregion

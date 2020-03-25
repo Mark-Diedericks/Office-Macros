@@ -13,7 +13,7 @@ namespace Macro_Engine
 {
     public interface IMacroEngine
     {
-        CancellationTokenSource Instantiate(HostState state, Action OnCompleted);
+        void Instantiate(HostState state);
         void Destroy();
 
         //Runtimes

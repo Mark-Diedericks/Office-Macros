@@ -53,12 +53,18 @@ namespace Macro_UI.View
         private void ThemeChangedEvent()
         {
             ThemeDictionary.MergedDictionaries.Clear();
+            GridThemeDictionary.MergedDictionaries.Clear();
 
             foreach (Uri uri in MainWindowViewModel.GetInstance().ActiveTheme.UriList)
+            {
                 ThemeDictionary.MergedDictionaries.Add(new ResourceDictionary() { Source = uri });
+                GridThemeDictionary.MergedDictionaries.Add(new ResourceDictionary() { Source = uri });
+            }
 
             Theme = FlyoutTheme.Accent;
             Theme = FlyoutTheme.Adapt;
+
+            FlyoutContent.InvalidateVisual();
         }
 
         /// <summary>

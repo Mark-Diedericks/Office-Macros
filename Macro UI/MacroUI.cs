@@ -26,21 +26,6 @@ namespace Macro_UI
 {
     public class MacroUI : IMacroEngine
     {
-        #region Dispatchers & Threading
-
-        private readonly Dispatcher m_HostDispatcher;
-
-        /// <summary>
-        /// Gets host office application UI dispatcher
-        /// </summary>
-        /// <returns>Office application UI dispatcher</returns>
-        public static Dispatcher GetHostDispatcher()
-        {
-            return GetInstance().m_HostDispatcher;
-        }
-
-        #endregion
-
         #region Instance & Instance Variables
 
         public delegate void InputMessageEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult);
@@ -55,17 +40,15 @@ namespace Macro_UI
 
         public IMacroEngine MacroEngine { get; private set; }
         public MainWindow MainWindow { get; private set; }
-        public Dispatcher UIDispatcher { get; private set; }
 
         /// <summary>
         /// Instiantiation of EventManager
         /// </summary>
-        private MacroUI(Dispatcher dispatcher, IMacroEngine engine)
+        private MacroUI(IMacroEngine engine)
         {
             s_Instance = this;
             s_IsLoaded = false;
 
-            m_HostDispatcher = dispatcher;
             MacroEngine = engine;
         }
 
@@ -82,7 +65,7 @@ namespace Macro_UI
 
         #region Creating/Destroying Instance
 
-        public CancellationTokenSource Instantiate(HostState state, Action OnLoaded)
+        public void Instantiate(HostState state)
         {
             Events.SubscribeEvent("OnFocused", (Action)FocusWindow);
             Events.SubscribeEvent("OnShown", (Action)ShowWindow);
@@ -95,23 +78,39 @@ namespace Macro_UI
 
             Messages.DisplayInputMessageEvent += EventManager_DisplayInputMessageEvent;
             Messages.DisplayInputMessageReturnEvent += EventManager_DisplayInputMessageReturnEvent;
+        }
 
-            if (s_IsRibbonLoaded)
-                Events.InvokeEvent("LoadRibbonMacros");
-
-            MainWindow = new MainWindow() { DataContext = new MainWindowViewModel() };
-            ((MainWindowViewModel)MainWindow.DataContext).SetTheme(Macro_UI.Properties.Settings.Default.Theme);
-
-            GetHostDispatcher().BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                OnLoaded?.Invoke();
-            }));
-
-            return null;
+        public void Run()
+        {
+            Dispatcher.Run();
         }
 
         public void Destroy()
         {
-            Events.InvokeEvent("Shutdown");
+            MacroDeclaration md = GetDeclaration(GetActiveMacro());
+            if (md != null)
+                Properties.Settings.Default.ActiveMacro = md.RelativePath;
+
+            Properties.Settings.Default.IncludedLibraries = GetAssemblies().ToArray<AssemblyDeclaration>();
+
+            if (MainWindowViewModel.GetInstance() != null)
+            {
+                MainWindowViewModel.GetInstance().SaveAll();
+                List<DocumentViewModel> unsaved = MainWindowViewModel.GetInstance().DockManager.GetUnsavedDocuments();
+
+                if (unsaved.Count > 0)
+                {
+                    bool save = GetInstance().DisplayYesNoMessageReturn("You have unsaved documents. Would you like to save them?", "Unsaved Documents");
+
+                    if (save)
+                        foreach (DocumentViewModel document in unsaved)
+                            if (document is TextualEditorViewModel)
+                                document.Save(null);
+                }
+            }
+
+            MacroEngine?.Destroy();
+            MainWindow.Dispatcher?.InvokeShutdown();
         }
 
         #endregion
@@ -142,57 +141,25 @@ namespace Macro_UI
         /// <param name="application">Excel Application</param>
         /// <param name="dispatcher">Excel UI Dispatcher</param>
         /// <param name="RibbonMacros">A serialized list of ribbon accessible macros</param>
-        public static void CreateApplicationInstance(Dispatcher dispatcher, IMacroEngine engine, string[] RibbonMacros)
+        public static MacroUI CreateApplicationInstance(IMacroEngine engine, string[] RibbonMacros)
         {
-            new MacroUI(dispatcher, engine);
+            MacroUI ui = new MacroUI(engine);
             string[] workspaces = new string[] { Path.GetFullPath(Files.AssemblyDirectory + "/Macros/") };
             HostState state = new HostState(workspaces, RibbonMacros, Properties.Settings.Default.ActiveMacro, Properties.Settings.Default.IncludedLibraries);
 
-            CancellationTokenSource cts_eng = engine.Instantiate(state, new Action(() => {
-                GetInstance().Instantiate(state, null);
+            engine.Instantiate(state);
+            ui.Instantiate(state);
 
-                s_IsLoaded = true;
-                Events.InvokeEvent("ApplicationLoaded");
 
-                Dispatcher.Run();
-            }));
+            ui.MainWindow = new MainWindow() { DataContext = new MainWindowViewModel() };
+            ((MainWindowViewModel)ui.MainWindow.DataContext).SetTheme(Macro_UI.Properties.Settings.Default.Theme);
 
-            Events.SubscribeEvent("Shutdown", new Action(() =>
-            {
-                try
-                {
-                    cts_eng?.Cancel();
-                }
-                catch(Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex.Message);
-                }
+            if (s_IsRibbonLoaded)
+                Events.InvokeEvent("LoadRibbonMacros");
 
-                MacroDeclaration md = GetInstance().GetDeclaration(GetInstance().GetActiveMacro());
-                if (md != null)
-                    Properties.Settings.Default.ActiveMacro = md.RelativePath;
+            s_IsLoaded = true;
 
-                Properties.Settings.Default.IncludedLibraries = GetInstance().GetAssemblies().ToArray<AssemblyDeclaration>();
-
-                if (MainWindowViewModel.GetInstance() != null)
-                {
-                    MainWindowViewModel.GetInstance().SaveAll();
-                    List<DocumentViewModel> unsaved = MainWindowViewModel.GetInstance().DockManager.GetUnsavedDocuments();
-
-                    if (unsaved.Count > 0)
-                    {
-                        bool save = DisplayYesNoMessageReturn("You have unsaved documents. Would you like to save them?", "Unsaved Documents");
-
-                        if (save)
-                            foreach (DocumentViewModel document in unsaved)
-                                if (document is TextualEditorViewModel)
-                                    document.Save(null);
-                    }
-                }
-
-                GetInstance().MacroEngine?.Destroy();
-                GetInstance()?.UIDispatcher?.InvokeShutdown();
-            }));
+            return ui;
         }
 
         #endregion
@@ -281,6 +248,16 @@ namespace Macro_UI
             });
         }
 
+        public void AddAccent(string name, Uri resource)
+        {
+            MainWindowViewModel.GetInstance()?.AddAccent(name, resource);
+        }
+
+        public void SetAccent(string name)
+        {
+            MainWindowViewModel.GetInstance()?.SetAccent(name);
+        }
+
         #endregion
 
         #region Main to UI
@@ -288,7 +265,7 @@ namespace Macro_UI
         /// <summary>
         /// Focuses main window
         /// </summary>
-        public static void FocusWindow()
+        public void FocusWindow()
         {
             MainWindowViewModel.GetInstance()?.TryFocus();
         }
@@ -296,7 +273,7 @@ namespace Macro_UI
         /// <summary>
         /// Shows main window
         /// </summary>
-        public static void ShowWindow()
+        public void ShowWindow()
         {
             MainWindowViewModel.GetInstance()?.ShowWindow();
         }
@@ -304,7 +281,7 @@ namespace Macro_UI
         /// <summary>
         /// Hides main window
         /// </summary>
-        public static void HideWindow()
+        public void HideWindow()
         {
             MainWindowViewModel.GetInstance()?.HideWindow();
         }
@@ -314,7 +291,7 @@ namespace Macro_UI
         /// </summary>
         /// <param name="content">The message to be displayed</param>
         /// <param name="title">The message's header</param>
-        public static void DisplayOkMessage(string content, string title)
+        public void DisplayOkMessage(string content, string title)
         {
             MainWindowViewModel.GetInstance()?.DisplayOkMessage(content, title);
         }
@@ -325,7 +302,7 @@ namespace Macro_UI
         /// <param name="content">The message to be displayed</param>
         /// <param name="title">The message's header</param>
         /// <param name="OnReturn">The Action, and bool representing the user's input, to be fires when the user returns input</param>
-        public static void DisplayYesNoMessage(string content, string title, Action<bool> OnReturn)
+        public void DisplayYesNoMessage(string content, string title, Action<bool> OnReturn)
         {
             MainWindowViewModel.GetInstance()?.DisplayYesNoMessage(content, title, OnReturn);
         }
@@ -336,7 +313,7 @@ namespace Macro_UI
         /// <param name="content">The message to be displayed</param>
         /// <param name="title">The message's header</param>
         /// <returns>Bool representing the user's input</returns>
-        public static bool DisplayYesNoMessageReturn(string content, string title)
+        public bool DisplayYesNoMessageReturn(string content, string title)
         {
             Task<bool> t = MainWindowViewModel.GetInstance()?.DisplayYesNoMessageReturn(content, title);
             t.Wait();
@@ -350,7 +327,7 @@ namespace Macro_UI
         /// <param name="caption">The message's header</param>
         /// <param name="aux">The text in the 3rd button</param>
         /// <param name="OnReturn">The Action, and MessageDialogResult of the user's input, to be fired when the user provides input</param>
-        public static void DisplayYesNoCancelMessage(string message, string caption, string aux, Action<MessageDialogResult> OnReturn)
+        public void DisplayYesNoCancelMessage(string message, string caption, string aux, Action<MessageDialogResult> OnReturn)
         {
             MainWindowViewModel.GetInstance()?.DisplayYesNoCancelMessage(message, caption, aux, OnReturn);
         }

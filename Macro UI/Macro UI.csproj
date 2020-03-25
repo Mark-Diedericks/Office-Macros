@@ -207,7 +207,7 @@
     <Compile Include="Model\MainWindowModel.cs" />
     <Compile Include="Model\SettingsMenuModel.cs" />
     <Compile Include="Model\TextualEditorModel.cs" />
-    <Page Include="Themes\ExcelAccent.xaml">
+    <Page Include="Themes\BaseAccent.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

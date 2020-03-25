@@ -47,10 +47,13 @@ namespace Macro_UI.ViewModel
             s_Instance = this;
             Model = new MainWindowModel();
 
+            AddAccent("BaseAccent", new Uri("pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml"));
+
             AddTheme(new LightTheme());
             AddTheme(new DarkTheme());
 
             SetTheme(Properties.Settings.Default.Theme);
+            SetAccent("BaseAccent");
 
             DockManager = new DockManagerViewModel(Properties.Settings.Default.OpenDocuments);
 
@@ -352,6 +355,26 @@ namespace Macro_UI.ViewModel
 
         #endregion
 
+        #region Accents
+
+        public Dictionary<string, Uri> Accents
+        {
+            get
+            {
+                return Model.Accents;
+            }
+            set
+            {
+                if (Model.Accents != value)
+                {
+                    Model.Accents = value;
+                    OnPropertyChanged(nameof(Accents));
+                }
+            }
+        }
+
+        #endregion
+
         #region Themes
 
         public ObservableCollection<ITheme> Themes
@@ -386,6 +409,26 @@ namespace Macro_UI.ViewModel
                 {
                     Model.ActiveTheme = value;
                     OnPropertyChanged(nameof(ActiveTheme));
+                }
+            }
+        }
+
+        #endregion
+
+        #region ActiveAccent
+
+        public string ActiveAccent
+        {
+            get
+            {
+                return Model.ActiveAccent;
+            }
+            set
+            {
+                if (Model.ActiveAccent != value)
+                {
+                    Model.ActiveAccent = value;
+                    OnPropertyChanged(nameof(ActiveAccent));
                 }
             }
         }
@@ -733,6 +776,26 @@ namespace Macro_UI.ViewModel
             }
 
             return false;
+        }
+
+        public bool AddAccent(string name, Uri resource)
+        {
+            Accents.Add(name, resource);
+            return true;
+        }
+
+        public bool SetAccent(string name)
+        {
+            if (!Accents.ContainsKey(name))
+                return false;
+
+            Uri accent = Accents[name];
+            InvokeWindow(() => MainWindow.GetInstance().UpdateThemeManager(accent, ActiveTheme));
+
+            foreach (ITheme theme in Themes)
+                theme.SetAccent(accent);
+
+            return SetTheme(ActiveTheme.Name);
         }
 
         #endregion

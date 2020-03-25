@@ -29,9 +29,12 @@ namespace Python_Engine
         private IExecutionEngineIO m_IOManager;
 
         private PyObject CLR;
+        private IntPtr ThreadPtr; 
 
-        private ExecutionEngine()
-        { 
+        private ExecutionEngine() { }
+
+        public void Initialize()
+        {
             //TODO CHANGE HOME AND PATH
             string py_home = @"D:\Mark Diedericks\Documents\Visual Studio 2019\Projects\Office Python\Dependencies\Python35\";
             string py_path = py_home + @"\Scripts;" + py_home + @"\lib;" + py_home + @"lib\site-packages";
@@ -43,8 +46,9 @@ namespace Python_Engine
             PythonEngine.PythonHome = py_home;
             PythonEngine.PythonPath = py_path;
 
+            System.Diagnostics.Debug.WriteLine("CREATE  " + Thread.CurrentThread.ManagedThreadId);
             PythonEngine.Initialize();
-            PythonEngine.BeginAllowThreads();
+            ThreadPtr = PythonEngine.BeginAllowThreads();
 
             using (Py.GIL())
                 CLR = PythonEngine.ImportModule("clr");
@@ -78,6 +82,8 @@ namespace Python_Engine
             if (m_BackgroundWorker != null)
                 m_BackgroundWorker.CancelAsync();
 
+            System.Diagnostics.Debug.WriteLine("DESTROY  " + Thread.CurrentThread.ManagedThreadId);
+            PythonEngine.EndAllowThreads(ThreadPtr);
             PythonEngine.Shutdown();
         }
 
@@ -174,7 +180,7 @@ namespace Python_Engine
         /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
         private void ExecuteSourceSynchronous(string source, Action OnCompletedAction)
         {
-            Events.InvokeEvent("OnHostExecute", DispatcherPriority.Normal, new Action(() =>
+            Events.InvokeEvent("OnHostExecute", new Action(() =>
             {
                 int profileID = -1;
                 profileID = Utilities.BeginProfileSession();

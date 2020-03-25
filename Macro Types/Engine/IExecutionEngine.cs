@@ -9,6 +9,7 @@ namespace Macro_Engine.Engine
 {
     public interface IExecutionEngine
     {
+        void Initialize();
         string GetLabel();
         string GetVersion();
         bool ExecuteMacro(string source, Action OnCompleted, bool async);

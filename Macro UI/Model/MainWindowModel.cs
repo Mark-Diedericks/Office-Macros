@@ -29,6 +29,7 @@ namespace Macro_UI.Model
             IsFocused = false;
             IsClosing = false;
             IsExecuting = false;
+            Accents = new Dictionary<string, Uri>();
             Themes = new ObservableCollection<ITheme>();
         }
 
@@ -201,6 +202,27 @@ namespace Macro_UI.Model
 
         #endregion
 
+        #region Accents
+
+        private Dictionary<string, Uri> m_Accents;
+        public Dictionary<string, Uri> Accents
+        {
+            get
+            {
+                return m_Accents;
+            }
+            set
+            {
+                if (m_Accents != value)
+                {
+                    m_Accents = value;
+                    OnPropertyChanged(nameof(Accents));
+                }
+            }
+        }
+
+        #endregion
+
         #region Themes
 
         private ObservableCollection<ITheme> m_Themes;
@@ -237,6 +259,27 @@ namespace Macro_UI.Model
                 {
                     m_ActiveTheme = value;
                     OnPropertyChanged(nameof(ActiveTheme));
+                }
+            }
+        }
+
+        #endregion
+
+        #region ActiveAccent
+
+        private string m_ActiveAccent;
+        public string ActiveAccent
+        {
+            get
+            {
+                return m_ActiveAccent;
+            }
+            set
+            {
+                if (m_ActiveAccent != value)
+                {
+                    m_ActiveAccent = value;
+                    OnPropertyChanged(nameof(ActiveAccent));
                 }
             }
         }

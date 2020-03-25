@@ -30,7 +30,9 @@ namespace IronPython_Engine
 
         private IExecutionEngineIO m_IOManager;
 
-        private ExecutionEngine()
+        private ExecutionEngine() { }
+
+        public void Initialize()
         {
             Dictionary<string, object> args = new Dictionary<string, object>();
             args["Debug"] = true;
@@ -158,7 +160,7 @@ namespace IronPython_Engine
         /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
         private void ExecuteSourceSynchronous(string source, Action OnCompletedAction)
         {
-            Events.InvokeEvent("OnHostExecute", DispatcherPriority.Normal, new Action(() =>
+            Events.InvokeEvent("OnHostExecute", new Action(() =>
             {
                 int profileID = -1;
                 profileID = Utilities.BeginProfileSession();

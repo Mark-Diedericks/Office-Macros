@@ -41,13 +41,13 @@
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
                         <!-- Accent -->
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
-                        <ResourceDictionary Source="pack://application:,,,/Macro UI;component/Themes/ExcelAccent.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary x:Name="ThemeDictionary">
                     <ResourceDictionary.MergedDictionaries>
                         <!--AppTheme setting -->
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+                        <ResourceDictionary Source="pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary>
@@ -83,7 +83,7 @@
 
     <Controls:MetroWindow.Flyouts>
         <Controls:FlyoutsControl>
-            <views:SettingsMenuView DataContext="{Binding SettingsMenu}" IsOpen="{Binding IsOpen}"/>
+            <views:SettingsMenuView x:Name="SettingsFlyout" DataContext="{Binding SettingsMenu}" IsOpen="{Binding IsOpen}"/>
         </Controls:FlyoutsControl>
     </Controls:MetroWindow.Flyouts>
 

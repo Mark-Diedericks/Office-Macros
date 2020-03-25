@@ -54,25 +54,16 @@ namespace Macro_Engine
 
         #region Dispatchers & Threading
 
-        private readonly Dispatcher m_HostDispatcher;
-
-        /// <summary>
-        /// Gets host office application UI dispatcher
-        /// </summary>
-        /// <returns>Office application UI dispatcher</returns>
-        public static Dispatcher GetHostDispatcher()
-        {
-            return GetInstance().m_HostDispatcher;
-        }
+        private readonly Executor m_HostExecutor;
 
         /// <summary>
         /// Execute a task on the host dispatcher with a given priority
         /// </summary>
         /// <param name="priority">The disptacher priority to use</param>
         /// <param name="task">Task to be executed</param>
-        private static void ExecuteOnHost(DispatcherPriority priority, Action task)
+        private static void ExecuteOnHost(Action task)
         {
-            GetHostDispatcher()?.BeginInvoke(priority, task);
+            GetInstance().m_HostExecutor?.ExecuteAction(task);
         }
 
         #endregion
@@ -120,26 +111,29 @@ namespace Macro_Engine
         /// Private constructor
         /// </summary>
         /// <param name="dispatcher">Host application UI dispatcher</param>
-        private MacroEngine(Dispatcher dispatcher)
+        private MacroEngine(Executor executor)
         {
             s_Instance = this;
 
-            m_HostDispatcher = dispatcher;
+            m_HostExecutor = executor;
 
             Compose();
 
             m_Runtimes = new HashSet<string>();
             foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)
+            {
                 m_Runtimes.Add(pair.Metadata.Runtime);
+                pair.Value.Initialize();
+            }
 
-            Events.SubscribeEvent("OnHostExecute", (Action<DispatcherPriority, Action>)ExecuteOnHost);
+            Events.SubscribeEvent("OnHostExecute", (Action<Action>)ExecuteOnHost);
             Events.SubscribeEvent("SetIO", (Action<string, TextWriter, TextWriter, TextReader>)SetIOStreams);
             Events.SubscribeEvent("RibbonLoaded", (Action)LoadRibbonMacros);
             Events.SubscribeEvent("LoadRibbonMacros", (Action)LoadRibbonMacros);
 
             Events.SubscribeEvent("OnTerminateExecution", new Action(() => {
                 foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)
-                    pair.Value?.TerminateExecution();
+                    pair.Value.TerminateExecution();
             }));
 
             m_FileManager = new FileManager();
@@ -171,45 +165,35 @@ namespace Macro_Engine
         /// <param name="state">Host application state; ribbon macros, active macro, assemblies and workspaces</param>
         /// <param name="OnLoaded">Action to be fired once MacroEngine is fully initialized</param>
         /// <returns>The initialization task thread</returns>
-        public CancellationTokenSource Instantiate(HostState state, Action OnLoaded)
+        public void Instantiate(HostState state)
         {
-            CancellationTokenSource cts = new CancellationTokenSource();
-            Task init = Task.Run(() =>
+            SetState(state);
+
+            //Load all macros in workspaces
+            Dictionary<MacroDeclaration, IMacro> macros = FileManager.LoadAllMacros(state.Workspaces);
+            foreach (KeyValuePair<MacroDeclaration, IMacro> pair in macros)
             {
-                SetState(state);
+                Guid id = Guid.NewGuid();
 
-                //Load all macros in workspaces
-                Dictionary<MacroDeclaration, IMacro> macros = FileManager.LoadAllMacros(state.Workspaces);
-                foreach(KeyValuePair<MacroDeclaration, IMacro> pair in macros)
-                {
-                    Guid id = Guid.NewGuid();
+                pair.Key.ID = id;
+                pair.Value.ID = id;
 
-                    pair.Key.ID = id;
-                    pair.Value.ID = id;
+                m_Declarations.Add(id, pair.Key);
+                m_Macros.Add(id, pair.Value);
+            }
 
-                    m_Declarations.Add(id, pair.Key);
-                    m_Macros.Add(id, pair.Value);
-                }
+            //Events.OnMacroCountChangedInvoke();
+            Events.InvokeEvent("OnMacroCountChanged");
 
-                //Events.OnMacroCountChangedInvoke();
-                Events.InvokeEvent("OnMacroCountChanged");
-
-                //Get the active macro
-                if (!String.IsNullOrEmpty(state.ActiveMacro))
-                    m_ActiveMacro = GetIDFromRelativePath(state.ActiveMacro);
-                else
-                    m_ActiveMacro = m_Macros.Keys.FirstOrDefault<Guid>();
+            //Get the active macro
+            if (!String.IsNullOrEmpty(state.ActiveMacro))
+                m_ActiveMacro = GetIDFromRelativePath(state.ActiveMacro);
+            else
+                m_ActiveMacro = m_Macros.Keys.FirstOrDefault<Guid>();
 
 
-                //Events.OnAssembliesChangedInvoke();
-                Events.InvokeEvent("OnAssembliesChanged");
-
-                GetHostDispatcher().BeginInvoke(DispatcherPriority.Normal, new Action(() => {
-                    OnLoaded?.Invoke();
-                }));
-            }, cts.Token);
-
-            return cts;
+            //Events.OnAssembliesChangedInvoke();
+            Events.InvokeEvent("OnAssembliesChanged");
         }
 
         /// <summary>
@@ -219,12 +203,12 @@ namespace Macro_Engine
         {
             Events.InvokeEvent("OnDestroyed");
             foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)
-                pair.Value?.Destroy();
+                pair.Value.Destroy();
         }
 
-        public static MacroEngine CreateApplicationInstance(Dispatcher dispatcher)
+        public static MacroEngine CreateApplicationInstance(Executor executor)
         {
-            return new MacroEngine(dispatcher);
+            return new MacroEngine(executor);
         }
 
         #endregion

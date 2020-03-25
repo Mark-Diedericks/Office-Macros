@@ -19,9 +19,9 @@ namespace Macro_UI.Themes
         /// <summary>
         /// Basic Functions for Theme
         /// </summary>
-
         IList<Uri> UriList { get; }
         string Name { get; }
 
+        void SetAccent(Uri resource);
     }
 }
