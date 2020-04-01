@@ -334,13 +334,13 @@ namespace Macro_UI.Model
         {
             get
             {
-                return Properties.Settings.Default.ExecutionTypeIndex == 0;
+                return Properties.Settings.Default.ExecutionAsync;
             }
             set
             {
-                if((Properties.Settings.Default.ExecutionTypeIndex == 0) != value)
+                if((Properties.Settings.Default.ExecutionAsync) != value)
                 {
-                    Properties.Settings.Default.ExecutionTypeIndex = value ? 0 : 1;
+                    Properties.Settings.Default.ExecutionAsync = value;
                     OnPropertyChanged(nameof(AsyncExecution));
                 }
             }

@@ -325,7 +325,11 @@
 
                     <Rectangle Width="1" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="434,4,0,4" Fill="{DynamicResource GrayBrush8}"  Visibility="{Binding IsVisual, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="438,0,0,0">
+                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="440,0,0,0">
+                        <CheckBox x:Name="chkAsync" VerticalAlignment="Stretch" HorizontalAlignment="Left" IsChecked="{Binding Source={x:Static properties:Settings.Default}, Path=ExecutionAsync, Mode=TwoWay}">Async</CheckBox>
+                    </Grid>
+
+                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="536,0,0,0">
                         <!-- Convert Python -->
                         <Button Command="{Binding ConvertCommand}" Visibility="{Binding IsVisual, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" Padding="2,2,2,2" BorderThickness="0" ToolTip="Convert To New Python Macro" Margin="0,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Background="Transparent">
                             <Button.Template>

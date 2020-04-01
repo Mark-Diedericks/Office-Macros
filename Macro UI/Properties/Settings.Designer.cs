@@ -228,13 +228,13 @@ namespace Macro_UI.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int ExecutionTypeIndex {
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ExecutionAsync {
             get {
-                return ((int)(this["ExecutionTypeIndex"]));
+                return ((bool)(this["ExecutionAsync"]));
             }
             set {
-                this["ExecutionTypeIndex"] = value;
+                this["ExecutionAsync"] = value;
             }
         }
     }
