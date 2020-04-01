@@ -15,6 +15,7 @@ using System.IO;
 
 namespace Python_Engine
 {
+
     [Export(typeof(IExecutionEngine))]
     [ExportMetadata("Language", "Python")]
     [ExportMetadata("Runtime", "PythonNET 3.5.0")]
@@ -28,7 +29,7 @@ namespace Python_Engine
 
         private IExecutionEngineIO m_IOManager;
 
-        private PyObject CLR;
+        private dynamic CLR;
         private IntPtr ThreadPtr; 
 
         private ExecutionEngine() { }
@@ -36,9 +37,16 @@ namespace Python_Engine
         public void Initialize()
         {
             //TODO CHANGE HOME AND PATH
-            string py_home = @"D:\Mark Diedericks\Documents\Visual Studio 2019\Projects\Office Python\Dependencies\Python35\";
-            string py_path = py_home + @"\Scripts;" + py_home + @"\lib;" + py_home + @"lib\site-packages";
+            //string py_home = @"D:\Mark Diedericks\Documents\Visual Studio 2019\Projects\Office Python\Dependencies\Python35\";
 
+            string codeBase = System.Reflection.Assembly.GetAssembly(typeof(ExecutionEngine)).CodeBase;
+            string path = new FileInfo(Uri.UnescapeDataString(new UriBuilder(codeBase).Path)).Directory.FullName;
+            string solution = Path.GetFullPath(path + @"\..\..\..\..\..\");
+
+
+            string py_home = solution + @"Dependencies\Python35\";
+            string py_path = py_home + @"Scripts;" + py_home + @"lib;" + py_home + @"lib\site-packages";
+            
             Environment.SetEnvironmentVariable("PATH", py_home, EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("PYTHONHOME", py_home, EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("PYTHONPATH", py_path, EnvironmentVariableTarget.Process);
@@ -65,7 +73,13 @@ namespace Python_Engine
 
             m_IOManager = manager;
 
-            /*m_ScriptEngine.Runtime.IO.RedirectToConsole();
+            using(Py.GIL())
+            {
+                dynamic sys = PythonEngine.ImportModule("sys");
+                sys.stdout = new PythonOutput();
+                sys.stderr = new PythonError();
+                sys.stdin = new PythonInput();
+            }
 
             if (m_IOManager.GetOutput() != null)
                 Console.SetOut(m_IOManager.GetOutput());
@@ -74,7 +88,7 @@ namespace Python_Engine
                 Console.SetError(m_IOManager.GetError());
 
             if (m_IOManager.GetInput() != null)
-                Console.SetIn(m_IOManager.GetInput());*/
+                Console.SetIn(m_IOManager.GetInput());
         }
 
         public void Destroy()

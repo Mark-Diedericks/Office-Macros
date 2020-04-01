@@ -266,6 +266,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <None Include="app.config" />
+    <None Include="Excel Ribbon_1_TemporaryKey.pfx" />
     <None Include="Excel Ribbon_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -328,10 +329,10 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>Excel Ribbon_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>Excel Ribbon_1_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>044A92FB0B745EC28F4A189B2B926D8D77C6DA00</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>A05861D75EF3E404B790E9DC68207285AF07B293</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
