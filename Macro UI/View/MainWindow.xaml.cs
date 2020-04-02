@@ -35,9 +35,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml;
-using Xceed.Wpf.AvalonDock.Controls;
-using Xceed.Wpf.AvalonDock.Layout;
-using Xceed.Wpf.AvalonDock.Layout.Serialization;
+using AvalonDock.Controls;
+using AvalonDock.Layout;
+using AvalonDock.Layout.Serialization;
 
 namespace Macro_UI.View
 {
@@ -143,7 +143,7 @@ namespace Macro_UI.View
         /// Gets DockingManager UI element
         /// </summary>
         /// <returns>DockingManager UI element</returns>
-        public Xceed.Wpf.AvalonDock.DockingManager GetDockingManager()
+        public AvalonDock.DockingManager GetDockingManager()
         {
             return DockingManager_DockManager;
         }
@@ -182,6 +182,10 @@ namespace Macro_UI.View
         {
             ThemeManager.AddAccent("BaseAccent", accent);
             ThemeManager.ChangeAppStyle(this, ThemeManager.GetAccent("BaseAccent"), ThemeManager.GetAppTheme("Base" + theme.Name));
+
+            Resources[AvalonDock.Themes.VS2013.Themes.ResourceKeys.ControlAccentColorKey] = (Color)ThemeDictionary["AccentBaseColor"];
+            Resources[AvalonDock.Themes.VS2013.Themes.ResourceKeys.ControlAccentBrushKey] = (SolidColorBrush)ThemeDictionary["AccentBaseColorBrush"];
+            GetDockingManager().InvalidateVisual();
         }
 
         #endregion

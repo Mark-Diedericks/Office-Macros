@@ -41,7 +41,7 @@ namespace Python_Engine
 
             string codeBase = System.Reflection.Assembly.GetAssembly(typeof(ExecutionEngine)).CodeBase;
             string path = new FileInfo(Uri.UnescapeDataString(new UriBuilder(codeBase).Path)).Directory.FullName;
-            string solution = Path.GetFullPath(path + @"\..\..\..\..\..\");
+            string solution = Path.GetFullPath(path + @"\..\..\..\..\..\..\");
 
 
             string py_home = solution + @"Dependencies\Python35\";

@@ -9,7 +9,11 @@
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:model="clr-namespace:Macro_UI.Model"
              xmlns:viewmodel="clr-namespace:Macro_UI.ViewModel"
-             xmlns:dock="http://schemas.xceed.com/wpf/xaml/avalondock"
+             xmlns:dock="clr-namespace:AvalonDock;assembly=AvalonDock"
+             xmlns:dockCtrl="clr-namespace:AvalonDock.Controls;assembly=AvalonDock"
+             xmlns:dockLay="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
+             xmlns:dockProp="clr-namespace:AvalonDock.Properties;assembly=AvalonDock"
+             xmlns:dockConv="clr-namespace:AvalonDock.Converters;assembly=AvalonDock"
              xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
              xmlns:ext="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:System="clr-namespace:System;assembly=mscorlib"
@@ -147,7 +151,7 @@
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
 
-            <dock:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <dockConv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         </ResourceDictionary>
     </Controls:Flyout.Resources>
 

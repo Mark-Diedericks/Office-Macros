@@ -29,9 +29,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Xml;
-using Xceed.Wpf.AvalonDock.Controls;
-using Xceed.Wpf.AvalonDock.Layout;
-using Xceed.Wpf.AvalonDock.Layout.Serialization;
+using AvalonDock.Controls;
+using AvalonDock.Layout;
+using AvalonDock.Layout.Serialization;
 
 namespace Macro_UI.ViewModel
 {

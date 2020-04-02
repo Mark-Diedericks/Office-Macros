@@ -7,11 +7,12 @@
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
-        xmlns:ext="http://schemas.xceed.com/wpf/xaml/toolkit"
-        xmlns:dock="http://schemas.xceed.com/wpf/xaml/avalondock"
-        xmlns:dockctrl="clr-namespace:Xceed.Wpf.AvalonDock.Controls;assembly=Xceed.Wpf.AvalonDock"
-        xmlns:avalonDockProperties="clr-namespace:Xceed.Wpf.AvalonDock.Properties;assembly=Xceed.Wpf.AvalonDock"
-        xmlns:avalonDockConverters="clr-namespace:Xceed.Wpf.AvalonDock.Converters;assembly=Xceed.Wpf.AvalonDock"
+        xmlns:dock="clr-namespace:AvalonDock;assembly=AvalonDock"
+        xmlns:dockCtrl="clr-namespace:AvalonDock.Controls;assembly=AvalonDock"
+        xmlns:dockLay="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
+        xmlns:dockProp="clr-namespace:AvalonDock.Properties;assembly=AvalonDock"
+        xmlns:dockConv="clr-namespace:AvalonDock.Converters;assembly=AvalonDock"
+        xmlns:dockThemes="clr-namespace:AvalonDock.Themes;assembly=AvalonDock.Themes.VS2013"
         xmlns:viewModels="clr-namespace:Macro_UI.ViewModel"
         xmlns:views="clr-namespace:Macro_UI.View"
         xmlns:utils="clr-namespace:Macro_UI.Utilities"
@@ -41,17 +42,19 @@
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
                         <!-- Accent -->
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
+                        <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/Themes/Generic.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary x:Name="ThemeDictionary">
                     <ResourceDictionary.MergedDictionaries>
                         <!--AppTheme setting -->
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+                        <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightBrushs.xaml" />
                         <ResourceDictionary Source="pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary>
-                    <dock:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+                    <dockConv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
                     <Style x:Key="HeaderMenuItemStyle" TargetType="{x:Type MenuItem}" BasedOn="{StaticResource MetroMenuItem}">
                         <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -160,7 +163,7 @@
                                     <Grid x:Name="ContentGrid" Margin="0,0,0,0">
                                         <Rectangle Width="16" Height="16" Fill="#e0c282" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,0,4,0">
                                             <Rectangle.OpacityMask>
-                                                <VisualBrush Stretch="Fill" Visual="{iconPacks:Entypo {x:Static iconPacks:PackIconEntypoKind.Folder}}"/>
+                                                <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.Folder}}"/>
                                             </Rectangle.OpacityMask>
                                         </Rectangle>
                                     </Grid>
@@ -230,7 +233,7 @@
                                     <Grid x:Name="ContentGrid" Margin="0,0,0,0">
                                         <Rectangle Width="16" Height="16" Fill="#2980b9" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,0,4,0">
                                             <Rectangle.OpacityMask>
-                                                <VisualBrush Stretch="Fill" Visual="{iconPacks:Modern {x:Static iconPacks:PackIconModernKind.Undo}}"/>
+                                                <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.UndoVariant}}"/>
                                             </Rectangle.OpacityMask>
                                         </Rectangle>
                                     </Grid>
@@ -252,7 +255,7 @@
                                     <Grid x:Name="ContentGrid" Margin="0,0,0,0">
                                         <Rectangle Width="16" Height="16" Fill="#2980b9" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,0,4,0">
                                             <Rectangle.OpacityMask>
-                                                <VisualBrush Stretch="Fill" Visual="{iconPacks:Modern {x:Static iconPacks:PackIconModernKind.Redo}}"/>
+                                                <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.RedoVariant}}"/>
                                             </Rectangle.OpacityMask>
                                         </Rectangle>
                                     </Grid>
@@ -282,7 +285,7 @@
                                             <TextBlock VerticalAlignment="Center" Background="Transparent" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Right" Margin="24,0,6,0" FontSize="14" FontWeight="Regular">Start</TextBlock>
                                             <Rectangle Width="16" Height="16" Fill="#1e8449" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,0,4,0">
                                                 <Rectangle.OpacityMask>
-                                                    <VisualBrush Stretch="Fill" Visual="{iconPacks:Entypo {x:Static iconPacks:PackIconEntypoKind.ControllerPlay}}"/>
+                                                    <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.Play}}"/>
                                                 </Rectangle.OpacityMask>
                                             </Rectangle>
                                         </Grid>
@@ -305,7 +308,7 @@
                                             <TextBlock VerticalAlignment="Center" Background="Transparent" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Right" Margin="24,0,6,0" FontSize="14" FontWeight="Regular">Stop</TextBlock>
                                             <Rectangle Width="16" Height="16" Fill="#a1260d" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,0,4,0">
                                                 <Rectangle.OpacityMask>
-                                                    <VisualBrush Stretch="Fill" Visual="{iconPacks:Entypo {x:Static iconPacks:PackIconEntypoKind.ControllerStop}}"/>
+                                                    <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.Stop}}"/>
                                                 </Rectangle.OpacityMask>
                                             </Rectangle>
                                         </Grid>
@@ -378,7 +381,7 @@
                 <dock:DockingManager.LayoutItemContainerStyleSelector>
                     <utils:PaneStyleSelector>
                         <utils:PaneStyleSelector.DocumentStyle>
-                            <Style TargetType="{x:Type dockctrl:LayoutItem}">
+                            <Style TargetType="{x:Type dockCtrl:LayoutItem}">
                                 <Setter Property="Title" Value="{Binding Model.Title}" />
                                 <Setter Property="ToolTip" Value="{Binding Model.ToolTip}" />
                                 <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
@@ -388,7 +391,7 @@
                             </Style>
                         </utils:PaneStyleSelector.DocumentStyle>
                         <utils:PaneStyleSelector.ToolStyle>
-                            <Style TargetType="{x:Type dockctrl:LayoutAnchorableItem}">
+                            <Style TargetType="{x:Type dockCtrl:LayoutAnchorableItem}">
                                 <Setter Property="Title" Value="{Binding Model.Title}" />
                                 <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
                                 <Setter Property="CanFloat" Value="{Binding Model.CanFloat}" />
@@ -399,14 +402,14 @@
                         </utils:PaneStyleSelector.ToolStyle>
                     </utils:PaneStyleSelector>
                 </dock:DockingManager.LayoutItemContainerStyleSelector>
-
-                <dock:LayoutRoot>
-                    <dock:LayoutPanel x:Name="lpVerticalPanel" Orientation="Vertical">
-                        <dock:LayoutPanel x:Name="lpHorizontalPanel" Orientation="Horizontal">
-                            <dock:LayoutDocumentPane />
-                        </dock:LayoutPanel>
-                    </dock:LayoutPanel>
-                </dock:LayoutRoot>
+                
+                <dockLay:LayoutRoot>
+                    <dockLay:LayoutPanel x:Name="lpVerticalPanel" Orientation="Vertical">
+                        <dockLay:LayoutPanel x:Name="lpHorizontalPanel" Orientation="Horizontal">
+                            <dockLay:LayoutDocumentPane />
+                        </dockLay:LayoutPanel>
+                    </dockLay:LayoutPanel>
+                </dockLay:LayoutRoot>
             </dock:DockingManager>
         </Grid>
     </DockPanel>

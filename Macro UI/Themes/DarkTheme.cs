@@ -24,7 +24,7 @@ namespace Macro_UI.Themes
             {
                 new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml"),
                 new Uri("pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml"),
-                new Uri("pack://application:,,,/AvalonDock.Themes.VS2012;component/DarkTheme.xaml"),
+                new Uri("pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkBrushs.xaml"),
             };
         }
 
@@ -34,7 +34,7 @@ namespace Macro_UI.Themes
             {
                 new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml"),
                 resource,
-                new Uri("pack://application:,,,/AvalonDock.Themes.VS2012;component/DarkTheme.xaml"),
+                new Uri("pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkBrushs.xaml"),
             };
         }
 

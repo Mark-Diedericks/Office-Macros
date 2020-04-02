@@ -7,7 +7,11 @@
              xmlns:model="clr-namespace:Macro_UI.Model"
              xmlns:viewmodel="clr-namespace:Macro_UI.ViewModel"
              xmlns:utils="clr-namespace:Macro_UI.Utilities"
-             xmlns:dock="http://schemas.xceed.com/wpf/xaml/avalondock"
+             xmlns:dock="clr-namespace:AvalonDock;assembly=AvalonDock"
+             xmlns:dockCtrl="clr-namespace:AvalonDock.Controls;assembly=AvalonDock"
+             xmlns:dockLay="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
+             xmlns:dockProp="clr-namespace:AvalonDock.Properties;assembly=AvalonDock"
+             xmlns:dockConv="clr-namespace:AvalonDock.Converters;assembly=AvalonDock"
              xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
@@ -53,7 +57,7 @@
 
         <TreeView x:Name="tvMacroView" ItemsSource="{Binding ItemSource}" ItemContainerStyle="{DynamicResource BoundTreeViewItemStyle}" Margin="0,0,0,0" Background="{DynamicResource GrayBrush10}" Padding="4,4,4,4" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MouseRightButtonDown="tvMacroView_MouseRightButtonDown" Style="{DynamicResource MetroTreeView}">
             <TreeView.Resources>
-                <dock:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+                <dockConv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
                 <HierarchicalDataTemplate DataType="{x:Type viewmodel:DisplayableTreeViewItem}" ItemsSource="{Binding Items}">
                     <Grid>
