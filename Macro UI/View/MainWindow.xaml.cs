@@ -56,6 +56,7 @@ namespace Macro_UI.View
             s_Instance = this;
 
             InitializeComponent();
+            Events.SubscribeEvent("ThemeChanged", (Action)ThemeChangedEvent);
 
             ThemeManager.AddAccent("BaseAccent", new Uri("pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml"));
             ThemeManager.ChangeAppStyle(this, ThemeManager.GetAccent("BaseAccent"), ThemeManager.GetAppTheme("BaseLight"));
@@ -177,17 +178,21 @@ namespace Macro_UI.View
 
         #endregion
 
-        #region Custom Accent
+        #region Custom Accent & Themes
         public void UpdateThemeManager(Uri accent, ITheme theme)
         {
             ThemeManager.AddAccent("BaseAccent", accent);
             ThemeManager.ChangeAppStyle(this, ThemeManager.GetAccent("BaseAccent"), ThemeManager.GetAppTheme("Base" + theme.Name));
+        }
 
-            Resources[AvalonDock.Themes.VS2013.Themes.ResourceKeys.ControlAccentColorKey] = (Color)ThemeDictionary["AccentBaseColor"];
-            Resources[AvalonDock.Themes.VS2013.Themes.ResourceKeys.ControlAccentBrushKey] = (SolidColorBrush)ThemeDictionary["AccentBaseColorBrush"];
-            GetDockingManager().InvalidateVisual();
+        /// <summary>
+        /// ThemeChanged event callback, changes the theme
+        /// </summary>
+        private void ThemeChangedEvent()
+        {
+
         }
 
         #endregion
-    }
+     }
 }

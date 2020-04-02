@@ -32,6 +32,7 @@ using System.Xml;
 using AvalonDock.Controls;
 using AvalonDock.Layout;
 using AvalonDock.Layout.Serialization;
+using System.Windows.Media;
 
 namespace Macro_UI.ViewModel
 {

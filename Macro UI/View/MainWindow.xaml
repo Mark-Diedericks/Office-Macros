@@ -43,14 +43,15 @@
                         <!-- Accent -->
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
                         <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/Themes/Generic.xaml" />
+                        <ResourceDictionary Source="pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary x:Name="ThemeDictionary">
                     <ResourceDictionary.MergedDictionaries>
                         <!--AppTheme setting -->
                         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
-                        <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightBrushs.xaml" />
                         <ResourceDictionary Source="pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml" />
+                        <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightBrushs.xaml" />
                     </ResourceDictionary.MergedDictionaries>
                 </ResourceDictionary>
                 <ResourceDictionary>

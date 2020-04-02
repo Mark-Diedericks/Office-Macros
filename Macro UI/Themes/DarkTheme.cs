@@ -22,9 +22,8 @@ namespace Macro_UI.Themes
         {
             UriList = new List<Uri>
             {
-                new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml"),
                 new Uri("pack://application:,,,/Macro UI;component/Themes/BaseAccent.xaml"),
-                new Uri("pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkBrushs.xaml"),
+                new Uri("pack://application:,,,/Macro UI;component/Themes/ThemeDark.xaml"),
             };
         }
 
@@ -32,9 +31,8 @@ namespace Macro_UI.Themes
         {
             UriList = new List<Uri>
             {
-                new Uri("pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml"),
                 resource,
-                new Uri("pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkBrushs.xaml"),
+                new Uri("pack://application:,,,/Macro UI;component/Themes/ThemeDark.xaml"),
             };
         }
 
