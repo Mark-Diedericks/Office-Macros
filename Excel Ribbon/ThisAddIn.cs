@@ -11,6 +11,7 @@ using System.Threading;
 
 using Macro_Engine;
 using Macro_UI;
+using Macro_Engine.Interop;
 
 namespace Excel_Ribbon
 {
@@ -28,10 +29,15 @@ namespace Excel_Ribbon
                 dispatcher.BeginInvoke(DispatcherPriority.Normal, a);
             }));
 
-
             m_Thread = new Thread(() => {
                 m_Engine = MacroEngine.CreateApplicationInstance(executor);
                 m_UI = MacroUI.CreateApplicationInstance(m_Engine, new string[] { });
+
+                AssemblyDeclaration Interop_Assembly = new AssemblyDeclaration("Microsoft.Office.Interop.Excel", "./", true);
+                m_UI.AddAssembly(Interop_Assembly);
+
+                m_UI.SetExecutionValue("HOST_NAME", Application.Name);
+                m_UI.SetExecutionValue("Excel", (Excel.ApplicationClass)Application.Application);
 
                 m_UI.AddAccent("ExcelAccent", new Uri("pack://application:,,,/Excel Ribbon;component/Resources/ExcelAccent.xaml"));
                 m_UI.SetAccent("ExcelAccent");

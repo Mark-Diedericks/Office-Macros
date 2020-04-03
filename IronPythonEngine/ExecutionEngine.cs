@@ -11,6 +11,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.Reflection;
 using Microsoft.Scripting.Hosting;
+using Macro_Engine.Interop;
 
 namespace IronPython_Engine
 {
@@ -31,6 +32,9 @@ namespace IronPython_Engine
         private IExecutionEngineIO m_IOManager;
 
         private Dictionary<string, object> m_ScopeValues;
+        private HashSet<AssemblyDeclaration> m_Assemblies;
+
+        #region Instantiation
 
         private ExecutionEngine() { }
 
@@ -52,6 +56,16 @@ namespace IronPython_Engine
             SetValue("RUNTIME", Runtime);
         }
 
+        public void Destroy()
+        {
+            if (m_BackgroundWorker != null)
+                m_BackgroundWorker.CancelAsync();
+        }
+
+        #endregion
+
+        #region IO and Info
+
         public void SetIO(IExecutionEngineIO manager)
         {
             m_IOManager = manager;
@@ -68,12 +82,6 @@ namespace IronPython_Engine
                 Console.SetIn(m_IOManager.GetInput());
         }
 
-        public void Destroy()
-        {
-            if (m_BackgroundWorker != null)
-                m_BackgroundWorker.CancelAsync();
-        }
-
         public string GetLabel()
         {
             return Runtime;
@@ -84,6 +92,10 @@ namespace IronPython_Engine
             return "Python " + m_ScriptEngine.LanguageVersion.ToString();
         }
 
+        #endregion
+
+        #region Context/Scope
+
         public void ClearContext()
         {
             m_ScriptScope = m_ScriptEngine.CreateScope();
@@ -91,6 +103,14 @@ namespace IronPython_Engine
             if (m_ScopeValues != null)
                 foreach (string name in m_ScopeValues.Keys)
                     m_ScriptScope.SetVariable(name, m_ScopeValues[name]);
+
+            foreach(AssemblyDeclaration ad in m_Assemblies)
+            {
+                string code = "import clr\nimport sys\n" +
+                                "sys.path.append(r\"" + ad.Location + "\")\n" +
+                                "clr.AddReference(\"" + ad.Name + "\")\n";
+                ExecuteSource(code);
+            }
         }
         public void SetValue(string name, object value)
         {
@@ -115,6 +135,32 @@ namespace IronPython_Engine
             if (m_ScriptScope != null)
                 m_ScriptScope.RemoveVariable(name);
         }
+
+        #endregion
+
+        #region Assemblies
+
+        public void AddAssembly(AssemblyDeclaration ad)
+        {
+            if (m_Assemblies == null)
+                m_Assemblies = new HashSet<AssemblyDeclaration>();
+
+            m_Assemblies.Add(ad);
+
+            string code =   "import clr\nimport sys\n" +
+                            "sys.path.append(r\"" + ad.Location + "\")\n"+
+                            "clr.AddReference(\"" + ad.Name + "\")\n";
+            ExecuteSource(code);
+        }
+        public void RemoveAssembly(AssemblyDeclaration ad)
+        {
+            if (m_Assemblies == null)
+                return;
+
+            m_Assemblies.Remove(ad);
+        }
+
+        #endregion
 
         #region Execution
 

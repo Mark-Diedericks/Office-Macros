@@ -15,20 +15,21 @@ namespace Macro_Engine.Interop
     [SettingsSerializeAs(SettingsSerializeAs.String)]
     public class AssemblyDeclaration
     {
-        public string displayname;
-        public string filepath;
-        public bool enabled;
+        public string Name { get; }
+        public string Location { get; }
+        public bool Enabled { get; set; }
 
         /// <summary>
         /// Initialize new instance of the data structure
         /// </summary>
-        /// <param name="dn">Display name of the assembly</param>
-        /// <param name="ln">Full file path of the assembly</param>
+        /// <param name="name">Full name of the assembly w/o .dll</param>
+        /// <param name="location">Path in which the assembly is located</param>
         /// <param name="enabled">If usage of the assembly is enabled</param>
-        public AssemblyDeclaration(string dn, string ln, bool enabled)
+        public AssemblyDeclaration(string name, string location, bool enabled)
         {
-            displayname = dn;
-            filepath = ln;
+            Name = name;
+            Location = location;
+            Enabled = enabled;
         }
     }
 
@@ -80,7 +81,7 @@ namespace Macro_Engine.Interop
             if (destinationType == typeof(string))
             {
                 AssemblyDeclaration assembly = value as AssemblyDeclaration;
-                return string.Format("{0},{1},{2}", assembly.displayname, assembly.filepath, assembly.enabled);
+                return string.Format("{0},{1},{2}", assembly.Name, assembly.Location, assembly.Enabled);
             }
             return base.ConvertTo(context, culture, value, destinationType);
         }

@@ -53,5 +53,9 @@ namespace Macro_Engine
         //Folders
         HashSet<Guid> RenameFolder(string oldDir, string newDir);
         void DeleteFolder(string dir, Action<bool> OnReturn);
+
+        //Execution engine variables
+        void SetExecutionValue(string name, object value);
+        void RemoveExecutionValue(string name);
     }
 }

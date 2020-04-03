@@ -12,6 +12,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.Reflection;
 using System.IO;
+using Macro_Engine.Interop;
 
 namespace Python_Engine
 {
@@ -30,17 +31,23 @@ namespace Python_Engine
         private IExecutionEngineIO m_IOManager;
 
         private PyScope m_ScriptScope;
+        private dynamic SYS;
         private dynamic CLR;
         private IntPtr ThreadPtr;
 
         private Dictionary<string, object> m_ScopeValues;
+        private HashSet<AssemblyDeclaration> m_Assemblies;
+
+        #region Instantiation
 
         private ExecutionEngine() { }
 
         public void Initialize()
         {
+            //python.exe -m pip install comtypes
+
             //TODO CHANGE HOME AND PATH
-            //string py_home = @"D:\Mark Diedericks\Documents\Visual Studio 2019\Projects\Office Python\Dependencies\Python35\";
+            //string py_home = @"C:\Users\markd\AppData\Local\Programs\Python\Python35";
 
             string codeBase = System.Reflection.Assembly.GetAssembly(typeof(ExecutionEngine)).CodeBase;
             string path = new FileInfo(Uri.UnescapeDataString(new UriBuilder(codeBase).Path)).Directory.FullName;
@@ -48,7 +55,7 @@ namespace Python_Engine
 
 
             string py_home = solution + @"Dependencies\Python35\";
-            string py_path = py_home + @"Scripts;" + py_home + @"lib;" + py_home + @"lib\site-packages";
+            string py_path = py_home + @"Scripts;" + py_home + @"DLLs;" + py_home + @"lib;" + py_home + @"lib\site-packages";
             
             Environment.SetEnvironmentVariable("PATH", py_home, EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("PYTHONHOME", py_home, EnvironmentVariableTarget.Process);
@@ -61,7 +68,10 @@ namespace Python_Engine
             ThreadPtr = PythonEngine.BeginAllowThreads();
 
             using (Py.GIL())
+            {
+                SYS = PythonEngine.ImportModule("sys");
                 CLR = PythonEngine.ImportModule("clr");
+            }
 
             ClearContext();
 
@@ -72,31 +82,6 @@ namespace Python_Engine
             m_IOManager = null;
 
             SetValue("RUNTIME", new PyString(Runtime));
-        }
-
-        public void SetIO(IExecutionEngineIO manager)
-        {
-
-            m_IOManager = manager;
-
-            using(Py.GIL())
-            {
-                dynamic sys = PythonEngine.ImportModule("sys");
-                sys.stdout = new PythonOutput();
-                sys.stderr = new PythonError();
-                sys.stdin = new PythonInput();
-            }
-
-            ClearContext();
-
-            if (m_IOManager.GetOutput() != null)
-                Console.SetOut(m_IOManager.GetOutput());
-
-            if (m_IOManager.GetError() != null)
-                Console.SetError(m_IOManager.GetError());
-
-            if (m_IOManager.GetInput() != null)
-                Console.SetIn(m_IOManager.GetInput());
         }
 
         public void Destroy()
@@ -112,6 +97,34 @@ namespace Python_Engine
             PythonEngine.Shutdown();
         }
 
+        #endregion
+
+        #region IO and Info
+
+        public void SetIO(IExecutionEngineIO manager)
+        {
+
+            m_IOManager = manager;
+
+            using(Py.GIL())
+            {
+                SYS.stdout = new PythonOutput();
+                SYS.stderr = new PythonError();
+                SYS.stdin = new PythonInput();
+            }
+
+            ClearContext();
+
+            if (m_IOManager.GetOutput() != null)
+                Console.SetOut(m_IOManager.GetOutput());
+
+            if (m_IOManager.GetError() != null)
+                Console.SetError(m_IOManager.GetError());
+
+            if (m_IOManager.GetInput() != null)
+                Console.SetIn(m_IOManager.GetInput());
+        }
+
         public string GetLabel()
         {
             return Runtime;
@@ -125,6 +138,10 @@ namespace Python_Engine
 
             return "Python " + v;
         }
+
+        #endregion
+
+        #region Context/Scope
 
         public void ClearContext()
         {
@@ -170,6 +187,33 @@ namespace Python_Engine
                     m_ScriptScope.Remove(name);
             }
         }
+
+        #endregion
+
+        #region Assemblies
+
+        public void AddAssembly(AssemblyDeclaration ad)
+        {
+            if (m_Assemblies == null)
+                m_Assemblies = new HashSet<AssemblyDeclaration>();
+
+            m_Assemblies.Add(ad);
+
+            using(Py.GIL())
+            {
+                SYS.path.append(ad.Location);
+                CLR.AddReference(ad.Name);
+            }
+        }
+        public void RemoveAssembly(AssemblyDeclaration ad)
+        {
+            if (m_Assemblies == null)
+                return;
+
+            m_Assemblies.Remove(ad);
+        }
+
+        #endregion
 
         #region Execution
 

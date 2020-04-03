@@ -27,9 +27,9 @@ namespace Macro_UI.ViewModel
         public DisplayableListViewItem(AssemblyDeclaration ad)
         {
             declaration = ad;
-            Header = ad.displayname;
-            ToolTip = ad.filepath;
-            IsChecked = ad.enabled;
+            Header = ad.Name;
+            ToolTip = ad.Location;
+            IsChecked = ad.Enabled;
         }
 
         public AssemblyDeclaration declaration { get; internal set; }
@@ -83,7 +83,7 @@ namespace Macro_UI.ViewModel
                 if (m_IsChecked != value)
                 {
                     m_IsChecked = value;
-                    declaration.enabled = value;
+                    declaration.Enabled = value;
                     OnPropertyChanged(nameof(IsChecked));
                 }
             }

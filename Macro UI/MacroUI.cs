@@ -82,7 +82,14 @@ namespace Macro_UI
 
         public void Run()
         {
-            Dispatcher.Run();
+            try
+            {
+                Dispatcher.Run();
+            }
+            catch(Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
         }
 
         public void Destroy()
@@ -439,6 +446,16 @@ namespace Macro_UI
         public void DeleteFolder(string dir, Action<bool> OnReturn)
         {
             MacroEngine.DeleteFolder(dir, OnReturn);
+        } 
+
+        public void SetExecutionValue(string name, object value)
+        {
+            MacroEngine.SetExecutionValue(name, value);
+        }
+
+        public void RemoveExecutionValue(string name)
+        {
+            MacroEngine.RemoveExecutionValue(name);
         }
 
         #endregion

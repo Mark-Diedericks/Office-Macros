@@ -372,6 +372,27 @@ namespace Macro_Engine
                 GetExecutionEngine(runtime)?.SetIO(manager);
         }
 
+        /// <summary>
+        /// Assign a variable a value in each of the execution engine scopes
+        /// </summary>
+        /// <param name="name">Variable name</param>
+        /// <param name="value">Variable value</param>
+        public void SetExecutionValue(string name, object value)
+        {
+            foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in m_ExecutionEngineImplementations)
+                pair.Value?.SetValue(name, value);
+        }
+
+        /// <summary>
+        /// Remove a variable from each of the execution engine scopes.
+        /// </summary>
+        /// <param name="name">Variable name</param>
+        public void RemoveExecutionValue(string name)
+        {
+            foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in m_ExecutionEngineImplementations)
+                pair.Value?.RemoveValue(name);
+        }
+
         #endregion
 
         #region Ribbon & Active Macros
@@ -469,8 +490,10 @@ namespace Macro_Engine
         public void AddAssembly(AssemblyDeclaration ad)
         {
             m_Assemblies.Add(ad);
-            //Events.OnAssembliesChangedInvoke();
             Events.InvokeEvent("OnAssembliesChanged");
+
+            foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in m_ExecutionEngineImplementations)
+                pair.Value?.AddAssembly(ad);
         }
 
         /// <summary>
@@ -480,8 +503,12 @@ namespace Macro_Engine
         public void RemoveAssembly(AssemblyDeclaration ad)
         {
             m_Assemblies.Remove(ad);
-            //Events.OnAssembliesChangedInvoke();
             Events.InvokeEvent("OnAssembliesChanged");
+
+            foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in m_ExecutionEngineImplementations)
+                pair.Value?.RemoveAssembly(ad);
+
+
         }
 
         /// <summary>
@@ -498,10 +525,10 @@ namespace Macro_Engine
         /// </summary>
         /// <param name="longname">An assembly's longname</param>
         /// <returns>The respective AssemblyDeclaration</returns>
-        public AssemblyDeclaration GetAssemblyByLongName(string longname)
+        public AssemblyDeclaration GetAssemblyByName(string name)
         {
             foreach (AssemblyDeclaration ad in m_Assemblies)
-                if (ad.filepath == longname)
+                if (ad.Name == name)
                     return ad;
 
             return null;
