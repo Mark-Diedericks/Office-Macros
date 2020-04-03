@@ -209,7 +209,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <None Include="app.config" />
-    <None Include="Excel Ribbon_1_TemporaryKey.pfx" />
     <None Include="Excel Ribbon_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

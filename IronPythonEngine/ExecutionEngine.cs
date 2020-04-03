@@ -30,6 +30,8 @@ namespace IronPython_Engine
 
         private IExecutionEngineIO m_IOManager;
 
+        private Dictionary<string, object> m_ScopeValues;
+
         private ExecutionEngine() { }
 
         public void Initialize()
@@ -46,6 +48,8 @@ namespace IronPython_Engine
             m_BackgroundWorker.WorkerSupportsCancellation = true;
 
             m_IOManager = null;
+
+            SetValue("RUNTIME", Runtime);
         }
 
         public void SetIO(IExecutionEngineIO manager)
@@ -83,6 +87,33 @@ namespace IronPython_Engine
         public void ClearContext()
         {
             m_ScriptScope = m_ScriptEngine.CreateScope();
+
+            if (m_ScopeValues != null)
+                foreach (string name in m_ScopeValues.Keys)
+                    m_ScriptScope.SetVariable(name, m_ScopeValues[name]);
+        }
+        public void SetValue(string name, object value)
+        {
+            if (m_ScopeValues == null)
+                m_ScopeValues = new Dictionary<string, object>();
+
+            if (m_ScopeValues.ContainsKey(name))
+                m_ScopeValues[name] = value;
+            else
+                m_ScopeValues.Add(name, value);
+
+            if (m_ScriptScope != null)
+                m_ScriptScope.SetVariable(name, value);
+        }
+
+        public void RemoveValue(string name)
+        {
+            if (m_ScopeValues != null)
+                if (m_ScopeValues.ContainsKey(name))
+                    m_ScopeValues.Remove(name);
+
+            if (m_ScriptScope != null)
+                m_ScriptScope.RemoveVariable(name);
         }
 
         #region Execution
@@ -187,15 +218,12 @@ namespace IronPython_Engine
         /// <param name="source">Source code (python)</param>
         private void ExecuteSource(string source)
         {
-            /*object temp;
-            if (!m_ScriptScope.TryGetVariable("Utils", out temp))
-            {
-                m_ScriptScope.SetVariable("Utils", Utilities.GetExcelUtilities());
-                m_ScriptScope.SetVariable("Application", Utilities.GetInstance().GetApplication());
-                m_ScriptScope.SetVariable("ActiveWorkbook", Utilities.GetInstance().GetActiveWorkbook());
-                m_ScriptScope.SetVariable("ActiveWorksheet", Utilities.GetInstance().GetActiveWorksheet());
-                m_ScriptScope.SetVariable("MissingType", Type.Missing);
-            }*/
+            //m_ScriptScope.SetVariable("RUNTIME", Runtime);
+            //m_ScriptScope.SetVariable("Utils", Utilities.GetExcelUtilities());
+            //m_ScriptScope.SetVariable("Application", Utilities.GetInstance().GetApplication());
+            //m_ScriptScope.SetVariable("ActiveWorkbook", Utilities.GetInstance().GetActiveWorkbook());
+            //m_ScriptScope.SetVariable("ActiveWorksheet", Utilities.GetInstance().GetActiveWorksheet());
+            //m_ScriptScope.SetVariable("MissingType", Type.Missing);
 
             if (m_IOManager != null)
                 m_IOManager.ClearAllStreams();

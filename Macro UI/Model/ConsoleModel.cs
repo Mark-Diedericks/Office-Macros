@@ -74,5 +74,23 @@ namespace Macro_UI.Model
         }
 
         #endregion
+
+        #region Input
+
+        private TextBoxReader m_Input;
+        public TextBoxReader Input
+        {
+            get
+            {
+                return m_Input;
+            }
+            set
+            {
+                m_Input = value;
+                OnPropertyChanged(nameof(Input));
+            }
+        }
+
+        #endregion
     }
 }

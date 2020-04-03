@@ -44,11 +44,21 @@ namespace Macro_UI.View
                 txtOutput.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => txtOutput.Clear()));
             }));
 
-            ConsoleModel.GetInstance().Output = new TextBoxWriter(txtOutput);
-            ConsoleModel.GetInstance().Error = new TextBoxWriter(txtOutput);
+            this.DataContextChanged += ConsoleView_DataContextChanged;
+        }
 
-            //Routing.EventManager.ChangeIO(String.Empty, ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error, null);
-            Events.InvokeEvent("SetIO", String.Empty, ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error, null);
+        private void ConsoleView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (DataContext is ConsoleViewModel)
+            {
+                ConsoleViewModel model = (ConsoleViewModel)DataContext;
+                model.Output = new TextBoxWriter(txtOutput);
+                model.Error = new TextBoxWriter(txtOutput);
+                model.Input = new TextBoxReader(txtOutput);
+
+                //Routing.EventManager.ChangeIO(String.Empty, ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error, null);
+                Events.InvokeEvent("SetIO", String.Empty, model.Output, model.Error, model.Input);
+            }
         }
 
         /// <summary>

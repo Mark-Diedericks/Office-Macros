@@ -21,7 +21,7 @@
         xmlns:utilities="clr-namespace:Macro_UI.Utilities"
         mc:Ignorable="d" Dialog:DialogParticipation.Register="{Binding}"
         Title="Macro Editor" TitleCaps="False" HorizontalAlignment="Center" VerticalAlignment="Center" ShowIconOnTitleBar="False"
-        MinWidth="1024" MinHeight="576" BorderBrush="Black" BorderThickness="0" GlowBrush="Black" ResizeMode="CanResizeWithGrip"
+        MinWidth="768" MinHeight="576" BorderBrush="Black" BorderThickness="0" GlowBrush="Black" ResizeMode="CanResizeWithGrip"
         LeftWindowCommandsOverlayBehavior="Always" RightWindowCommandsOverlayBehavior="Always" WindowButtonCommandsOverlayBehavior="Always"
         Background="{DynamicResource WindowBackgroundBrush}"
         WindowState="{Binding Source={x:Static properties:Settings.Default}, Path=WindowState, Mode=TwoWay}"

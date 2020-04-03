@@ -41,7 +41,7 @@ namespace Macro_UI.Utilities
         /// <param name="value"></param>
         public override void Write(char value)
         {
-            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.Text += value.ToString()));
+            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.AppendText(value.ToString())));
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Macro_UI.Utilities
         /// <param name="value"></param>
         public override void Write(string value)
         {
-            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.Text += value.ToString()));
+            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.AppendText(value.ToString())));
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Macro_UI.Utilities
         /// <param name="count"></param>
         public override void Write(char[] buffer, int index, int count)
         {
-            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.Text += new string(buffer)));
+            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.AppendText(new string(buffer))));
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Macro_UI.Utilities
         /// <param name="value"></param>
         public override void WriteLine(string value)
         {
-            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.Text += value.ToString() + '\n'));
+            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.AppendText(value.ToString() + '\n')));
         }
     }
 }

@@ -17,6 +17,8 @@ namespace Macro_Engine.Engine
         void Destroy();
         void ClearContext();
         void SetIO(IExecutionEngineIO manager);
+        void SetValue(string name, object value);
+        void RemoveValue(string name);
     }
 
     public interface IExecutionEngineData

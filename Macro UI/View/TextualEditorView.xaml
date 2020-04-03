@@ -9,7 +9,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
 
-    <Grid Background="{DynamicResource GrayBrush10}" FocusManager.FocusedElement="{Binding ElementName=m_CodeEditor}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+    <Grid Background="{DynamicResource ControlBackgroundBrush}" FocusManager.FocusedElement="{Binding ElementName=m_CodeEditor}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <avalonEdit:TextEditor Foreground="{DynamicResource TextBrush}" x:Name="m_CodeEditor" ShowLineNumbers="{Binding Source={x:Static properties:Settings.Default}, Path=EditorShowLineNumbers, Mode=OneWay}" FontSize="{Binding Source={x:Static properties:Settings.Default}, Path=EditorFontSize, Mode=OneWay}" FontFamily="{Binding Source={x:Static properties:Settings.Default}, Path=EditorFontFamily, Mode=OneWay}"
                                    FontWeight="{Binding Source={x:Static properties:Settings.Default}, Path=EditorFontWeight, Mode=OneWay}" Document="{Binding Source, Mode=TwoWay}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="Transparent" BorderThickness="0" BorderBrush="Transparent">
             <avalonEdit:TextEditor.InputBindings>

@@ -71,6 +71,19 @@ namespace Macro_UI.ViewModel
             }
         }
 
+        public TextBoxReader Input
+        {
+            get
+            {
+                return Model.Input;
+            }
+            set
+            {
+                Model.Input = value;
+                OnPropertyChanged(nameof(Input));
+            }
+        }
+
         #endregion
 
     }

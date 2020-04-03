@@ -549,7 +549,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void SaveAvalonDockLayout()
         {
-            if (MainWindow.GetInstance() != null)
+            if (MainWindow.GetInstance() == null)
                 return;
 
             XmlLayoutSerializer serializer = new XmlLayoutSerializer(MainWindow.GetInstance().GetDockingManager());
@@ -575,7 +575,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void LoadAvalonDockLayout()
         {
-            if (MainWindow.GetInstance() != null)
+            if (MainWindow.GetInstance() == null)
                 return;
 
             XmlLayoutSerializer serializer = new XmlLayoutSerializer(MainWindow.GetInstance().GetDockingManager());

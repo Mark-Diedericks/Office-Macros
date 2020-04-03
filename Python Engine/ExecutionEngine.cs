@@ -29,8 +29,11 @@ namespace Python_Engine
 
         private IExecutionEngineIO m_IOManager;
 
+        private PyScope m_ScriptScope;
         private dynamic CLR;
-        private IntPtr ThreadPtr; 
+        private IntPtr ThreadPtr;
+
+        private Dictionary<string, object> m_ScopeValues;
 
         private ExecutionEngine() { }
 
@@ -54,18 +57,21 @@ namespace Python_Engine
             PythonEngine.PythonHome = py_home;
             PythonEngine.PythonPath = py_path;
 
-            System.Diagnostics.Debug.WriteLine("CREATE  " + Thread.CurrentThread.ManagedThreadId);
             PythonEngine.Initialize();
             ThreadPtr = PythonEngine.BeginAllowThreads();
 
             using (Py.GIL())
                 CLR = PythonEngine.ImportModule("clr");
 
+            ClearContext();
+
             m_IsExecuting = false;
             m_BackgroundWorker = new BackgroundWorker();
             m_BackgroundWorker.WorkerSupportsCancellation = true;
 
             m_IOManager = null;
+
+            SetValue("RUNTIME", new PyString(Runtime));
         }
 
         public void SetIO(IExecutionEngineIO manager)
@@ -80,6 +86,8 @@ namespace Python_Engine
                 sys.stderr = new PythonError();
                 sys.stdin = new PythonInput();
             }
+
+            ClearContext();
 
             if (m_IOManager.GetOutput() != null)
                 Console.SetOut(m_IOManager.GetOutput());
@@ -96,7 +104,10 @@ namespace Python_Engine
             if (m_BackgroundWorker != null)
                 m_BackgroundWorker.CancelAsync();
 
-            System.Diagnostics.Debug.WriteLine("DESTROY  " + Thread.CurrentThread.ManagedThreadId);
+            using (Py.GIL())
+                m_ScriptScope.Dispose();
+            m_ScriptScope = null;
+
             PythonEngine.EndAllowThreads(ThreadPtr);
             PythonEngine.Shutdown();
         }
@@ -117,6 +128,47 @@ namespace Python_Engine
 
         public void ClearContext()
         {
+            using(Py.GIL())
+            {
+                if(m_ScriptScope != null)
+                    m_ScriptScope.Dispose();
+
+                m_ScriptScope = Py.CreateScope();
+
+                if(m_ScopeValues != null)
+                    foreach (string name in m_ScopeValues.Keys)
+                        m_ScriptScope.Set(name, m_ScopeValues[name].ToPython());
+            }
+        }
+
+        public void SetValue(string name, object value)
+        {
+            if(m_ScopeValues == null)
+                m_ScopeValues = new Dictionary<string, object>();
+
+            if (m_ScopeValues.ContainsKey(name))
+                m_ScopeValues[name] = value;
+            else
+                m_ScopeValues.Add(name, value);
+
+            using(Py.GIL())
+            {
+                if (m_ScriptScope != null)
+                    m_ScriptScope.Set(name, value.ToPython());
+            }
+        }
+
+        public void RemoveValue(string name)
+        {
+            if (m_ScopeValues != null)
+                if (m_ScopeValues.ContainsKey(name))
+                    m_ScopeValues.Remove(name);
+
+            using (Py.GIL())
+            {
+                if (m_ScriptScope != null)
+                    m_ScriptScope.Remove(name);
+            }
         }
 
         #region Execution
@@ -216,21 +268,11 @@ namespace Python_Engine
         }
 
         /// <summary>
-        /// Execute source code through IronPython Script Engine
+        /// Execute source code through PythonNET Script Engine
         /// </summary>
         /// <param name="source">Source code (python)</param>
         private void ExecuteSource(string source)
         {
-            /*object temp;
-            if (!m_ScriptScope.TryGetVariable("Utils", out temp))
-            {
-                m_ScriptScope.Set("Utils", Utilities.GetInstance());
-                m_ScriptScope.Set("Application", Utilities.GetInstance().GetApplication());
-                m_ScriptScope.Set("ActiveWorkbook", Utilities.GetInstance().GetActiveWorkbook());
-                m_ScriptScope.Set("ActiveWorksheet", Utilities.GetInstance().GetActiveWorksheet());
-                m_ScriptScope.Set("MissingType", Type.Missing);
-            }*/
-
             if (m_IOManager != null)
                 m_IOManager.ClearAllStreams();
 
@@ -238,7 +280,11 @@ namespace Python_Engine
             {
                 using(Py.GIL())
                 {
-                    PythonEngine.Exec(source);
+                    //PythonEngine.Exec(source);
+                    if (m_ScriptScope == null)
+                        ClearContext();
+
+                    m_ScriptScope.Exec(source);
                 }
             }
             catch (ThreadAbortException tae)
