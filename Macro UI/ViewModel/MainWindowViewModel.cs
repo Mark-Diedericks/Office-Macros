@@ -643,7 +643,11 @@ namespace Macro_UI.ViewModel
         public void DisplayOkMessage(string message, string caption)
         {
             if (IsShown && MainWindow.GetInstance() != null)
-                BeginInvokeWindow(async () => await MainWindow.GetInstance().ShowMessageAsync(caption, message, MessageDialogStyle.Affirmative, new MetroDialogSettings() { AffirmativeButtonText = "Ok" }));
+                BeginInvokeWindow(async () => await MainWindow.GetInstance().ShowMessageAsync(caption, message, MessageDialogStyle.Affirmative, new MetroDialogSettings()
+                {
+                    AffirmativeButtonText = "Ok",
+                    CustomResourceDictionary = MainWindow.GetInstance().ThemeDictionary,
+                }));
             else
                 System.Windows.Forms.MessageBox.Show(message, caption, System.Windows.Forms.MessageBoxButtons.OK);
         }
@@ -659,7 +663,12 @@ namespace Macro_UI.ViewModel
             if (IsShown && MainWindow.GetInstance() != null)
                 BeginInvokeWindow(async () =>
                 {
-                    bool result = (await MainWindow.GetInstance().ShowMessageAsync(caption, message, MessageDialogStyle.AffirmativeAndNegative, new MetroDialogSettings() { AffirmativeButtonText = "Yes", NegativeButtonText = "No" })) == MessageDialogResult.Affirmative;
+                    bool result = (await MainWindow.GetInstance().ShowMessageAsync(caption, message, MessageDialogStyle.AffirmativeAndNegative, new MetroDialogSettings()
+                    {
+                        AffirmativeButtonText = "Yes",
+                        NegativeButtonText = "No",
+                        CustomResourceDictionary = MainWindow.GetInstance().ThemeDictionary,
+                    })) == MessageDialogResult.Affirmative;
                     OnReturn?.Invoke(result);
                 });
             else
@@ -678,7 +687,13 @@ namespace Macro_UI.ViewModel
             if (IsShown && MainWindow.GetInstance() != null)
                 BeginInvokeWindow(async () =>
                 {
-                    MessageDialogResult result = (await MainWindow.GetInstance().ShowMessageAsync(caption, message, MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary, new MetroDialogSettings() { AffirmativeButtonText = "Yes", NegativeButtonText = "Cancel", FirstAuxiliaryButtonText = aux }));
+                    MessageDialogResult result = (await MainWindow.GetInstance().ShowMessageAsync(caption, message, MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary, new MetroDialogSettings()
+                    {
+                        AffirmativeButtonText = "Yes",
+                        NegativeButtonText = "Cancel",
+                        FirstAuxiliaryButtonText = aux,
+                        CustomResourceDictionary = MainWindow.GetInstance().ThemeDictionary,
+                    }));
                     OnReturn?.Invoke(result);
                 });
             else

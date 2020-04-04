@@ -25,7 +25,8 @@ namespace Python_Engine
     {
         private readonly string Runtime = "PythonNET 3.5.0";
 
-        private BackgroundWorker m_BackgroundWorker;
+        private Thread m_ExecutionThread;
+
         private bool m_IsExecuting;
 
         private IExecutionEngineIO m_IOManager;
@@ -76,8 +77,8 @@ namespace Python_Engine
             ClearContext();
 
             m_IsExecuting = false;
-            m_BackgroundWorker = new BackgroundWorker();
-            m_BackgroundWorker.WorkerSupportsCancellation = true;
+
+            m_ExecutionThread = null;
 
             m_IOManager = null;
 
@@ -86,8 +87,7 @@ namespace Python_Engine
 
         public void Destroy()
         {
-            if (m_BackgroundWorker != null)
-                m_BackgroundWorker.CancelAsync();
+            TerminateExecution();
 
             using (Py.GIL())
                 m_ScriptScope.Dispose();
@@ -229,6 +229,8 @@ namespace Python_Engine
             if (m_IsExecuting)
                 return false;
 
+            TerminateExecution();
+
             if (async)
                 ExecuteSourceAsynchronous(source, OnCompletedAction);
             else
@@ -242,9 +244,22 @@ namespace Python_Engine
         /// </summary>
         public void TerminateExecution()
         {
-            if (m_BackgroundWorker != null)
-                m_BackgroundWorker.CancelAsync();
+            if (m_ExecutionThread != null)
+            {
+                try
+                {
+                    m_ExecutionThread.Interrupt();
 
+                    if (!m_ExecutionThread.Join(500))
+                        m_ExecutionThread.Abort();
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine(e.Message);
+                }
+            }
+
+            m_ExecutionThread = null;
             m_IsExecuting = false;
         }
 
@@ -256,12 +271,12 @@ namespace Python_Engine
         private void ExecuteSourceAsynchronous(string source, Action OnCompletedAction)
         {
             m_IsExecuting = true;
-            m_BackgroundWorker = new BackgroundWorker();
-            m_BackgroundWorker.WorkerSupportsCancellation = true;
             int profileID = -1;
 
-            m_BackgroundWorker.RunWorkerCompleted += (s, args) =>
+            m_ExecutionThread = new Thread(() =>
             {
+                profileID = Utilities.BeginProfileSession();
+                ExecuteSource(source);
                 if (m_IOManager != null)
                 {
                     m_IOManager.GetOutput().WriteLine("Asynchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
@@ -272,15 +287,11 @@ namespace Python_Engine
 
                 m_IsExecuting = false;
                 OnCompletedAction?.Invoke();
-            };
+            });
 
-            m_BackgroundWorker.DoWork += (s, args) =>
-            {
-                profileID = Utilities.BeginProfileSession();
-                ExecuteSource(source);
-            };
-
-            m_BackgroundWorker.RunWorkerAsync();
+            m_ExecutionThread.SetApartmentState(ApartmentState.STA);
+            m_ExecutionThread.IsBackground = true;
+            m_ExecutionThread.Start();
         }
 
         /// <summary>
@@ -290,12 +301,11 @@ namespace Python_Engine
         /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
         private void ExecuteSourceSynchronous(string source, Action OnCompletedAction)
         {
+            m_IsExecuting = true;
             Events.InvokeEvent("OnHostExecute", new Action(() =>
             {
                 int profileID = -1;
                 profileID = Utilities.BeginProfileSession();
-
-                m_IsExecuting = true;
                 ExecuteSource(source);
 
                 if (m_IOManager != null)
@@ -305,6 +315,7 @@ namespace Python_Engine
                 }
 
                 Utilities.EndProfileSession(profileID);
+
 
                 m_IsExecuting = false;
                 OnCompletedAction?.Invoke();
@@ -337,17 +348,18 @@ namespace Python_Engine
 
                 if (m_IOManager != null)
                 {
-                    m_IOManager.GetOutput().WriteLine("Thread Exited With Exception State {0}", tae.ExceptionState);
+                    m_IOManager.GetOutput().WriteLine("Thread Exited");
                     m_IOManager.GetOutput().Flush();
                 }
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("Execution Error: " + e.Message);
+                System.Diagnostics.Debug.WriteLine(e.Message);
 
                 if (m_IOManager != null)
                 {
-                    m_IOManager.GetError().WriteLine("Execution Error: " + e.Message);
+                    m_IOManager.GetError().WriteLine(e.Message);
+                    m_IOManager.GetError().WriteLine(e.StackTrace);
                     m_IOManager.GetOutput().Flush();
                 }
             }
