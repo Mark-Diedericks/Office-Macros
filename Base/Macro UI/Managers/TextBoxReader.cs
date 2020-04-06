@@ -87,10 +87,9 @@ namespace Macro_UI.Utilities
 
                     m_TextBox.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(() => {
                         m_StartOfLine = m_TextBox.GetLineText(m_TextBox.LineCount - 1).Length;
+                        int lenStart = m_TextBox.Text.Length;
 
                         m_TextBox.IsReadOnly = false;
-                        int startLength = m_TextBox.Text.Length;
-
                         m_TextBox.Focus();
                         Keyboard.Focus(m_TextBox);
 
@@ -104,7 +103,7 @@ namespace Macro_UI.Utilities
                                     m_Abort = true;
                                     break;
                                 case Key.Back:
-                                    e.Handled = m_TextBox.Text.Length <= startLength;
+                                    e.Handled = m_TextBox.Text.Length <= lenStart;
                                     break;
                                 default:
                                     break;

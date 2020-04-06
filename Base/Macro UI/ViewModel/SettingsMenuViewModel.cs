@@ -66,7 +66,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void ThemeChanged()
         {
-            SaveSyntaxStyle(PreviousTheme == "Dark");
+            //SaveSyntaxStyle(PreviousTheme == "Dark");
             PreviousTheme = MainWindowViewModel.GetInstance().ActiveTheme.Name;
             LoadColors();
         }
@@ -77,35 +77,16 @@ namespace Macro_UI.ViewModel
         private void LoadColors()
         {
             LoadColorValues();
-            string[] values = GetValues();
+            SyntaxStyle = GetValues();
 
-            FunctionColor = values[(int)SyntaxStyleColor.FUNCTION];
+            /*FunctionColor = values[(int)SyntaxStyleColor.FUNCTION];
             DigitColor = values[(int)SyntaxStyleColor.DIGIT];
             CommentColor = values[(int)SyntaxStyleColor.COMMENT];
             StringColor = values[(int)SyntaxStyleColor.STRING];
             PairColor = values[(int)SyntaxStyleColor.PAIR];
             ClassColor = values[(int)SyntaxStyleColor.CLASS];
             StatementColor = values[(int)SyntaxStyleColor.STATEMENT];
-            BooleanColor = values[(int)SyntaxStyleColor.BOOLEAN];
-        }
-
-        /// <summary>
-        /// Sets the colors of the syntax style
-        /// </summary>
-        private void SetColors()
-        {
-            string[] values = new string[8];
-
-            values[(int)SyntaxStyleColor.FUNCTION] = FunctionColor;
-            values[(int)SyntaxStyleColor.DIGIT] = DigitColor;
-            values[(int)SyntaxStyleColor.COMMENT] = CommentColor;
-            values[(int)SyntaxStyleColor.STRING] = StringColor;
-            values[(int)SyntaxStyleColor.PAIR] = PairColor;
-            values[(int)SyntaxStyleColor.CLASS] = ClassColor;
-            values[(int)SyntaxStyleColor.STATEMENT] = StatementColor;
-            values[(int)SyntaxStyleColor.BOOLEAN] = BooleanColor;
-
-            SetSyntaxStyle(values);
+            BooleanColor = values[(int)SyntaxStyleColor.BOOLEAN];*/
         }
 
         #region Model
@@ -204,176 +185,23 @@ namespace Macro_UI.ViewModel
 
         #endregion
 
-        #region FunctionColor
+        #region SyntaxStyle
 
-        public string FunctionColor
+        public SyntaxStyleValues SyntaxStyle
         {
             get
             {
-                return Model.FunctionColor;
+                return Model.SyntaxStyle;
             }
 
             set
             {
-                if (Model.FunctionColor != value)
+                if (Model.SyntaxStyle != value)
                 {
-                    Model.FunctionColor = value;
-                    OnPropertyChanged(nameof(FunctionColor));
-                    SetColors();
-                }
-            }
-        }
+                    Model.SyntaxStyle = value;
+                    OnPropertyChanged(nameof(SyntaxStyle));
 
-        #endregion
-
-        #region DigitColor
-        
-        public string DigitColor
-        {
-            get
-            {
-                return Model.DigitColor;
-            }
-
-            set
-            {
-                if (Model.DigitColor != value)
-                {
-                    Model.DigitColor = value;
-                    OnPropertyChanged(nameof(DigitColor));
-                    SetColors();
-                }
-            }
-        }
-
-        #endregion
-
-        #region CommentColor
-        
-        public string CommentColor
-        {
-            get
-            {
-                return Model.CommentColor;
-            }
-
-            set
-            {
-                if (Model.CommentColor != value)
-                {
-                    Model.CommentColor = value;
-                    OnPropertyChanged(nameof(CommentColor));
-                    SetColors();
-                }
-            }
-        }
-
-        #endregion
-
-        #region StringColor
-        
-        public string StringColor
-        {
-            get
-            {
-                return Model.StringColor;
-            }
-
-            set
-            {
-                if (Model.StringColor != value)
-                {
-                    Model.StringColor = value;
-                    OnPropertyChanged(nameof(StringColor));
-                    SetColors();
-                }
-            }
-        }
-
-        #endregion
-
-        #region PairColor
-        
-        public string PairColor
-        {
-            get
-            {
-                return Model.PairColor;
-            }
-
-            set
-            {
-                if (Model.PairColor != value)
-                {
-                    Model.PairColor = value;
-                    OnPropertyChanged(nameof(PairColor));
-                    SetColors();
-                }
-            }
-        }
-
-        #endregion
-
-        #region ClassColor
-        
-        public string ClassColor
-        {
-            get
-            {
-                return Model.ClassColor;
-            }
-
-            set
-            {
-                if (Model.ClassColor != value)
-                {
-                    Model.ClassColor = value;
-                    OnPropertyChanged(nameof(ClassColor));
-                    SetColors();
-                }
-            }
-        }
-
-        #endregion
-
-        #region StatementColor
-        
-        public string StatementColor
-        {
-            get
-            {
-                return Model.StatementColor;
-            }
-
-            set
-            {
-                if (Model.StatementColor != value)
-                {
-                    Model.StatementColor = value;
-                    OnPropertyChanged(nameof(StatementColor));
-                    SetColors();
-                }
-            }
-        }
-
-        #endregion
-
-        #region BooleanColor
-        
-        public string BooleanColor
-        {
-            get
-            {
-                return Model.BooleanColor;
-            }
-
-            set
-            {
-                if (Model.BooleanColor != value)
-                {
-                    Model.BooleanColor = value;
-                    OnPropertyChanged(nameof(BooleanColor));
-                    SetColors();
+                    SetSyntaxStyle(Model.SyntaxStyle);
                 }
             }
         }
@@ -496,22 +324,22 @@ namespace Macro_UI.ViewModel
 
         #endregion
 
-        #region StyleActive
+        #region AppStyleActive
 
-        public bool StyleActive
+        public bool AppStyleActive
         {
             get
             {
-                return Model.StyleActive;
+                return Model.AppStyleActive;
             }
             set
             {
-                if (Model.StyleActive != value)
+                if (Model.AppStyleActive != value)
                 {
-                    Model.StyleActive = value;
-                    OnPropertyChanged(nameof(StyleActive));
-                    OnPropertyChanged(nameof(LibraryActive));
-                    OnPropertyChanged(nameof(RibbonActive));
+                    Model.AppStyleActive = value;
+                    OnPropertyChanged(nameof(AppStyleActive));
+                    OnPropertyChanged(nameof(EnvironmentActive));
+                    OnPropertyChanged(nameof(MacrosActive));
                 }
             }
         }
@@ -520,20 +348,20 @@ namespace Macro_UI.ViewModel
 
         #region LibraryActive
 
-        public bool LibraryActive
+        public bool EnvironmentActive
         {
             get
             {
-                return Model.LibraryActive;
+                return Model.EnvironmentActive;
             }
             set
             {
-                if (Model.LibraryActive != value)
+                if (Model.EnvironmentActive != value)
                 {
-                    Model.LibraryActive = value;
-                    OnPropertyChanged(nameof(StyleActive));
-                    OnPropertyChanged(nameof(LibraryActive));
-                    OnPropertyChanged(nameof(RibbonActive));
+                    Model.EnvironmentActive = value;
+                    OnPropertyChanged(nameof(AppStyleActive));
+                    OnPropertyChanged(nameof(EnvironmentActive));
+                    OnPropertyChanged(nameof(MacrosActive));
                     OnPropertyChanged(nameof(LabelVisible));
                 }
             }
@@ -541,22 +369,22 @@ namespace Macro_UI.ViewModel
 
         #endregion
 
-        #region RibbonActive
+        #region MacrosActive
 
-        public bool RibbonActive
+        public bool MacrosActive
         {
             get
             {
-                return Model.RibbonActive;
+                return Model.MacrosActive;
             }
             set
             {
-                if (Model.RibbonActive != value)
+                if (Model.MacrosActive != value)
                 {
-                    Model.RibbonActive = value;
-                    OnPropertyChanged(nameof(StyleActive));
-                    OnPropertyChanged(nameof(LibraryActive));
-                    OnPropertyChanged(nameof(RibbonActive));
+                    Model.MacrosActive = value;
+                    OnPropertyChanged(nameof(AppStyleActive));
+                    OnPropertyChanged(nameof(EnvironmentActive));
+                    OnPropertyChanged(nameof(MacrosActive));
                     OnPropertyChanged(nameof(LabelVisible));
                 }
             }

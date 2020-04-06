@@ -62,7 +62,9 @@
                 <HierarchicalDataTemplate DataType="{x:Type viewmodel:DisplayableTreeViewItem}" ItemsSource="{Binding Items}">
                     <Grid>
                         <TextBlock x:Name="LabelBox" Background="Transparent" Text="{Binding Header}" Visibility="{Binding IsDisplaying, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" />
-                        <TextBox x:Name="InputBox" Foreground="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type TreeViewItem}}, Path=Foreground}" Visibility="{Binding IsInputting, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" utils:FocusUtility.IsFocused="{Binding IsInputting}" CaretIndex="{x:Static System:Int32.MaxValue}" IsVisibleChanged="InputBox_IsVisibleChanged" FontWeight="DemiBold" BorderThickness="0" Background="#08000000" Text="{Binding Header}" IsReadOnly="False" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyUp"/>
+                        <TextBox x:Name="InputBox" Foreground="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type TreeViewItem}}, Path=Foreground}" 
+                                 Visibility="{Binding IsInputting, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" utils:FocusUtility.IsFocused="{Binding IsInputting}" 
+                                 CaretIndex="{x:Static System:Int32.MaxValue}" IsVisibleChanged="InputBox_IsVisibleChanged" FontWeight="DemiBold" BorderThickness="0" Background="#08000000" Text="{Binding Header}" IsReadOnly="False" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyUp"/>
                     </Grid>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>

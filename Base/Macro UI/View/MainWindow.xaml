@@ -116,11 +116,11 @@
                 <MenuItem Header="_Console" Command="{Binding ConsoleClick}"/>
             </MenuItem>
             <MenuItem Header="_Tools" Style="{DynamicResource HeaderMenuItemStyle}">
-                <MenuItem Header="_Style" Command="{Binding StyleClick}"/>
-                <MenuItem Header="_Libraries" Command="{Binding LibraryClick}"/>
-                <MenuItem Header="_Macros" Command="{Binding MacroClick}"/>
+                <MenuItem Header="_App Style" Command="{Binding AppStyleClick}"/>
+                <MenuItem Header="_Envorinment" Command="{Binding EnvironmentClick}"/>
+                <MenuItem Header="_Macros" Command="{Binding MacrosClick}"/>
                 <Separator />
-                <MenuItem Header="_Options" Command="{Binding StyleClick}"/>
+                <MenuItem Header="_Settings" Command="{Binding AppStyleClick}"/>
             </MenuItem>
         </Menu>
 

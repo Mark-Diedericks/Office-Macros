@@ -1267,74 +1267,74 @@ namespace Macro_UI.ViewModel
 
         #region Menu Bar Event Callbacks
 
-        #region StyleClick
+        #region AppStyleClick
 
-        private ICommand m_StyleClick;
-        public ICommand StyleClick
+        private ICommand m_AppStyleClick;
+        public ICommand AppStyleClick
         {
             get
             {
-                if (m_StyleClick == null)
-                    m_StyleClick = new RelayCommand(call => StyleClickEvent());
-                return m_StyleClick;
+                if (m_AppStyleClick == null)
+                    m_AppStyleClick = new RelayCommand(call => AppStyleClickEvent());
+                return m_AppStyleClick;
             }
         }
 
         /// <summary>
         /// Open the style tab of the settings menu
         /// </summary>
-        private void StyleClickEvent()
+        private void AppStyleClickEvent()
         {
             SettingsMenu.IsOpen = true;
-            SettingsMenu.StyleActive = true;
+            SettingsMenu.AppStyleActive = true;
         }
 
         #endregion
 
         #region LibraryClick
 
-        private ICommand m_LibraryClick;
-        public ICommand LibraryClick
+        private ICommand m_EnvironmentClick;
+        public ICommand EnvironmentClick
         {
             get
             {
-                if (m_LibraryClick == null)
-                    m_LibraryClick = new RelayCommand(call => LibraryClickEvent());
-                return m_LibraryClick;
+                if (m_EnvironmentClick == null)
+                    m_EnvironmentClick = new RelayCommand(call => EnvironmentClickEvent());
+                return m_EnvironmentClick;
             }
         }
 
         /// <summary>
         /// Open the libraries tab of the settings menu
         /// </summary>
-        private void LibraryClickEvent()
+        private void EnvironmentClickEvent()
         {
             SettingsMenu.IsOpen = true;
-            SettingsMenu.LibraryActive = true;
+            SettingsMenu.EnvironmentActive = true;
         }
 
         #endregion
 
-        #region MacroClick
+        #region MacrosClick
 
-        private ICommand m_MacroClick;
-        public ICommand MacroClick
+        private ICommand m_MacrosClick;
+        public ICommand MacrosClick
         {
             get
             {
-                if (m_MacroClick == null)
-                    m_MacroClick = new RelayCommand(call => MacroClickEvent());
-                return m_MacroClick;
+                if (m_MacrosClick == null)
+                    m_MacrosClick = new RelayCommand(call => MacrosClickEvent());
+                return m_MacrosClick;
             }
         }
 
         /// <summary>
         /// Open the macros tab of the settings menu
         /// </summary>
-        private void MacroClickEvent()
+        private void MacrosClickEvent()
         {
             SettingsMenu.IsOpen = true;
-            SettingsMenu.RibbonActive = true;
+            SettingsMenu.MacrosActive = true;
         }
 
         #endregion

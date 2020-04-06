@@ -17,17 +17,6 @@ namespace Macro_UI.Utilities
 {
     public class SyntaxStyleLoader
     {
-        public enum SyntaxStyleColor
-        {
-            DIGIT = 0,
-            COMMENT = 1,
-            STRING = 2,
-            PAIR = 3,
-            CLASS = 4,
-            STATEMENT = 5,
-            FUNCTION = 6,
-            BOOLEAN = 7
-        }
 
         //Style Changed Event
         public delegate void StyleChangeEvent();
@@ -44,7 +33,7 @@ namespace Macro_UI.Utilities
         private const string BOOLEAN = "#COLOR_BOOLEAN";      //#569cd6
 
         //Values
-        private static string[] s_ColorValues;
+        private static SyntaxStyleValues s_ColorValues;
 
         /// <summary>
         /// Produces a stream of data representing the syntax style
@@ -54,14 +43,14 @@ namespace Macro_UI.Utilities
         {
             string style = Properties.Resources.DefaultSyntax;
 
-            style = style.Replace(DIGIT, s_ColorValues[(int)SyntaxStyleColor.DIGIT]);
-            style = style.Replace(COMMENT, s_ColorValues[(int)SyntaxStyleColor.COMMENT]);
-            style = style.Replace(STRING, s_ColorValues[(int)SyntaxStyleColor.STRING]);
-            style = style.Replace(PAIR, s_ColorValues[(int)SyntaxStyleColor.PAIR]);
-            style = style.Replace(CLASS, s_ColorValues[(int)SyntaxStyleColor.CLASS]);
-            style = style.Replace(STATEMENT, s_ColorValues[(int)SyntaxStyleColor.STATEMENT]);
-            style = style.Replace(FUNCTION, s_ColorValues[(int)SyntaxStyleColor.FUNCTION]);
-            style = style.Replace(BOOLEAN, s_ColorValues[(int)SyntaxStyleColor.BOOLEAN]);
+            style = style.Replace(DIGIT, s_ColorValues.DIGIT);
+            style = style.Replace(COMMENT, s_ColorValues.COMMENT);
+            style = style.Replace(STRING, s_ColorValues.STRING);
+            style = style.Replace(PAIR, s_ColorValues.PAIR);
+            style = style.Replace(CLASS, s_ColorValues.CLASS);
+            style = style.Replace(STATEMENT, s_ColorValues.STATEMENT);
+            style = style.Replace(FUNCTION, s_ColorValues.FUNCTION);
+            style = style.Replace(BOOLEAN, s_ColorValues.BOOLEAN);
 
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
@@ -78,12 +67,17 @@ namespace Macro_UI.Utilities
         /// </summary>
         /// <param name="values">Colour values</param>
         /// <returns>Serialized value</returns>
-        private static string CreateSyntaxStyleString(string[] values)
+        private static string CreateSyntaxStyleString(SyntaxStyleValues values)
         {
             StringBuilder sb = new StringBuilder();
-
-            foreach (string val in values)
-                sb.Append(val + ';');
+            sb.Append(values.DIGIT + ';');
+            sb.Append(values.COMMENT + ';');
+            sb.Append(values.STRING + ';');
+            sb.Append(values.PAIR + ';');
+            sb.Append(values.CLASS + ';');
+            sb.Append(values.STATEMENT + ';');
+            sb.Append(values.FUNCTION + ';');
+            sb.Append(values.BOOLEAN + ';');
 
             return sb.ToString();
         }
@@ -93,9 +87,24 @@ namespace Macro_UI.Utilities
         /// </summary>
         /// <param name="value">Serialized value</param>
         /// <returns>Colour values</returns>
-        private static string[] ParseSyntaxStyleString(string value)
+        private static SyntaxStyleValues ParseSyntaxStyleString(string value)
         {
-            return value.Split(';');
+            SyntaxStyleValues ssv = new SyntaxStyleValues();
+            string[] values = value.Split(';');
+
+            if (values.Length < 8)
+                return ssv;
+
+            ssv.DIGIT = values[0];
+            ssv.COMMENT = values[1];
+            ssv.STRING = values[2];
+            ssv.PAIR = values[3];
+            ssv.CLASS = values[4];
+            ssv.STATEMENT = values[5];
+            ssv.FUNCTION = values[6];
+            ssv.BOOLEAN = values[7];
+
+            return ssv;
         }
 
         /// <summary>
@@ -110,23 +119,21 @@ namespace Macro_UI.Utilities
         /// Sets the colours of the syntax style
         /// </summary>
         /// <param name="values"></param>
-        public static void SetSyntaxStyle(string[] values)
+        public static void SetSyntaxStyle(SyntaxStyleValues values)
         {
-            if (values.Length != 8)
-                return;
+            if(values != null)
+                s_ColorValues = values;
 
-            s_ColorValues = values;
-
+            SaveSyntaxStyle();
             UpdateSyntaxStyle();
         }
 
         /// <summary>
         /// Saves the serialized colours of the syntax style
         /// </summary>
-        /// <param name="DarkTheme">Is dark theme enabled</param>
-        public static void SaveSyntaxStyle(bool DarkTheme)
+        public static void SaveSyntaxStyle()
         {
-            if (DarkTheme)
+            if (MainWindowViewModel.GetInstance().ActiveTheme.Name == "Dark")
                 Properties.Settings.Default.SyntaxStyleDark = CreateSyntaxStyleString(s_ColorValues);
             else
                 Properties.Settings.Default.SyntaxStyleLight = CreateSyntaxStyleString(s_ColorValues);
@@ -135,24 +142,16 @@ namespace Macro_UI.Utilities
         }
 
         /// <summary>
-        /// Sets a specific colour of syntax style
-        /// </summary>
-        /// <param name="color">Which color id it should be applied to</param>
-        /// <param name="value">The value to be applied</param>
-        public static void SetSyntaxColor(SyntaxStyleColor color, string value)
-        {
-            s_ColorValues[(int)color] = value;
-        }
-
-        /// <summary>
         /// Loads serialized colour values to use in the syntax style
         /// </summary>
         public static void LoadColorValues()
         {
-           if (MainWindowViewModel.GetInstance().ActiveTheme.Name == "Dark")
+            if (MainWindowViewModel.GetInstance().ActiveTheme.Name == "Dark")
                 s_ColorValues = ParseSyntaxStyleString(Properties.Settings.Default.SyntaxStyleDark);
+                //s_ColorValues = ParseSyntaxStyleString("#dfdfdf;#57a64a;#ff22ff;#569cd6;#4ec9b0;#70b0e0;#bfbfbf;#569cd6;");
             else
                 s_ColorValues = ParseSyntaxStyleString(Properties.Settings.Default.SyntaxStyleLight);
+                //s_ColorValues = ParseSyntaxStyleString("#202020;#57a64a;#ff22ff;#569cd6;#4ec9b0;#70b0e0;#404040;#569cd6;");
 
             UpdateSyntaxStyle();
         }
@@ -161,7 +160,7 @@ namespace Macro_UI.Utilities
         /// Gets the syntax style colour values
         /// </summary>
         /// <returns>Colour values</returns>
-        public static string[] GetValues()
+        public static SyntaxStyleValues GetValues()
         {
             if (s_ColorValues == null)
                 LoadColorValues();

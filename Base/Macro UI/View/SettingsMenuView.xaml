@@ -174,29 +174,29 @@
 
         <Grid FlowDirection="LeftToRight" Grid.Column="0" Background="{DynamicResource ControlBackgroundBrush}">
             <!-- TABS -->
-            <ToggleButton IsChecked="{Binding StyleActive, Mode=TwoWay}" Margin="0,8,0,0" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" Style="{StaticResource SettingsButtonStyle}">
+            <ToggleButton IsChecked="{Binding AppStyleActive, Mode=TwoWay}" Margin="0,8,0,0" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" Style="{StaticResource SettingsButtonStyle}">
                 <Grid Margin="0,0,0,0">
-                    <TextBlock VerticalAlignment="Center" Background="Transparent" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Left" Margin="24,0,0,2">Style</TextBlock>
+                    <TextBlock VerticalAlignment="Center" Background="Transparent" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Left" Margin="24,0,0,2">App Style</TextBlock>
                     <Rectangle Width="16" Height="16" Fill="{DynamicResource TextBrush}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,0">
                         <Rectangle.OpacityMask>
-                            <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.CodeBraces}}"/>
+                            <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.Brush}}"/>
                         </Rectangle.OpacityMask>
                     </Rectangle>
                 </Grid>
             </ToggleButton>
 
-            <ToggleButton IsChecked="{Binding LibraryActive, Mode=TwoWay}" Margin="0,48,0,0" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" Style="{StaticResource SettingsButtonStyle}">
+            <ToggleButton IsChecked="{Binding EnvironmentActive, Mode=TwoWay}" Margin="0,48,0,0" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" Style="{StaticResource SettingsButtonStyle}">
                 <Grid Margin="0,0,0,0">
-                    <TextBlock VerticalAlignment="Center" Background="Transparent" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Left" Margin="24,0,0,2">Libraries</TextBlock>
+                    <TextBlock VerticalAlignment="Center" Background="Transparent" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Left" Margin="24,0,0,2">Environment</TextBlock>
                     <Rectangle Width="16" Height="16" Fill="{DynamicResource TextBrush}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,0">
                         <Rectangle.OpacityMask>
-                            <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.Puzzle}}"/>
+                            <VisualBrush Stretch="Fill" Visual="{iconPacks:Material {x:Static iconPacks:PackIconMaterialKind.Cogs}}"/>
                         </Rectangle.OpacityMask>
                     </Rectangle>
                 </Grid>
             </ToggleButton>
 
-            <ToggleButton IsChecked="{Binding RibbonActive, Mode=TwoWay}" Margin="0,88,0,0" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" Style="{StaticResource SettingsButtonStyle}">
+            <ToggleButton IsChecked="{Binding MacrosActive, Mode=TwoWay}" Margin="0,88,0,0" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" Style="{StaticResource SettingsButtonStyle}">
                 <Grid Margin="0,0,0,0">
                     <TextBlock VerticalAlignment="Center" Background="Transparent" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Left" Margin="24,0,0,2">Macros</TextBlock>
                     <Rectangle Width="16" Height="16" Fill="{DynamicResource TextBrush}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,0,0">
@@ -212,7 +212,7 @@
 
         <Grid Grid.Column="2" Background="{DynamicResource ControlBackgroundBrush}">
             <!-- TAB CONTENT -->
-            <Grid Background="{DynamicResource ControlBackgroundBrush}" Visibility="{Binding StyleActive, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid Background="{DynamicResource ControlBackgroundBrush}" Visibility="{Binding AppStyleActive, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="0,4,0,0" TextAlignment="Center">Customize Editor Styling</TextBlock>
                 <Rectangle VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="16,23,16,0" Height="1" Fill="{DynamicResource AccentColorBrush2}"/>
 
@@ -260,48 +260,48 @@
                 
                 <Grid Margin="16,180,16,0" VerticalAlignment="Top" HorizontalAlignment="Center">
                     <Grid Margin="0,0,0,0" Height="36" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding FunctionColor}"/>
+                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding SyntaxStyle.FUNCTION}"/>
                         <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Definition Color</TextBlock>
                     </Grid>
 
                     <Grid Margin="0,36,0,0" Height="36" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding DigitColor}"/>
+                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding SyntaxStyle.DIGIT}"/>
                         <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Digit Color</TextBlock>
                     </Grid>
 
                     <Grid Margin="0,72,0,0" Height="36" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding CommentColor}"/>
+                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding SyntaxStyle.COMMENT}"/>
                         <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Comment Color</TextBlock>
                     </Grid>
 
                     <Grid Margin="0,108,0,0" Height="36" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding StringColor}"/>
+                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding SyntaxStyle.STRING}"/>
                         <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">String Color</TextBlock>
                     </Grid>
 
                     <Grid Margin="0,144,0,0" Height="36" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding PairColor}"/>
-                        <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Function Color</TextBlock>
+                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding SyntaxStyle.PAIR}"/>
+                        <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Method Color</TextBlock>
                     </Grid>
 
                     <Grid Margin="0,180,0,0" Height="36" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding ClassColor}"/>
-                        <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Object Color</TextBlock>
+                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding SyntaxStyle.CLASS}"/>
+                        <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Class Color</TextBlock>
                     </Grid>
 
                     <Grid Margin="0,216,0,0" Height="36" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding StatementColor}"/>
+                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding SyntaxStyle.STATEMENT}"/>
                         <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Statement Color</TextBlock>
                     </Grid>
 
                     <Grid Margin="0,252,0,0" Height="36" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding BooleanColor}"/>
+                        <ext:ColorPicker ButtonStyle="{DynamicResource MCBDDTBStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" Height="24" Width="72" SelectedColor="{Binding SyntaxStyle.BOOLEAN}"/>
                         <TextBlock Margin="96,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">Boolean Color</TextBlock>
                     </Grid>
                 </Grid>
             </Grid>
 
-            <Grid Background="{DynamicResource ControlBackgroundBrush}" Visibility="{Binding LibraryActive, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid Background="{DynamicResource ControlBackgroundBrush}" Visibility="{Binding EnvironmentActive, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="0,4,0,0" TextAlignment="Center">Manage Modules &amp; Libraries</TextBlock>
                 <Rectangle VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="16,23,16,0" Height="1" Fill="{DynamicResource AccentColorBrush2}"/>
                 <ListView ItemsSource="{Binding LibraryItems}" SelectedItem="{Binding SelectedLibrary}" BorderThickness="0" Margin="4,30,4,24" Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
@@ -359,7 +359,7 @@
                 <TextBlock Margin="4,30,4,8" Visibility="{Binding LabelVisible, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}" VerticalAlignment="Stretch" HorizontalAlignment="Center">No Libraries</TextBlock>
             </Grid>
 
-            <Grid Background="{DynamicResource ControlBackgroundBrush}" Visibility="{Binding RibbonActive, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid Background="{DynamicResource ControlBackgroundBrush}" Visibility="{Binding MacrosActive, ConverterParameter={x:Static Visibility.Collapsed}, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="0,4,0,0" TextAlignment="Center">Manage Ribbon Accessible Macros</TextBlock>
                 <Rectangle VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="16,23,16,0" Height="1" Fill="{DynamicResource AccentColorBrush2}"/>
                 <TreeView ItemsSource="{Binding RibbonItems}" BorderThickness="0" Margin="4,30,4,8" Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Style="{DynamicResource MetroTreeView}">
