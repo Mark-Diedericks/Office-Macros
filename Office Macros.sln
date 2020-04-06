@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excel Ribbon", "Excel Ribbon\Excel Ribbon.csproj", "{11C968A1-359F-4C1A-944E-FB95434CBC9D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Excel Ribbon", "VSTO\Excel Ribbon\Excel Ribbon.csproj", "{11C968A1-359F-4C1A-944E-FB95434CBC9D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{19601B53-03F9-4A00-A363-6D700C970513} = {19601B53-03F9-4A00-A363-6D700C970513}
 		{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4} = {84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4}
@@ -13,21 +13,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{8AE0A061-C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Excel", "Excel", "{628E03D2-94D2-4953-85FB-F2683762EA83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Python Engine", "Python Engine\Python Engine.csproj", "{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Python Engine", "Engines\Python Engine\Python Engine.csproj", "{84DEF76F-99A8-4668-A0CF-2BCF7EB3D2A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Macro Engine", "Macro Engine\Macro Engine.csproj", "{1C58F68F-E109-4A24-B8EA-FA7B10465813}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Macro Engine", "Base\Macro Engine\Macro Engine.csproj", "{1C58F68F-E109-4A24-B8EA-FA7B10465813}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{6EB0722D-7D67-4EB0-903B-EDFA997AA2EA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engines", "Engines", "{6EB0722D-7D67-4EB0-903B-EDFA997AA2EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IronPython Engine", "IronPythonEngine\IronPython Engine.csproj", "{19601B53-03F9-4A00-A363-6D700C970513}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IronPython Engine", "Engines\IronPythonEngine\IronPython Engine.csproj", "{19601B53-03F9-4A00-A363-6D700C970513}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Macro UI", "Macro UI\Macro UI.csproj", "{969B48D6-14F9-4B08-B7EE-89F2363E8910}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Macro UI", "Base\Macro UI\Macro UI.csproj", "{969B48D6-14F9-4B08-B7EE-89F2363E8910}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Macro Types", "Macro Types\Macro Types.csproj", "{AE8374AE-E21C-4591-AB39-C6E9C8316A25}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Macro Types", "Base\Macro Types\Macro Types.csproj", "{AE8374AE-E21C-4591-AB39-C6E9C8316A25}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{CAB7FBBF-617B-4A37-8EFD-2465EF9C7D29}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestExecution", "TestExecution\TestExecution.csproj", "{15E44EE5-EC18-404A-B5FD-1ECBA6C0D139}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestExecution", "Misc\TestExecution\TestExecution.csproj", "{15E44EE5-EC18-404A-B5FD-1ECBA6C0D139}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

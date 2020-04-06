@@ -89,12 +89,26 @@ namespace Macro_UI.Utilities
                         m_StartOfLine = m_TextBox.GetLineText(m_TextBox.LineCount - 1).Length;
 
                         m_TextBox.IsReadOnly = false;
+                        int startLength = m_TextBox.Text.Length;
+
                         m_TextBox.Focus();
                         Keyboard.Focus(m_TextBox);
 
-                        m_TextBox.KeyDown += (s, e) => {
-                            if (e.Key == System.Windows.Input.Key.Enter)
-                                completed = true;
+                        m_TextBox.PreviewKeyDown += (s, e) => {
+                            switch(e.Key)
+                            {
+                                case Key.Enter:
+                                    completed = true;
+                                    break;
+                                case Key.Escape:
+                                    m_Abort = true;
+                                    break;
+                                case Key.Back:
+                                    e.Handled = m_TextBox.Text.Length <= startLength;
+                                    break;
+                                default:
+                                    break;
+                            }
                         };
                     }));
 
