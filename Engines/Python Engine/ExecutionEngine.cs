@@ -220,21 +220,15 @@ namespace Python_Engine
         /// <summary>
         /// Determines how to execute a macro
         /// </summary>
-        /// <param name="source">Source code (python)</param>
-        /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
+        /// <param name="filepath">filepath to source code</param>
         /// <param name="async">If the code should be run asynchronously or not (synchronous)</param>
         /// <returns></returns>
-        public bool ExecuteMacro(string source, Action OnCompletedAction, bool async)
+        public async Task<bool> ExecuteMacro(string filepath, bool async)
         {
             if (m_IsExecuting)
                 return false;
 
             TerminateExecution();
-
-            if (async)
-                ExecuteSourceAsynchronous(source, OnCompletedAction);
-            else
-                ExecuteSourceSynchronous(source, OnCompletedAction);
 
             return true;
         }
@@ -264,105 +258,11 @@ namespace Python_Engine
         }
 
         /// <summary>
-        /// Execute code asynchronously
-        /// </summary>
-        /// <param name="source">Source code (python)</param>
-        /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
-        private void ExecuteSourceAsynchronous(string source, Action OnCompletedAction)
-        {
-            m_IsExecuting = true;
-            int profileID = -1;
-
-            m_ExecutionThread = new Thread(() =>
-            {
-                profileID = Utilities.BeginProfileSession();
-                ExecuteSource(source);
-                if (m_IOManager != null)
-                {
-                    m_IOManager.GetOutput().WriteLine("Asynchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
-                    m_IOManager.GetOutput().Flush();
-                }
-
-                Utilities.EndProfileSession(profileID);
-
-                m_IsExecuting = false;
-                OnCompletedAction?.Invoke();
-            });
-
-            m_ExecutionThread.SetApartmentState(ApartmentState.STA);
-            m_ExecutionThread.IsBackground = true;
-            m_ExecutionThread.Start();
-        }
-
-        /// <summary>
-        /// Execute code synchronously
-        /// </summary>
-        /// <param name="source">Source code (python)</param>
-        /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
-        private void ExecuteSourceSynchronous(string source, Action OnCompletedAction)
-        {
-            m_IsExecuting = true;
-            Events.InvokeEvent("OnHostExecute", new Action(() =>
-            {
-                int profileID = -1;
-                profileID = Utilities.BeginProfileSession();
-                ExecuteSource(source);
-
-                if (m_IOManager != null)
-                {
-                    m_IOManager.GetOutput().WriteLine("Synchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(profileID));
-                    m_IOManager.GetOutput().Flush();
-                }
-
-                Utilities.EndProfileSession(profileID);
-
-
-                m_IsExecuting = false;
-                OnCompletedAction?.Invoke();
-            }));
-        }
-
-        /// <summary>
         /// Execute source code through PythonNET Script Engine
         /// </summary>
         /// <param name="source">Source code (python)</param>
         private void ExecuteSource(string source)
         {
-            if (m_IOManager != null)
-                m_IOManager.ClearAllStreams();
-
-            try
-            {
-                using(Py.GIL())
-                {
-                    //PythonEngine.Exec(source);
-                    if (m_ScriptScope == null)
-                        ClearContext();
-
-                    m_ScriptScope.Exec(source);
-                }
-            }
-            catch (ThreadAbortException tae)
-            {
-                System.Diagnostics.Debug.WriteLine("Execution Error: " + tae.Message);
-
-                if (m_IOManager != null)
-                {
-                    m_IOManager.GetOutput().WriteLine("Thread Exited");
-                    m_IOManager.GetOutput().Flush();
-                }
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.Message);
-
-                if (m_IOManager != null)
-                {
-                    m_IOManager.GetError().WriteLine(e.Message);
-                    m_IOManager.GetError().WriteLine(e.StackTrace);
-                    m_IOManager.GetOutput().Flush();
-                }
-            }
         }
 
         #endregion

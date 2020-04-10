@@ -12,13 +12,11 @@ namespace Macro_Engine.Engine
     {
         void Initialize();
         string GetLabel();
-        string GetVersion();
 
-        bool ExecuteMacro(string source, Action OnCompleted, bool async);
+        Task<bool> ExecuteMacro(string filepath, bool async);
         void TerminateExecution();
 
         void Destroy();
-        void ClearContext();
         void SetIO(IExecutionEngineIO manager);
 
         void SetValue(string name, object value);

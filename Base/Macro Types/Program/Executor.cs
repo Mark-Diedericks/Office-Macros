@@ -8,16 +8,16 @@ namespace Macro_Engine
 {
     public class Executor
     {
-        private Action<Action> InvokeExecute;
+        private Func<Action, Task> InvokeExecute;
 
-        public Executor(Action<Action> callback)
+        public Executor(Func<Action, Task> callback)
         {
             InvokeExecute = callback;
         }
 
-        public void ExecuteAction(Action a)
+        public Task ExecuteAction(Action a)
         {
-            InvokeExecute?.Invoke(a);
+            return InvokeExecute?.Invoke(a);
         }
     }
 }

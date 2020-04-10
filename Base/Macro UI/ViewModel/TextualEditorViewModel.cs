@@ -53,7 +53,8 @@ namespace Macro_UI.ViewModel
             IMacro m = MacroUI.GetInstance().GetMacro(Macro);
             string runtime = (string)MainWindowViewModel.GetInstance().SelectedRuntime.Tag;
 
-            m.ExecuteSource(OnComplete, Source.Text, MainWindowViewModel.GetInstance().AsyncExecution, runtime);
+            m.Source = Source.Text;
+            m.Execute(MainWindowViewModel.GetInstance().AsyncExecution, runtime);
             base.Start(null);
         }
 

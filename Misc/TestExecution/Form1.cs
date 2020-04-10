@@ -20,7 +20,11 @@ namespace TestExecution
         {
             InitializeComponent();
 
-            Executor executor = new Executor(new Action<Action>((a) => a.Invoke()));
+            Executor executor = new Executor(new Func<Action, Task>((a) =>
+            {
+                this.Invoke(a);
+                return null;
+            }));
             MacroEngine engine = MacroEngine.CreateApplicationInstance(executor);
 
             engine.Instantiate(new HostState());
@@ -35,9 +39,8 @@ namespace TestExecution
                     label1.Invoke(new Action(() => label1.Text += ipy.GetLabel() + '\n'));
 
                     Macro mipy = new Macro("IronPython", code);
-                    mipy.Execute(() => {
-                        label1.Invoke(new Action(() => label1.Text += "DONE IRONPYTHON\n"));
-                    }, false);
+                    mipy.Execute(false).Wait();
+                    label1.Invoke(new Action(() => label1.Text += "DONE IRONPYTHON\n"));
                 }
 
 
@@ -49,9 +52,8 @@ namespace TestExecution
                     label1.Invoke(new Action(() => label1.Text += py.GetLabel() + '\n'));
 
                     Macro mpy = new Macro("Python", code);
-                    mpy.Execute(() => {
-                        label1.Invoke(new Action(() => label1.Text += "DONE PYHONNET\n"));
-                    }, false, "");
+                    mpy.Execute(false).Wait();
+                    label1.Invoke(new Action(() => label1.Text += "DONE PYHONNET\n"));
                 }
             }
 

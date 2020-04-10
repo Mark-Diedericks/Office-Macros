@@ -96,31 +96,22 @@ namespace Macro_Engine.Macros
         /// <summary>
         /// Execute the macro using the source saved in macro
         /// </summary>
-        /// <param name="OnCompleted">Action to be fire when the task is completed</param>
         /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
         /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
-        public void Execute(Action OnCompleted, bool async, string runtime = "")
+        public async Task<bool> Execute(bool async, string runtime = "")
         {
-            ExecuteSource(OnCompleted, Source, async, runtime);
-        }
+            Save();
+            string filepath = MacroEngine.GetInstance().GetDeclaration(ID).RelativePath;
 
-        /// <summary>
-        /// Execute the macro using the with given source
-        /// </summary>
-        /// <param name="OnCompleted">Action to be fire when the task is completed</param>
-        /// <param name="source">Code to be executed</param>
-        /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
-        /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
-        public void ExecuteSource(Action OnCompleted, string source, bool async, string runtime = "")
-        {
             if (string.IsNullOrEmpty(runtime))
                 runtime = GetDefaultRuntime();
 
             IExecutionEngine engine = MacroEngine.GetInstance().GetExecutionEngine(runtime);
+
             if (engine != null)
-                engine.ExecuteMacro(source, OnCompleted, async);
+                return await engine.ExecuteMacro(filepath, async);
             else
-                MacroEngine.GetInstance().GetExecutionEngine(GetDefaultRuntime())?.ExecuteMacro(source, OnCompleted, async);
+                return await MacroEngine.GetInstance().GetExecutionEngine(GetDefaultRuntime())?.ExecuteMacro(filepath, async);
         }
 
         /// <summary>

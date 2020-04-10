@@ -1190,7 +1190,7 @@ namespace Macro_UI.ViewModel
             }
             else
             {
-                macro.Execute(null, async);
+                macro.Execute(async);
             }
         }
 

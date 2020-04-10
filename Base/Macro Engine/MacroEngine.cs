@@ -59,11 +59,10 @@ namespace Macro_Engine
         /// <summary>
         /// Execute a task on the host dispatcher with a given priority
         /// </summary>
-        /// <param name="priority">The disptacher priority to use</param>
         /// <param name="task">Task to be executed</param>
-        private static void ExecuteOnHost(Action task)
+        private static Task ExecuteOnHost(Action task)
         {
-            GetInstance().m_HostExecutor?.ExecuteAction(task);
+            return GetInstance().m_HostExecutor?.ExecuteAction(task);
         }
 
         #endregion
@@ -126,7 +125,6 @@ namespace Macro_Engine
                 pair.Value.Initialize();
             }
 
-            Events.SubscribeEvent("OnHostExecute", (Action<Action>)ExecuteOnHost);
             Events.SubscribeEvent("SetIO", (Action<string, TextWriter, TextWriter, TextReader>)SetIOStreams);
             Events.SubscribeEvent("RibbonLoaded", (Action)LoadRibbonMacros);
             Events.SubscribeEvent("LoadRibbonMacros", (Action)LoadRibbonMacros);
@@ -452,7 +450,7 @@ namespace Macro_Engine
             IMacro macro = m_Macros[id];
 
             //Events.AddRibbonMacro(id, md.Name, md.RelativePath, () => macro.Execute(null, false));
-            Events.InvokeEvent("AddRibbonMacro", id, md.Name, md.RelativePath, new Action(() => macro.Execute(null, false)));
+            Events.InvokeEvent("AddRibbonMacro", id, md.Name, md.RelativePath, new Action(() => macro.Execute(false)));
         }
 
         /// <summary>
