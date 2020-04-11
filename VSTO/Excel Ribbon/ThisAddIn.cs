@@ -37,7 +37,7 @@ namespace Excel_Ribbon
                 AssemblyDeclaration Interop_Assembly = new AssemblyDeclaration("Microsoft.Office.Interop.Excel", "./", true);
                 m_UI.AddAssembly(Interop_Assembly);
 
-                m_UI.SetExecutionValue("HOST_NAME", Application.Name);
+                m_UI.SetExecutionValue("HOSTNAME", Application.Name);
                 m_UI.SetExecutionValue("Excel", (Excel.ApplicationClass)Application.Application);
 
                 m_UI.AddAccent("ExcelAccent", new Uri("pack://application:,,,/Excel Ribbon;component/Resources/ExcelAccent.xaml"));

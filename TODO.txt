@@ -1,0 +1,20 @@
+Settings Flyout:
+	Environment tab: Assemblies and Workspaces (Directories)
+	Macros tab:	Macros organized by Workspaces (Directories)
+
+Main Window:
+	Toolbar: Remove 'Convert To Python' button
+
+Execution Engines:
+	FileExt: Change to array, allow for multiple file extensions per language/runtime
+
+AddIn:
+	MacroUI: Wait for MacroUI to initialize before executing destroy command
+
+MacroUI:
+	OnComplete: Minimize unnecessary use of OnComplete actions
+	Explorer: Break up Explorer view/viewmodel/model to make it more manageable (rewrite)
+	Console: TextLines binding can cause lagging when constaly printing to console, investigate solution
+
+Extensibility (UI):
+	Allow for UI to be extensible with different Document and Tool views/models/viewmodels (Eg. Console, Explorer, Source Control, etc.)
