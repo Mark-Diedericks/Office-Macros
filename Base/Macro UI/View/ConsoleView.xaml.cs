@@ -23,6 +23,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Macro_UI.View
 {
@@ -41,23 +42,70 @@ namespace Macro_UI.View
             //Routing.EventManager.GetInstance().ClearAllIOEvent += () =>
             Events.SubscribeEvent("ClearAllIO", new Action(() =>
             {
-                txtOutput.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => txtOutput.Clear()));
+                if (DataContext is ConsoleViewModel)
+                    ((ConsoleViewModel)DataContext).TextLines = "";
             }));
 
             this.DataContextChanged += ConsoleView_DataContextChanged;
+
+            #region TextBox Events for inputting
+
+            txtOutput.TextChanged += (s, e) => txtOutput.CaretIndex = txtOutput.Text.Length;
+
+            bool isDirty = true;
+            txtOutput.SelectionChanged += (s, e) =>
+            {
+                isDirty = !isDirty;
+                if (!isDirty)
+                    txtOutput.CaretIndex = txtOutput.Text.Length;
+            };
+
+            txtOutput.PreviewKeyDown += (s, e) => {
+                if (!(DataContext is ConsoleViewModel))
+                    return;
+
+                ConsoleViewModel vm = (ConsoleViewModel)DataContext;
+
+                switch (e.Key)
+                {
+                    case Key.Enter:
+                        vm.EndInput(txtOutput.Text);
+                        break;
+                    case Key.Escape:
+                        vm.EndInput(txtOutput.Text);
+                        break;
+                    case Key.Back:
+                        e.Handled = txtOutput.Text.Length <= vm.InputStart;
+                        break;
+                    default:
+                        break;
+                }
+            };
+
+            #endregion
         }
 
         private void ConsoleView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (DataContext is ConsoleViewModel)
             {
-                ConsoleViewModel model = (ConsoleViewModel)DataContext;
-                model.Output = new TextBoxWriter(txtOutput);
-                model.Error = new TextBoxWriter(txtOutput);
-                model.Input = new TextBoxReader(txtOutput);
+                ConsoleViewModel vm = (ConsoleViewModel)DataContext;
+
+                TextBoxWriter Output = new TextBoxWriter(vm);
+                TextBoxWriter Error = new TextBoxWriter(vm);
+                TextBoxReader Input = new TextBoxReader(vm);
+
+                vm.FocusEvent = () =>
+                {
+                    txtOutput.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        txtOutput.Focus();
+                        Keyboard.Focus(txtOutput);
+                    }));
+                };
 
                 //Routing.EventManager.ChangeIO(String.Empty, ConsoleModel.GetInstance().Output, ConsoleModel.GetInstance().Error, null);
-                Events.InvokeEvent("SetIO", String.Empty, model.Output, model.Error, model.Input);
+                Events.InvokeEvent("SetIO", String.Empty, Output, Error, Input);
             }
         }
 
@@ -68,7 +116,8 @@ namespace Macro_UI.View
         /// <param name="e"></param>
         private void ClearAll_Click(object sender, RoutedEventArgs e)
         {
-            txtOutput.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => txtOutput.Clear()));
+            if (DataContext is ConsoleViewModel)
+                ((ConsoleViewModel)DataContext).TextLines = "";
         }
     }
 }

@@ -110,8 +110,6 @@ namespace Python_Engine
                 isAlive = Executing && CanExecute;
             }
 
-            System.Diagnostics.Debug.WriteLine(isAlive);
-
             return isAlive;
 
         }

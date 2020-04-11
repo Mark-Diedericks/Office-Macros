@@ -4,90 +4,101 @@
  * Version 1.0.1
  * Console model
  */
- 
+
+using Macro_Engine;
 using Macro_UI.Model.Base;
 using Macro_UI.Utilities;
+using Macro_UI.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace Macro_UI.Model
 {
     public class ConsoleModel : ToolModel
     {
-        private static ConsoleModel s_Instance;
-
-        /// <summary>
-        /// Gets the instance of ConsoleModel
-        /// </summary>
-        /// <returns>ConsoleModel instance</returns>
-        public static ConsoleModel GetInstance()
-        {
-            return s_Instance != null ? s_Instance : new ConsoleModel();
-        }
+        private DispatcherTimer m_Timer;
 
         /// <summary>
         /// Console Model Instantiation
         /// </summary>
         public ConsoleModel()
         {
-            s_Instance = this;
-            Output = new TextBoxWriter(null);
-            Error = new TextBoxWriter(null);
+            TextLines = "";
+            TextReadOnly = true;
         }
 
-        #region Output
+        #region TextLines
 
-        private TextBoxWriter m_Output;
-        public TextBoxWriter Output
+        private string m_Text;
+        public string TextLines
         {
             get
             {
-                return m_Output;
+                return m_Text;
             }
             set
             {
-                m_Output = value;
-                OnPropertyChanged(nameof(Output));
-            }
-        }
-
-        #endregion
-
-        #region Error
-
-        private TextBoxWriter m_Error;
-        public TextBoxWriter Error
-        {
-            get
-            {
-                return m_Error;
-            }
-            set
-            {
-                m_Error = value;
-                OnPropertyChanged(nameof(Error));
+                m_Text = value;
+                OnPropertyChanged(nameof(TextLines));
             }
         }
 
         #endregion
 
-        #region Input
+        #region TextReadOnly
 
-        private TextBoxReader m_Input;
-        public TextBoxReader Input
+        private bool m_TextReadOnly;
+        public bool TextReadOnly
         {
             get
             {
-                return m_Input;
+                return m_TextReadOnly;
             }
             set
             {
-                m_Input = value;
-                OnPropertyChanged(nameof(Input));
+                m_TextReadOnly = value;
+                OnPropertyChanged(nameof(TextReadOnly));
+            }
+        }
+
+        #endregion
+
+        #region InputStart
+
+        private int m_InputStart;
+        public int InputStart
+        {
+            get
+            {
+                return m_InputStart;
+            }
+            set
+            {
+                m_InputStart = value;
+                OnPropertyChanged(nameof(m_InputStart));
+            }
+        }
+
+        #endregion
+
+        #region InputText
+
+        private string m_InputText;
+        public string InputText
+        {
+            get
+            {
+                return m_InputText;
+            }
+            set
+            {
+                m_InputText = value;
+                OnPropertyChanged(nameof(InputText));
             }
         }
 

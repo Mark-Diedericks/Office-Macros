@@ -14,7 +14,7 @@
                 <MenuItem Header="Toggle Wrap" IsCheckable="True" IsChecked="{Binding Source={x:Static properties:Settings.Default}, Path=ConsoleTextWrap, Mode=TwoWay}"/>
             </ContextMenu>
         </Grid.ContextMenu>
-        <TextBox x:Name="txtOutput" TextWrapping="NoWrap" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,0,0,0" Padding="2,2,2,2" IsReadOnly="true" BorderBrush="Transparent" BorderThickness="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <TextBox x:Name="txtOutput" Text="{Binding TextLines, Mode=TwoWay}" IsReadOnly="{Binding TextReadOnly, Mode=OneWay}" TextWrapping="NoWrap" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,0,0,0" Padding="2,2,2,2" BorderBrush="Transparent" BorderThickness="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <TextBox.Style>
                 <Style TargetType="{x:Type TextBox}">
                     <Style.Triggers>

@@ -26,6 +26,25 @@ namespace Macro_UI.ViewModel
             Model = new ConsoleModel();
         }
 
+
+        public void BeginInput()
+        {
+            InputStart = TextLines.Length;
+            InputText = "";
+
+            TextReadOnly = false;
+
+            FocusEvent?.Invoke();
+        }
+
+        public void EndInput(string text)
+        {
+            int textLen = text.Length;
+            InputText = (textLen > InputStart) ? text.Substring(InputStart, textLen - InputStart) : "";
+
+            TextReadOnly = true;
+        }
+
         #region Model
 
         public new ConsoleModel Model
@@ -44,47 +63,78 @@ namespace Macro_UI.ViewModel
                 }
             }
         }
-        
-        public TextBoxWriter Output
+
+        public string TextLines
         {
             get
             {
-                return Model.Output;
+                return Model.TextLines;
             }
             set
             {
-                Model.Output = value;
-                OnPropertyChanged(nameof(Output));
-            }
-        }
-        
-        public TextBoxWriter Error
-        {
-            get
-            {
-                return Model.Error;
-            }
-            set
-            {
-                Model.Error = value;
-                OnPropertyChanged(nameof(Error));
+                Model.TextLines = value;
+                OnPropertyChanged(nameof(TextLines));
             }
         }
 
-        public TextBoxReader Input
+        public bool TextReadOnly
         {
             get
             {
-                return Model.Input;
+                return Model.TextReadOnly;
             }
             set
             {
-                Model.Input = value;
-                OnPropertyChanged(nameof(Input));
+                Model.TextReadOnly = value;
+                OnPropertyChanged(nameof(TextReadOnly));
+            }
+        }
+
+        public int InputStart
+        {
+            get
+            {
+                return Model.InputStart;
+            }
+            set
+            {
+                Model.InputStart = value;
+                OnPropertyChanged(nameof(InputStart));
+            }
+        }
+
+        public string InputText
+        {
+            get
+            {
+                return Model.InputText;
+            }
+            set
+            {
+                Model.InputText = value;
+                OnPropertyChanged(nameof(InputText));
             }
         }
 
         #endregion
 
+        #region FocusEvent
+        private Action m_FocusEvent;
+        public Action FocusEvent
+        {
+            get
+            {
+                return m_FocusEvent;
+            }
+            set
+            {
+                if (m_FocusEvent != value)
+                {
+                    m_FocusEvent = value;
+                    OnPropertyChanged(nameof(FocusEvent));
+                }
+            }
+        }
+        #endregion
     }
 }

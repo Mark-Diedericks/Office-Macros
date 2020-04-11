@@ -4,6 +4,8 @@
  * Version 1.0.0
  * TextBox Text Writer
  */
+using Macro_UI.Model;
+using Macro_UI.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace Macro_UI.Utilities
 {
@@ -24,15 +27,15 @@ namespace Macro_UI.Utilities
             }
         }
 
-        private TextBox m_TextBox;
+        private readonly ConsoleViewModel Model;
 
         /// <summary>
         /// Instantiate a TextBoxWriter
         /// </summary>
-        /// <param name="textBox">The TextBox bound to</param>
-        public TextBoxWriter(TextBox textBox)
+        /// <param name="model">The ConsoleViewModel it is writing to</param>
+        public TextBoxWriter(ConsoleViewModel model)
         {
-            m_TextBox = textBox;
+            Model = model;
         }
 
         /// <summary>
@@ -41,7 +44,7 @@ namespace Macro_UI.Utilities
         /// <param name="value"></param>
         public override void Write(char value)
         {
-            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.AppendText(value.ToString())));
+            Model.TextLines += value.ToString();
         }
 
         /// <summary>
@@ -50,7 +53,7 @@ namespace Macro_UI.Utilities
         /// <param name="value"></param>
         public override void Write(string value)
         {
-            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.AppendText(value.ToString())));
+            Model.TextLines += value.ToString();
         }
 
         /// <summary>
@@ -61,7 +64,7 @@ namespace Macro_UI.Utilities
         /// <param name="count"></param>
         public override void Write(char[] buffer, int index, int count)
         {
-            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.AppendText(new string(buffer))));
+            Model.TextLines += new string(buffer);
         }
 
         /// <summary>
@@ -70,7 +73,7 @@ namespace Macro_UI.Utilities
         /// <param name="value"></param>
         public override void WriteLine(string value)
         {
-            m_TextBox.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() => m_TextBox.AppendText(value.ToString() + '\n')));
+            Model.TextLines += value.ToString() + "\n";
         }
     }
 }
