@@ -25,9 +25,9 @@ namespace Excel_Ribbon
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
-            Executor executor = new Executor(new Func<System.Action, Task>((a) =>
+            Executor executor = new Executor(new Action<System.Action>((a) =>
             {
-                return dispatcher.BeginInvoke(DispatcherPriority.Normal, a).Task;
+                dispatcher.BeginInvoke(DispatcherPriority.Normal, a);
             }));
 
             m_Thread = new Thread(() => {

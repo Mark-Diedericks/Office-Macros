@@ -20,7 +20,7 @@ namespace Macro_Engine.Macros
         void Export();
         void Delete(Action<bool> OnReturn);
 
-        Task<bool> Execute(bool async, string runtime = "");
+        void Execute(bool async, Action OnCompleted = null, string runtime = "");
 
         string GetRelativePath();
         string GetDefaultRuntime();

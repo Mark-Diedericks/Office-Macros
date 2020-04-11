@@ -24,14 +24,12 @@ namespace IronPython_Engine
     {
         private readonly string Runtime = "IronPython 2.7.9.0";
 
-        private Thread m_ExecutionThread;
-
         private IExecutionEngineIO m_IOManager;
 
         private Dictionary<string, object> m_ScopeValues;
         private HashSet<AssemblyDeclaration> m_Assemblies;
 
-        private Dictionary<ExecutionSession, Thread> m_Sessions;
+        private HashSet<ExecutionSession> m_Sessions;
 
         #region Instantiation
 
@@ -41,9 +39,7 @@ namespace IronPython_Engine
         {
             m_ScopeValues = new Dictionary<string, object>();
             m_Assemblies = new HashSet<AssemblyDeclaration>();
-            m_Sessions = new Dictionary<ExecutionSession, Thread>();
-
-            m_ExecutionThread = null;
+            m_Sessions = new HashSet<ExecutionSession>();
             m_IOManager = null;
 
             SetValue("RUNTIME", Runtime);
@@ -116,16 +112,20 @@ namespace IronPython_Engine
         /// <summary>
         /// Determines how to execute a macro
         /// </summary>
-        /// <param name="filePath">Source code (python)</param>
-        /// <param name="OnCompletedAction">The action to be called once the code has been executed</param>
+        /// <param name="filepath">Source code (python)</param>
         /// <param name="async">If the code should be run asynchronously or not (synchronous)</param>
-        /// <returns></returns>
-        public async Task<bool> ExecuteMacro(string filepath, bool async)
+        /// <param name="OnComplete">The action to be called once the code has been executed</param>
+        public void ExecuteMacro(string filepath, bool async, Action OnComplete)
         {
+            m_IOManager.ClearAllStreams();
+
             FileInfo file = new FileInfo(filepath);
 
             if (!file.Exists)
-                return false;
+            {
+                m_IOManager.GetError().WriteLine("File does not exist: " + file.FullName);
+                return;
+            }
 
             string filename = file.FullName;
             string directory = file.Directory.FullName;
@@ -133,23 +133,25 @@ namespace IronPython_Engine
 
             if (async)
             {
-                Task<bool> exec = new Task<bool>(() => 
+                Task.Run(() => 
                 {
                     ExecutionSession session = new ExecutionSession(m_IOManager, m_ScopeValues, m_Assemblies);
-                    m_Sessions.Add(session, Thread.CurrentThread);
+                    m_Sessions.Add(session);
 
-                    return session.Execute(filename, directory);
+                    session.Execute(filename, directory);
+                    OnComplete?.Invoke();
                 });
-
-                exec.Start();
-                return await exec;
             }
             else
             {
-                ExecutionSession session = new ExecutionSession(m_IOManager, m_ScopeValues, m_Assemblies);
-                m_Sessions.Add(session, null);
+                Events.InvokeEvent("OnHostExecute", new Action(() =>
+                {
+                    ExecutionSession session = new ExecutionSession(m_IOManager, m_ScopeValues, m_Assemblies);
+                    m_Sessions.Add(session);
 
-                return session.Execute(filename, directory);
+                    session.Execute(filename, directory);
+                    OnComplete?.Invoke();
+                }));
             }
         }
 
@@ -158,8 +160,8 @@ namespace IronPython_Engine
         /// </summary>
         public void TerminateExecution()
         {
-            foreach (ExecutionSession session in m_Sessions.Keys)
-                session.InterruptScript();
+            foreach (ExecutionSession session in m_Sessions)
+                    session.InterruptScript();
         }
 
         #endregion

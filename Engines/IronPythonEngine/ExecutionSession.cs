@@ -11,20 +11,24 @@ namespace IronPython_Engine
 {
     internal class ExecutionSession
     {
+        private readonly string IronPythonNamespace = "IronPython.Runtime";
+        private readonly string ScriptingNamesapce = "Microsoft.Scripting";
 
         private readonly dynamic Engine;
         private readonly dynamic Scope;
 
         private readonly dynamic Trace;
-        private readonly dynamic Source;
 
         public object ThreadLock { get; private set; } = new object();
         public bool Executing { get; private set; }
+        public bool CanExecute { get; private set; }
 
         private IExecutionEngineIO IOManager { get; }
 
         internal ExecutionSession(IExecutionEngineIO manager, Dictionary<string, object> Values, HashSet<AssemblyDeclaration> Assemblies)
         {
+            CanExecute = true;
+
             Dictionary<string, object> args = new Dictionary<string, object>();
             args["Debug"] = true;
 
@@ -33,7 +37,7 @@ namespace IronPython_Engine
 
             // Create Engine
             Engine = IronPython.Hosting.Python.CreateEngine(args);
-            Engine = Engine.CreateScriptSourceFromString("sys.settrace(isExecutionThreadAlive)");
+            Trace = Engine.CreateScriptSourceFromString("sys.settrace(isExecutionThreadAlive)");
 
             // Create Scope
             Scope = InitializeScope(Values, Assemblies);
@@ -56,8 +60,9 @@ namespace IronPython_Engine
         private dynamic InitializeScope(Dictionary<string, object> Values, HashSet<AssemblyDeclaration> Assemblies)
         {
             dynamic ScriptScope = Engine.CreateScope();
+            ScriptScope.SetVariable("CheckAlive", new Func<dynamic, dynamic, dynamic, bool>(CheckAlive));
 
-            string trace = "import clr\nimport sys\n" +
+            string execThreadAlive = "import clr\nimport sys\n" +
                             "from System import *\n" +
                             "from System.Collections.Generic import *\n" +
                             "def isExecutionThreadAlive(frame, event, arg):\n" +
@@ -65,10 +70,8 @@ namespace IronPython_Engine
                             "       sys.exit()\n" +
                             "   return isExecutionThreadAlive\n";
 
-            dynamic source = Engine.CreateScriptSourceFromString(trace);
+            dynamic source = Engine.CreateScriptSourceFromString(execThreadAlive);
             source.Execute(ScriptScope);
-
-            ScriptScope.SetVariable("CheckAlive", new Func<dynamic, dynamic, dynamic, bool>(CheckAlive));
 
             if (Values != null)
                 foreach (string name in Values.Keys)
@@ -108,12 +111,16 @@ namespace IronPython_Engine
         {
             lock(ThreadLock)
             {
+                CanExecute = false;
                 Executing = false;
             }
         }
 
-        public bool Execute(string filePath, string directory)
+        public void Execute(string filePath, string directory)
         {
+            if (!CanExecute)
+                return;
+
             int ProfileID = Utilities.BeginProfileSession();
             Executing = true;
 
@@ -122,28 +129,24 @@ namespace IronPython_Engine
                 dynamic addPath = Engine.CreateScriptSourceFromString("sys.path.append(r\"" + directory + "\")\n");
                 dynamic script = Engine.CreateScriptSourceFromFile(filePath);
 
+                Trace.Execute(Scope);
                 addPath.Execute(Scope);
                 script.Execute(Scope);
 
-                IOManager?.GetOutput()?.WriteLine("Synchronous Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(ProfileID));
-                IOManager?.GetOutput()?.Flush();
-
-                Executing = false;
-                Utilities.EndProfileSession(ProfileID);
+                IOManager?.GetOutput()?.WriteLine("Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(ProfileID));
             }
             catch (Exception ex)
             {
-                Executing = false;
-                Utilities.EndProfileSession(ProfileID);
-
-                IOManager?.GetError()?.WriteLine(ex.Message);
-                IOManager?.GetError()?.WriteLine(ex.StackTrace);
-
-                IOManager?.GetOutput()?.Flush();
-                return false;
+                Type exType = ex.GetType();
+                if(exType.Namespace.Contains(IronPythonNamespace) || exType.Namespace.Contains(ScriptingNamesapce))
+                    IOManager?.GetError()?.WriteLine(ex.Message);
+                else
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
             }
 
-            return true;
+            IOManager?.GetOutput()?.Flush();
+            Utilities.EndProfileSession(ProfileID);
+            Executing = false;
         }
 
         #endregion

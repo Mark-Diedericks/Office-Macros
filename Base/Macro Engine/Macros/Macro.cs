@@ -1,6 +1,7 @@
 ﻿using Macro_Engine.Engine;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -97,11 +98,12 @@ namespace Macro_Engine.Macros
         /// Execute the macro using the source saved in macro
         /// </summary>
         /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
+        /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
-        public async Task<bool> Execute(bool async, string runtime = "")
+        public void Execute(bool async, Action OnComplete = null, string runtime = "")
         {
             Save();
-            string filepath = MacroEngine.GetInstance().GetDeclaration(ID).RelativePath;
+            string filepath = Path.Combine(Files.MacroDirectory, MacroEngine.GetInstance().GetDeclaration(ID).RelativePath);
 
             if (string.IsNullOrEmpty(runtime))
                 runtime = GetDefaultRuntime();
@@ -109,9 +111,9 @@ namespace Macro_Engine.Macros
             IExecutionEngine engine = MacroEngine.GetInstance().GetExecutionEngine(runtime);
 
             if (engine != null)
-                return await engine.ExecuteMacro(filepath, async);
+                engine.ExecuteMacro(filepath, async, OnComplete);
             else
-                return await MacroEngine.GetInstance().GetExecutionEngine(GetDefaultRuntime())?.ExecuteMacro(filepath, async);
+                MacroEngine.GetInstance().GetExecutionEngine(GetDefaultRuntime())?.ExecuteMacro(filepath, async, OnComplete);
         }
 
         /// <summary>

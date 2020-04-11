@@ -220,17 +220,15 @@ namespace Python_Engine
         /// <summary>
         /// Determines how to execute a macro
         /// </summary>
-        /// <param name="filepath">filepath to source code</param>
+        /// <param name="filepath">Source code (python)</param>
         /// <param name="async">If the code should be run asynchronously or not (synchronous)</param>
-        /// <returns></returns>
-        public async Task<bool> ExecuteMacro(string filepath, bool async)
+        /// <param name="OnComplete">The action to be called once the code has been executed</param>
+        public void ExecuteMacro(string filepath, bool async, Action OnComplete)
         {
             if (m_IsExecuting)
-                return false;
+                return;
 
             TerminateExecution();
-
-            return true;
         }
 
         /// <summary>

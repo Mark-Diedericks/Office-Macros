@@ -60,9 +60,9 @@ namespace Macro_Engine
         /// Execute a task on the host dispatcher with a given priority
         /// </summary>
         /// <param name="task">Task to be executed</param>
-        private static Task ExecuteOnHost(Action task)
+        private static void ExecuteOnHost(Action task)
         {
-            return GetInstance().m_HostExecutor?.ExecuteAction(task);
+            GetInstance().m_HostExecutor?.ExecuteAction(task);
         }
 
         #endregion
@@ -125,6 +125,7 @@ namespace Macro_Engine
                 pair.Value.Initialize();
             }
 
+            Events.SubscribeEvent("OnHostExecute", (Action<Action>)ExecuteOnHost);
             Events.SubscribeEvent("SetIO", (Action<string, TextWriter, TextWriter, TextReader>)SetIOStreams);
             Events.SubscribeEvent("RibbonLoaded", (Action)LoadRibbonMacros);
             Events.SubscribeEvent("LoadRibbonMacros", (Action)LoadRibbonMacros);

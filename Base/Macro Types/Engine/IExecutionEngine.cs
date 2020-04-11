@@ -13,7 +13,7 @@ namespace Macro_Engine.Engine
         void Initialize();
         string GetLabel();
 
-        Task<bool> ExecuteMacro(string filepath, bool async);
+        void ExecuteMacro(string filepath, bool async, Action OnComplete = null);
         void TerminateExecution();
 
         void Destroy();
