@@ -117,42 +117,36 @@ namespace IronPython_Engine
         /// <param name="OnComplete">The action to be called once the code has been executed</param>
         public void ExecuteMacro(string filepath, bool async, Action OnComplete)
         {
-            m_IOManager.ClearAllStreams();
+            TerminateExecution();
+            m_IOManager?.ClearAllStreams();
 
             FileInfo file = new FileInfo(filepath);
 
             if (!file.Exists)
             {
-                m_IOManager.GetError().WriteLine("File does not exist: " + file.FullName);
+                m_IOManager?.GetError()?.WriteLine("File does not exist: " + file.FullName);
                 return;
             }
 
             string filename = file.FullName;
             string directory = file.Directory.FullName;
 
+            Action execute = new Action(() =>
+            {
+                ExecutionSession session = new ExecutionSession(m_IOManager, m_ScopeValues, m_Assemblies);
+                m_Sessions.Add(session);
+
+                session.Execute(filename, directory);
+
+                m_Sessions.Remove(session);
+                OnComplete?.Invoke();
+            });
+
 
             if (async)
-            {
-                Task.Run(() => 
-                {
-                    ExecutionSession session = new ExecutionSession(m_IOManager, m_ScopeValues, m_Assemblies);
-                    m_Sessions.Add(session);
-
-                    session.Execute(filename, directory);
-                    OnComplete?.Invoke();
-                });
-            }
+                Task.Run(execute);
             else
-            {
-                Events.InvokeEvent("OnHostExecute", new Action(() =>
-                {
-                    ExecutionSession session = new ExecutionSession(m_IOManager, m_ScopeValues, m_Assemblies);
-                    m_Sessions.Add(session);
-
-                    session.Execute(filename, directory);
-                    OnComplete?.Invoke();
-                }));
-            }
+                Events.InvokeEvent("OnHostExecute", execute);
         }
 
         /// <summary>
@@ -161,7 +155,7 @@ namespace IronPython_Engine
         public void TerminateExecution()
         {
             foreach (ExecutionSession session in m_Sessions)
-                    session.InterruptScript();
+                    session?.InterruptScript();
         }
 
         #endregion

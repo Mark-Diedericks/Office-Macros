@@ -25,19 +25,13 @@ namespace Python_Engine
     {
         private readonly string Runtime = "PythonNET 3.5.0";
 
-        private Thread m_ExecutionThread;
-
-        private bool m_IsExecuting;
-
         private IExecutionEngineIO m_IOManager;
 
-        private PyScope m_ScriptScope;
-        private dynamic SYS;
-        private dynamic CLR;
         private IntPtr ThreadPtr;
 
         private Dictionary<string, object> m_ScopeValues;
         private HashSet<AssemblyDeclaration> m_Assemblies;
+        private HashSet<ExecutionSession> m_Sessions;
 
         #region Instantiation
 
@@ -68,17 +62,9 @@ namespace Python_Engine
             PythonEngine.Initialize();
             ThreadPtr = PythonEngine.BeginAllowThreads();
 
-            using (Py.GIL())
-            {
-                SYS = PythonEngine.ImportModule("sys");
-                CLR = PythonEngine.ImportModule("clr");
-            }
-
-            ClearContext();
-
-            m_IsExecuting = false;
-
-            m_ExecutionThread = null;
+            m_ScopeValues = new Dictionary<string, object>();
+            m_Assemblies = new HashSet<AssemblyDeclaration>();
+            m_Sessions = new HashSet<ExecutionSession>();
 
             m_IOManager = null;
 
@@ -90,8 +76,8 @@ namespace Python_Engine
             TerminateExecution();
 
             using (Py.GIL())
-                m_ScriptScope.Dispose();
-            m_ScriptScope = null;
+                foreach (ExecutionSession session in m_Sessions)
+                    session?.Destroy();
 
             PythonEngine.EndAllowThreads(ThreadPtr);
             PythonEngine.Shutdown();
@@ -103,26 +89,7 @@ namespace Python_Engine
 
         public void SetIO(IExecutionEngineIO manager)
         {
-
             m_IOManager = manager;
-
-            using(Py.GIL())
-            {
-                SYS.stdout = new PythonOutput();
-                SYS.stderr = new PythonError();
-                SYS.stdin = new PythonInput();
-            }
-
-            ClearContext();
-
-            if (m_IOManager.GetOutput() != null)
-                Console.SetOut(m_IOManager.GetOutput());
-
-            if (m_IOManager.GetError() != null)
-                Console.SetError(m_IOManager.GetError());
-
-            if (m_IOManager.GetInput() != null)
-                Console.SetIn(m_IOManager.GetInput());
         }
 
         public string GetLabel()
@@ -143,21 +110,6 @@ namespace Python_Engine
 
         #region Context/Scope
 
-        public void ClearContext()
-        {
-            using(Py.GIL())
-            {
-                if(m_ScriptScope != null)
-                    m_ScriptScope.Dispose();
-
-                m_ScriptScope = Py.CreateScope();
-
-                if(m_ScopeValues != null)
-                    foreach (string name in m_ScopeValues.Keys)
-                        m_ScriptScope.Set(name, m_ScopeValues[name].ToPython());
-            }
-        }
-
         public void SetValue(string name, object value)
         {
             if(m_ScopeValues == null)
@@ -167,12 +119,6 @@ namespace Python_Engine
                 m_ScopeValues[name] = value;
             else
                 m_ScopeValues.Add(name, value);
-
-            using(Py.GIL())
-            {
-                if (m_ScriptScope != null)
-                    m_ScriptScope.Set(name, value.ToPython());
-            }
         }
 
         public void RemoveValue(string name)
@@ -180,12 +126,6 @@ namespace Python_Engine
             if (m_ScopeValues != null)
                 if (m_ScopeValues.ContainsKey(name))
                     m_ScopeValues.Remove(name);
-
-            using (Py.GIL())
-            {
-                if (m_ScriptScope != null)
-                    m_ScriptScope.Remove(name);
-            }
         }
 
         #endregion
@@ -198,12 +138,6 @@ namespace Python_Engine
                 m_Assemblies = new HashSet<AssemblyDeclaration>();
 
             m_Assemblies.Add(ad);
-
-            using(Py.GIL())
-            {
-                SYS.path.append(ad.Location);
-                CLR.AddReference(ad.Name);
-            }
         }
         public void RemoveAssembly(AssemblyDeclaration ad)
         {
@@ -225,10 +159,35 @@ namespace Python_Engine
         /// <param name="OnComplete">The action to be called once the code has been executed</param>
         public void ExecuteMacro(string filepath, bool async, Action OnComplete)
         {
-            if (m_IsExecuting)
-                return;
-
             TerminateExecution();
+            m_IOManager?.ClearAllStreams();
+
+            FileInfo file = new FileInfo(filepath);
+
+            if (!file.Exists)
+            {
+                m_IOManager?.GetError()?.WriteLine("File does not exist: " + file.FullName);
+                return;
+            }
+
+            string filename = file.FullName;
+            string directory = file.Directory.FullName;
+
+            Action execute = new Action(() =>
+            {
+                ExecutionSession session = new ExecutionSession(m_IOManager, m_ScopeValues, m_Assemblies);
+                m_Sessions.Add(session);
+
+                session.Execute(filename, directory);
+
+                m_Sessions.Remove(session);
+                OnComplete?.Invoke();
+            });
+
+            if (async)
+                Task.Run(execute);
+            else
+                Events.InvokeEvent("OnHostExecute", execute);
         }
 
         /// <summary>
@@ -236,31 +195,8 @@ namespace Python_Engine
         /// </summary>
         public void TerminateExecution()
         {
-            if (m_ExecutionThread != null)
-            {
-                try
-                {
-                    m_ExecutionThread.Interrupt();
-
-                    if (!m_ExecutionThread.Join(500))
-                        m_ExecutionThread.Abort();
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine(e.Message);
-                }
-            }
-
-            m_ExecutionThread = null;
-            m_IsExecuting = false;
-        }
-
-        /// <summary>
-        /// Execute source code through PythonNET Script Engine
-        /// </summary>
-        /// <param name="source">Source code (python)</param>
-        private void ExecuteSource(string source)
-        {
+            foreach (ExecutionSession session in m_Sessions)
+                session?.InterruptScript();
         }
 
         #endregion

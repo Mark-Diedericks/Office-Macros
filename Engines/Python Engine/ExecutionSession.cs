@@ -1,21 +1,21 @@
 ﻿using Macro_Engine;
 using Macro_Engine.Engine;
 using Macro_Engine.Interop;
+using Python.Runtime;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IronPython_Engine
+namespace Python_Engine
 {
     internal class ExecutionSession
     {
-        private readonly string IronPythonNamespace = "IronPython.Runtime";
-        private readonly string ScriptingNamesapce = "Microsoft.Scripting";
+        private readonly string PythonNETNamespace = "Python.Runtime";
 
-        private readonly dynamic Engine;
-        private readonly dynamic Scope;
+        private readonly PyScope Scope;
 
         public object ThreadLock { get; private set; } = new object();
         public bool Executing { get; private set; }
@@ -27,20 +27,26 @@ namespace IronPython_Engine
         {
             CanExecute = true;
 
-            Dictionary<string, object> args = new Dictionary<string, object>();
-            args["Debug"] = true;
-
             //IOManager
             IOManager = manager;
 
-            // Create Engine
-            Engine = IronPython.Hosting.Python.CreateEngine(args);
-
             // Create Scope
             Scope = InitializeScope(Values, Assemblies);
-            
+
+            if (Scope == null)
+            {
+                CanExecute = false;
+                return;
+            }
+
             // Redirect IO
-            Engine.Runtime.IO.RedirectToConsole();
+            using(Py.GIL())
+            {
+                dynamic SYS = Scope.Import("sys");
+                SYS.stdout = new PythonOutput();
+                SYS.stderr = new PythonError();
+                SYS.stdin = new PythonInput();
+            }
 
             if (IOManager?.GetOutput() != null)
                 Console.SetOut(IOManager.GetOutput());
@@ -52,40 +58,45 @@ namespace IronPython_Engine
                 Console.SetIn(IOManager.GetInput());
         }
 
+        public void Destroy()
+        {
+            if (Scope != null)
+                using(Py.GIL())
+                    Scope.Dispose();
+        }
+
         #region Scope Initialization
 
-        private dynamic InitializeScope(Dictionary<string, object> Values, HashSet<AssemblyDeclaration> Assemblies)
+        private PyScope InitializeScope(Dictionary<string, object> Values, HashSet<AssemblyDeclaration> Assemblies)
         {
-            dynamic ScriptScope = Engine.CreateScope();
-            ScriptScope.SetVariable("CheckAlive", new Func<bool>(CheckAlive));
-
-            string execThreadAlive = "import clr\nimport sys\n" +
-                            "from System import *\n" +
-                            "from System.Collections.Generic import *\n" +
-                            "def isExecutionThreadAlive(frame, event, arg):\n" +
-                            "   if not CheckAlive():\n" +
-                            "       sys.exit()\n" +
-                            "   return isExecutionThreadAlive\n";
-
-            dynamic source = Engine.CreateScriptSourceFromString(execThreadAlive);
-            source.Execute(ScriptScope);
-
-            if (Values != null)
-                foreach (string name in Values.Keys)
-                    ScriptScope.SetVariable(name, Values[name]);
-
-            if (Assemblies != null)
+            PyScope ScriptScope;
+            using (Py.GIL())
             {
-                foreach (AssemblyDeclaration ad in Assemblies)
-                {
-                    dynamic assembly = Engine.CreateScriptSourceFromString( "sys.path.append(r\"" + ad.Location + "\")\n" +
-                                                                            "clr.AddReference(\"" + ad.Name + "\")\n");
-                    assembly.Execute(ScriptScope);
-                }
-            }
+                ScriptScope = Py.CreateScope();
 
-            dynamic trace = Engine.CreateScriptSourceFromString("sys.settrace(isExecutionThreadAlive)");
-            trace.Execute(ScriptScope);
+                ScriptScope.Set("CheckAlive", new Func<bool>(CheckAlive));
+
+                string execThreadAlive = "import clr\nimport sys\n" +
+                                "from System import *\n" +
+                                "from System.Collections.Generic import *\n"+
+                                "def isExecutionThreadAlive(frame, event, arg):\n" +
+                                "	if not CheckAlive():\n" +
+                                "		sys.exit()\n" +
+                                "	return isExecutionThreadAlive\n";
+
+                ScriptScope.Exec(execThreadAlive);
+
+                if (Values != null)
+                    foreach (string name in Values.Keys)
+                        ScriptScope.Set(name, Values[name].ToPython());
+
+                if (Assemblies != null)
+                    foreach (AssemblyDeclaration ad in Assemblies)
+                        ScriptScope.Exec("sys.path.append(r\"" + ad.Location + "\")\n" +
+                                            "clr.AddReference(\"" + ad.Name + "\")\n");
+
+                ScriptScope.Exec("sys.settrace(isExecutionThreadAlive)\n");
+            }
 
             return ScriptScope;
         }
@@ -94,10 +105,12 @@ namespace IronPython_Engine
         {
             bool isAlive;
 
-            lock(ThreadLock)
+            lock (ThreadLock)
             {
                 isAlive = Executing && CanExecute;
             }
+
+            System.Diagnostics.Debug.WriteLine(isAlive);
 
             return isAlive;
 
@@ -109,7 +122,7 @@ namespace IronPython_Engine
 
         public void InterruptScript()
         {
-            lock(ThreadLock)
+            lock (ThreadLock)
             {
                 CanExecute = false;
                 Executing = false;
@@ -126,18 +139,21 @@ namespace IronPython_Engine
 
             try
             {
-                dynamic addPath = Engine.CreateScriptSourceFromString("sys.path.append(r\"" + directory + "\")\n");
-                dynamic script = Engine.CreateScriptSourceFromFile(filePath);
+                string script = File.ReadAllText(filePath);
 
-                addPath.Execute(Scope);
-                script.Execute(Scope);
+                using(Py.GIL())
+                {
+                    Scope.Exec("sys.settrace(isExecutionThreadAlive)\n");
+                    Scope.Exec("sys.path.append(r\"" + directory + "\")\n");
+                    Scope.Exec(script);
+                }
 
                 IOManager?.GetOutput()?.WriteLine("Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(ProfileID));
             }
             catch (Exception ex)
             {
                 Type exType = ex.GetType();
-                if(exType.Namespace.Contains(IronPythonNamespace) || exType.Namespace.Contains(ScriptingNamesapce))
+                if (exType.Namespace.Contains(PythonNETNamespace))
                 {
                     IOManager?.GetError()?.WriteLine(ex.Message);
                     IOManager?.GetError()?.WriteLine(ex.StackTrace);
@@ -155,5 +171,7 @@ namespace IronPython_Engine
         }
 
         #endregion
+
+
     }
 }
