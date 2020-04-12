@@ -18,3 +18,4 @@ MacroUI:
 
 Extensibility (UI):
 	Allow for UI to be extensible with different Document and Tool views/models/viewmodels (Eg. Console, Explorer, Source Control, etc.)
+	Make accents extensible? Instead registering in VSTO it can be loaded via MEF and set in VSTO or Settings Flyout???

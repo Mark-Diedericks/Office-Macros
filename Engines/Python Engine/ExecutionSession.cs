@@ -1,4 +1,5 @@
-﻿using Macro_Engine;
+﻿using Dynamitey;
+using Macro_Engine;
 using Macro_Engine.Engine;
 using Macro_Engine.Interop;
 using Python.Runtime;
@@ -6,11 +7,51 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Python_Engine
 {
+    class ConvertUtil
+    {
+        public object TryCast<T>(object o)
+        {
+            if (Marshal.IsComObject(o))
+            {
+                try
+                {
+                    return (T) Marshal.CreateWrapperOfType(o, typeof(T));
+                }
+                catch (Exception ex) { }
+
+                try
+                {
+                    return (T) o;
+                }
+                catch (Exception ex) { }
+            }
+            else
+            {
+                try
+                {
+                    return (T)Convert.ChangeType(o, typeof(T));
+                }
+                catch (Exception ex) { }
+
+                try
+                {
+                    return (T)o;
+                }
+                catch (Exception ex) { }
+            }
+
+            return o;
+        }
+    }
+
+
     internal class ExecutionSession
     {
         private readonly string PythonNETNamespace = "Python.Runtime";
@@ -75,6 +116,7 @@ namespace Python_Engine
                 ScriptScope = Py.CreateScope();
 
                 ScriptScope.Set("CheckAlive", new Func<bool>(CheckAlive));
+                ScriptScope.Set("CU", new ConvertUtil().ToPython());
 
                 string execThreadAlive = "import clr\nimport sys\n" +
                                 "from System import *\n" +
