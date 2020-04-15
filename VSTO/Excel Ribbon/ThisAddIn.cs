@@ -13,6 +13,7 @@ using Macro_Engine;
 using Macro_UI;
 using Macro_Engine.Interop;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace Excel_Ribbon
 {
@@ -25,10 +26,14 @@ namespace Excel_Ribbon
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
-            Executor executor = new Executor(new Action<System.Action>((a) =>
+            Executor executor = new Executor()
             {
-                dispatcher.BeginInvoke(DispatcherPriority.Normal, a);
-            }));
+                InvokeExecute = new Action<System.Action>((a) =>
+                {
+                    dispatcher.BeginInvoke(DispatcherPriority.Normal, a);
+                }),
+            };
+
 
             m_Thread = new Thread(() => {
                 m_Engine = MacroEngine.CreateApplicationInstance(executor);

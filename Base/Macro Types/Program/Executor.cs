@@ -8,12 +8,9 @@ namespace Macro_Engine
 {
     public class Executor
     {
-        private Action<Action> InvokeExecute;
+        public Action<Action> InvokeExecute { get; set; }
 
-        public Executor(Action<Action> callback)
-        {
-            InvokeExecute = callback;
-        }
+        public Executor() {}
 
         public void ExecuteAction(Action a)
         {

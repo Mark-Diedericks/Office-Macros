@@ -20,10 +20,14 @@ namespace TestExecution
         {
             InitializeComponent();
 
-            Executor executor = new Executor(new Action<Action>((a) =>
+            Executor executor = new Executor()
             {
-                this.Invoke(a);
-            }));
+                InvokeExecute = new Action<Action>((a) =>
+                {
+                    this.Invoke(a);
+                }),
+            };
+
             MacroEngine engine = MacroEngine.CreateApplicationInstance(executor);
 
             engine.Instantiate(new HostState());

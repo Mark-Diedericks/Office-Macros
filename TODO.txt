@@ -7,6 +7,7 @@ Main Window:
 
 Execution Engines:
 	FileExt: Change to array, allow for multiple file extensions per language/runtime
+	PythonNET: Some form of COM interop to allow for full usage of ComObjects in scripts
 
 AddIn:
 	MacroUI: Wait for MacroUI to initialize before executing destroy command
