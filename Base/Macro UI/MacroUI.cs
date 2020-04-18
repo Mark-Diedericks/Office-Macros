@@ -35,8 +35,8 @@ namespace Macro_UI
         public event InputMessageReturnEvent DisplayInputMessageReturnEvent;
 
         private static MacroUI s_Instance;
-        private static bool s_IsLoaded;
-        private static bool s_IsRibbonLoaded;
+        private bool m_IsLoaded;
+        private bool m_IsRibbonLoaded;
 
         public IMacroEngine MacroEngine { get; private set; }
         public MainWindow MainWindow { get; private set; }
@@ -47,7 +47,7 @@ namespace Macro_UI
         private MacroUI(IMacroEngine engine)
         {
             s_Instance = this;
-            s_IsLoaded = false;
+            m_IsLoaded = false;
 
             MacroEngine = engine;
         }
@@ -128,18 +128,18 @@ namespace Macro_UI
         /// Returns whether or not the application has been loaded
         /// </summary>
         /// <returns>Whether or not the application is loaded</returns>
-        public static bool IsLoaded()
+        public bool IsLoaded()
         {
-            return s_IsLoaded;
+            return m_IsLoaded;
         }
 
         /// <summary>
         /// Returns whether or not the ribbon tab has been loaded
         /// </summary>
         /// <returns>Whether or not the application is loaded</returns>
-        public static bool IsRibbonLoaded()
+        public bool IsRibbonLoaded()
         {
-            return s_IsRibbonLoaded;
+            return m_IsRibbonLoaded;
         }
 
         /// <summary>
@@ -161,10 +161,10 @@ namespace Macro_UI
             ui.MainWindow = new MainWindow() { DataContext = new MainWindowViewModel() };
             ((MainWindowViewModel)ui.MainWindow.DataContext).SetTheme(Macro_UI.Properties.Settings.Default.Theme);
 
-            if (s_IsRibbonLoaded)
+            if (ui.m_IsRibbonLoaded)
                 Events.InvokeEvent("LoadRibbonMacros");
 
-            s_IsLoaded = true;
+            ui.m_IsLoaded = true;
 
             return ui;
         }

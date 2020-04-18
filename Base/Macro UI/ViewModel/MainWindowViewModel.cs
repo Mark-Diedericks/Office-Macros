@@ -62,7 +62,7 @@ namespace Macro_UI.ViewModel
 
             RuntimeItems = new ObservableCollection<ComboBoxItem>();
 
-            if (MacroUI.IsLoaded())
+            if (MacroUI.GetInstance().IsLoaded())
                 Initialize();
             else
                 Events.SubscribeEvent("ApplicationLoaded", (Action)Initialize);

@@ -22,6 +22,7 @@ namespace Excel_Ribbon
         private Thread m_Thread;
         private MacroEngine m_Engine;
         private MacroUI m_UI;
+        private bool m_Loaded = false;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
@@ -48,9 +49,10 @@ namespace Excel_Ribbon
 
                 m_UI.AddAccent("ExcelAccent", new Uri("pack://application:,,,/Excel Ribbon;component/Resources/ExcelAccent.xaml"));
                 m_UI.SetAccent("ExcelAccent");
-                
+
                 Events.InvokeEvent("ApplicationLoaded");
                 m_UI.ShowWindow();
+                m_Loaded = true;
 
                 m_UI.Run();
             });
@@ -63,10 +65,17 @@ namespace Excel_Ribbon
         {
             try
             {
-                m_UI.MainWindow.Dispatcher.Invoke(new System.Action(() => 
+                int MaxSleep = 10000;
+                while(!m_Loaded)
                 {
-                    m_UI.Destroy();
-                }));
+                    if (MaxSleep <= 0)
+                        break;
+
+                    Thread.Sleep(100);
+                    MaxSleep -= 100;
+                }
+
+                m_UI.MainWindow.Dispatcher.Invoke(() => m_UI.Destroy());
 
                 if (!m_Thread.Join(5000))
                     m_Thread.Abort();

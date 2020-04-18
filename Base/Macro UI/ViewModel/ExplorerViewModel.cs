@@ -37,7 +37,7 @@ namespace Macro_UI.ViewModel
         {
             Model = new ExplorerModel();
 
-            if (MacroUI.IsLoaded())
+            if (MacroUI.GetInstance().IsLoaded())
                 Initialize();
             else
                 Events.SubscribeEvent("ApplicationLoaded", (Action)Initialize);
