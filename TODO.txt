@@ -6,6 +6,7 @@ Settings Flyout:
 Main Window:
 	Toolbar: Remove 'Convert To Python' button
 	Document: ActiveDocument not selected on startup
+	Document: CTRL+Scroll text zooming
 
 Console MVVM:
 	PythonNET: Inputted text reaplced after entered
@@ -17,12 +18,16 @@ Explorer MVVM:
 
 Execution Engines:
 	FileExt: Change to array, allow for multiple file extensions per language/runtime
+	PythonNET: Ensure COM interop is working properly and test a variety of cases.
 
 AddIn:
 	MacroUI: Wait for MacroUI to initialize before executing destroy command
 
 MacroUI:
 	OnComplete: Minimize unnecessary use of OnComplete actions
+
+Macros:
+	Cannot run a macro directly after creating it, cannot resolve path
 
 Extensibility (UI):
 	Allow for UI to be extensible with different Document and Tool views/models/viewmodels (Eg. Console, Explorer, Source Control, etc.)

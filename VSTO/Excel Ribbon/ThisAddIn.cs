@@ -44,6 +44,7 @@ namespace Excel_Ribbon
 
                 m_UI.SetExecutionValue("HOSTNAME", Application.Name);
                 m_UI.SetExecutionValue("Excel", (Excel.ApplicationClass)Application.Application);
+                m_UI.SetExecutionValue("MISSING", Type.Missing);
 
                 m_UI.AddAccent("ExcelAccent", new Uri("pack://application:,,,/Excel Ribbon;component/Resources/ExcelAccent.xaml"));
                 m_UI.SetAccent("ExcelAccent");
@@ -67,7 +68,8 @@ namespace Excel_Ribbon
                     m_UI.Destroy();
                 }));
 
-                m_Thread.Join();
+                if (!m_Thread.Join(5000))
+                    m_Thread.Abort();
             }
             catch(Exception ex)
             {
