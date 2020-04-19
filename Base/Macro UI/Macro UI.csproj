@@ -94,8 +94,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Managers\SyntaxStyle.cs" />
-    <Compile Include="Managers\TextBoxReader.cs" />
+    <Compile Include="Utilities\SyntaxStyle.cs" />
+    <Compile Include="Utilities\TextBoxReader.cs" />
     <Compile Include="View\ConsoleView.xaml.cs">
       <DependentUpon>ConsoleView.xaml</DependentUpon>
     </Compile>
@@ -115,11 +115,11 @@
       <DependentUpon>TextualEditorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="MacroUI.cs" />
-    <Compile Include="Managers\FocusUtility.cs" />
-    <Compile Include="Managers\PaneStyleSelector.cs" />
-    <Compile Include="Managers\RelayCommand.cs" />
-    <Compile Include="Managers\SyntaxStyleLoader.cs" />
-    <Compile Include="Managers\TextBoxWriter.cs" />
+    <Compile Include="Utilities\FocusUtility.cs" />
+    <Compile Include="Utilities\PaneStyleSelector.cs" />
+    <Compile Include="Utilities\RelayCommand.cs" />
+    <Compile Include="Utilities\SyntaxStyleLoader.cs" />
+    <Compile Include="Utilities\TextBoxWriter.cs" />
     <Compile Include="Themes\DarkTheme.cs" />
     <Compile Include="Themes\ITheme.cs" />
     <Compile Include="Themes\IThemeManager.cs" />

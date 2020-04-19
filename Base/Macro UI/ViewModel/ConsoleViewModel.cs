@@ -43,6 +43,7 @@ namespace Macro_UI.ViewModel
             InputText = (textLen > InputStart) ? text.Substring(InputStart, textLen - InputStart) : "";
 
             TextReadOnly = true;
+            TextLines = text;
         }
 
         #region Model

@@ -9,7 +9,6 @@ Main Window:
 	Document: CTRL+Scroll text zooming
 
 Console MVVM:
-	PythonNET: Inputted text reaplced after entered
 	TextLines binding can cause lagging when constaly printing to console, investigate solution
 
 Explorer MVVM:
@@ -28,6 +27,8 @@ MacroUI:
 
 Macros:
 	Cannot run a macro directly after creating it, cannot resolve path
+	User Defined Functions (UDFs)
+	Embed scripts in Excel (as hidden worksheets? or as VBA modules but with python code?)
 
 Extensibility (UI):
 	Allow for UI to be extensible with different Document and Tool views/models/viewmodels (Eg. Console, Explorer, Source Control, etc.)
