@@ -36,6 +36,9 @@ namespace Macro_UI.View
     /// </summary>
     public partial class TextualEditorView : UserControl
     {
+        private const double FONT_MAX_SIZE = 72d;
+        private const double FONT_MIN_SIZE = 6d;
+
         /// <summary>
         /// Instantiation of TextualEditorView
         /// </summary>
@@ -78,6 +81,21 @@ namespace Macro_UI.View
             ((TextualEditorViewModel)DataContext).PasteCommand = new RelayCommand(call => m_CodeEditor.Paste());
 
             ((TextualEditorViewModel)DataContext).GetTextEditorEvent = () => { return GetAvalonTextEditor(); };
+        }
+
+        private void CodeEditor_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            bool isCTRL = Keyboard.Modifiers == ModifierKeys.Control;
+            if(isCTRL)
+            {
+                double newSize = Properties.Settings.Default.EditorFontSize + (e.Delta > 0 ? 1 : -1);
+                newSize = Math.Max(FONT_MIN_SIZE, Math.Min(FONT_MAX_SIZE, newSize));
+
+                Properties.Settings.Default.EditorFontSize = newSize;
+                Properties.Settings.Default.Save();
+
+                e.Handled = true;
+            }
         }
     }
 }
