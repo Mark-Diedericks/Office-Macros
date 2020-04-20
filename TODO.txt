@@ -6,7 +6,7 @@ Settings Flyout:
 Main Window:
 	Toolbar: Remove 'Convert To Python' button
 	Document: ActiveDocument not selected on startup
-	Document: CTRL+Scroll text zooming
+	Document: Cannot run a macro directly after creating it, cannot resolve path
 
 Console MVVM:
 	TextLines binding can cause lagging when constaly printing to console, investigate solution
@@ -14,6 +14,7 @@ Console MVVM:
 Explorer MVVM:
 	Break up Explorer view/viewmodel/model to make it more manageable
 	-> Or maybe just rewrite that ugly mess
+	Drag and drop file into editor to open
 
 Execution Engines:
 	FileExt: Change to array, allow for multiple file extensions per language/runtime
@@ -26,7 +27,6 @@ MacroUI:
 	OnComplete: Minimize unnecessary use of OnComplete actions
 
 Macros:
-	Cannot run a macro directly after creating it, cannot resolve path
 	User Defined Functions (UDFs)
 	Embed scripts in Excel (as hidden worksheets? or as VBA modules but with python code?)
 

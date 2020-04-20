@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -78,10 +79,7 @@ namespace Macro_Engine
 
                 foreach (string file in files)
                 {
-                    string relativepath = CalculateRelativePath(file);
-                    string fullpath = CalculateFullPath(relativepath);
-
-                    FileInfo fi = new FileInfo(fullpath);
+                    FileInfo fi = new FileInfo(file);
                     if (!fi.Directory.Exists)
                         fi.Directory.Create();
 
@@ -90,7 +88,8 @@ namespace Macro_Engine
                     if (string.IsNullOrEmpty(lang))
                         continue;
 
-                    declarations.Add(new MacroDeclaration(lang, Path.GetFileName(fullpath), relativepath));
+                    IMacro macro = LoadMacro(lang, fi);
+                    declarations.Add(new MacroDeclaration(lang, fi, macro));
                 }
             }
             return declarations;
@@ -108,7 +107,13 @@ namespace Macro_Engine
 
             foreach (MacroDeclaration md in declarations)
             {
-                IMacro macro = LoadMacro(md.Language, md.RelativePath);
+                FileInfo info = md.Info;
+
+                if(!info.Exists)
+                {
+                    System.Diagnostics.Debug.WriteLine("Could not find file: " + info.FullName);
+                    continue;
+                }
 
                 if (macro != null)
                     macros.Add(md, macro);
@@ -134,18 +139,14 @@ namespace Macro_Engine
 
             try
             {
-                string fullpath = CalculateFullPath(md.RelativePath);
+                if (!Directory.Exists(md.Info.DirectoryName))
+                    Directory.CreateDirectory(md.Info.DirectoryName);
 
-                FileInfo fi = new FileInfo(fullpath);
-
-                if (!Directory.Exists(fi.DirectoryName))
-                    Directory.CreateDirectory(fi.DirectoryName);
-
-                File.WriteAllText(fullpath, source);
+                File.WriteAllText(md.Info.FullName, source);
             }
             catch (Exception e)
             {
-                Messages.DisplayOkMessage("Could not save macro: \"" + md.Name + "\". \n\n" + e.Message, "Saving Error");
+                Messages.DisplayOkMessage("Could not save macro: \"" + md.Info.Name + "\". \n\n" + e.Message, "Saving Error");
             }
         }
 
@@ -153,24 +154,21 @@ namespace Macro_Engine
         /// Identifies which method to utilize to load a macro and returns the loaded macro
         /// </summary>
         /// <param name="type">The macro type of the macro</param>
-        /// <param name="relativepath">The relative filepath of the macro</param>
+        /// <param name="info">The macro file</param>
         /// <returns>Macro instance</returns>
-        public static IMacro LoadMacro(string language, string relativepath)
+        public static IMacro LoadMacro(string language, FileInfo info)
         {
             try
             {
-                string fullpath = CalculateFullPath(relativepath);
-
-                FileInfo fi = new FileInfo(fullpath);
-                if (!fi.Exists)
+                if (!info.Exists)
                     return null;
 
-                string source = File.ReadAllText(fullpath.Trim());
+                string source = File.ReadAllText(info.FullName);
                 return new Macro(language, source);
             }
             catch (Exception e)
             {
-                Messages.DisplayOkMessage("Could not open macro: \"" + relativepath + "\". \n\n" + e.Message, "Loading Error");
+                Messages.DisplayOkMessage("Could not open macro: \"" + info.Name + "\". \n\n" + e.Message, "Loading Error");
             }
 
             return null;
@@ -188,7 +186,7 @@ namespace Macro_Engine
                 return;
 
             SaveFileDialog sfd = new SaveFileDialog();
-            sfd.FileName = md.Name;
+            sfd.FileName = md.Info.Name;
             sfd.Filter = md.Language + " | *" + MacroEngine.GetInstance().GetMacro(md.ID).GetDefaultFileExtension();
 
             if (sfd.ShowDialog() == DialogResult.OK)
@@ -201,7 +199,7 @@ namespace Macro_Engine
                 }
                 catch (Exception e)
                 {
-                    Messages.DisplayOkMessage("Could not export macro: \"" + md.Name + "\". \n\n" + e.Message, "Saving Error");
+                    Messages.DisplayOkMessage("Could not export macro: \"" + md.Info.Name + "\". \n\n" + e.Message, "Saving Error");
                 }
             }
 
@@ -226,9 +224,8 @@ namespace Macro_Engine
         /// <summary>
         /// Prompts the user to select an external macro and imports it into the local workspace
         /// </summary>
-        /// <param name="relativedir">The relative directory which the macro will be copied to</param>
-        /// <param name="OnReturn">The Action, containing the macro's id, to be fired when the task is completed</param>
-        public static void ImportMacro(string relativedir, Action<Guid> OnReturn)
+        /// <param name="info">The directory which the macro will be copied to</param>
+        public static async Task<Guid> ImportMacro(DirectoryInfo info)
         {
             OpenFileDialog ofd = new OpenFileDialog();
 
@@ -242,40 +239,33 @@ namespace Macro_Engine
                 if(string.IsNullOrEmpty(lang))
                 {
                     MacroEngine.FireShowFocusEvent();
-                    OnReturn?.Invoke(Guid.Empty);
+                    return Guid.Empty;
                 }
 
-                string newpath = CalculateFullPath(relativedir + ofd.SafeFileName);
-
-                System.Diagnostics.Debug.WriteLine(newpath);
-
-                string relativepath = CalculateRelativePath(newpath);
-                string fullpath = CalculateFullPath(relativepath);
+                string fullpath = Files.FullPath(info.FullName, ofd.SafeFileName);
 
                 FileInfo fi = new FileInfo(fullpath);
+
+                if (fi.Exists)
+                {
+                    bool result = await Messages.DisplayYesNoMessage("This file already exists, would you like to replace it?", "File Overwrite");
+                    if (!result)
+                        return Guid.Empty;
+                }
+
                 if (!fi.Directory.Exists)
                     fi.Directory.Create();
 
-                if (File.Exists(fullpath))
-                {
-                    Messages.DisplayYesNoMessage("This file already exists, would you like to replace it?", "File Overwrite", new Action<bool>((result) =>
-                    {
-                        if (!result)
-                            OnReturn?.Invoke(Guid.Empty);
-                    }));
-                }
-
                 File.Copy(ofd.FileName, fullpath, true);
 
-                MacroDeclaration declaration = new MacroDeclaration(lang, ofd.SafeFileName, relativepath);
-                IMacro macro = LoadMacro(lang, relativepath);
+                IMacro macro = LoadMacro(lang, fi);
+                MacroDeclaration declaration = new MacroDeclaration(lang, fi, macro);
 
-                OnReturn?.Invoke(MacroEngine.GetInstance().AddMacro(declaration, macro));
+                return MacroEngine.GetInstance().AddMacro(declaration);
             }
 
             MacroEngine.FireShowFocusEvent();
-
-            OnReturn?.Invoke(Guid.Empty);
+            return Guid.Empty;
         }
 
         /// <summary>
@@ -292,54 +282,54 @@ namespace Macro_Engine
 
             try
             {
-                string newpath = md.RelativePath.Replace(md.RelativePath, name);
+                if (!md.Info.Exists)
+                    return false;
 
-                MacroDeclaration declaration = new MacroDeclaration(md.Language, name, newpath);
-                declaration.ID = id;
+                md.Info.MoveTo(Files.FullPath(md.Info.Directory.FullName, name));
 
-                File.Move(CalculateFullPath(md.RelativePath), CalculateFullPath(declaration.RelativePath));
-                MacroEngine.GetInstance().SetDeclaration(id, declaration);
+                //MacroEngine.GetInstance().SetDeclaration(id, new MacroDeclaration(md.Language, info.Name, info.FullName, md.ID));
 
                 return true;
             }
             catch (Exception e)
             {
-                Messages.DisplayOkMessage("Could not rename the macro file: " + md.Name + "\n" + e.Message, "Renaming Error");
+                Messages.DisplayOkMessage("Could not rename the macro file: " + md.Info.Name + "\n" + e.Message, "Renaming Error");
             }
 
             return false;
         }
 
         /// <summary>
-        /// Creates a new macro file at the specified relative path
+        /// Creates a new file at the specified location
         /// </summary>
-        /// <param name="type">The type of the macro</param>
-        /// <param name="relativepath">The relative filepath of the macro</param>
+        /// <param name="info">The macro file</param>
         /// <returns>The id of the newly created macro</returns>
-        public static Guid CreateMacro(string relativepath)
+        public static async Task<Guid> CreateFile(FileInfo info)
         {
+            string lang = MacroEngine.GetInstance().GetLangaugeFromFileExt(info.Extension);
+
+            if (info.Exists)
+                return LoadMacro(lang, info);
+
             try
             {
-                string fullpath = CalculateFullPath(relativepath);
+                if (!info.Directory.Exists)
+                    info.Directory.Create();
 
-                FileInfo fi = new FileInfo(fullpath);
-                if (!fi.Directory.Exists)
-                    fi.Directory.Create();
+                using (StreamWriter sw = info.CreateText())
+                    sw.WriteLine("");
 
-                string lang = MacroEngine.GetInstance().GetLangaugeFromFileExt(fi.Extension);
-
-                MacroDeclaration declaration = new MacroDeclaration(lang, Path.GetFileName(relativepath), relativepath);
-
-                File.CreateText(fullpath).Close();
-
-                IMacro macro = LoadMacro(lang, relativepath);
+                IMacro macro = LoadMacro(lang, info);
                 macro.CreateBlankMacro();
 
-                return MacroEngine.GetInstance().AddMacro(declaration, macro);
+                MacroDeclaration declaration = new MacroDeclaration(lang, info, macro);
+
+                Guid macroID = MacroEngine.GetInstance().AddMacro(declaration);
+                return macroID;
             }
             catch (Exception e)
             {
-                Messages.DisplayOkMessage("Could not create the macro file: " + Path.GetFileName(relativepath) + "\n" + e.Message, "Creation error");
+                Messages.DisplayOkMessage("Could not create the macro file: " + info.Name + "\n" + e.Message, "Creation error");
             }
 
             return Guid.Empty;
@@ -348,20 +338,20 @@ namespace Macro_Engine
         /// <summary>
         /// Creates a new folder from a relative path
         /// </summary>
-        /// <param name="relativepath">The relative path of the folder</param>
+        /// <param name="info">The expected folder</param>
         /// <returns>Bool idebtifying if the operation was successful</returns>
-        public static bool CreateFolder(string relativepath)
+        public static bool CreateFolder(DirectoryInfo info)
         {
             try
             {
-                if (!Directory.Exists(CalculateFullPath(relativepath)))
-                    Directory.CreateDirectory(CalculateFullPath(relativepath));
+                if (!info.Exists)
+                    info.Create();
 
                 return true;
             }
             catch (Exception e)
             {
-                Messages.DisplayOkMessage("Could not create the folder: " + relativepath.Replace('\\', '/').Replace("//", "/") + "\n" + e.Message, "Creation error");
+                Messages.DisplayOkMessage("Could not create the folder: " + info.Name + "\n" + e.Message, "Creation error");
             }
 
             return false;
@@ -370,45 +360,44 @@ namespace Macro_Engine
         /// <summary>
         /// Deletes the folder at the relative path
         /// </summary>
-        /// <param name="relativepath">The relative path of the folder</param>
-        /// <param name="OnReturn">The Action, and bool identifying the operations success, to be fired when the task is completed</param>
-        public static void DeleteFolder(string relativepath, Action<bool> OnReturn)
+        /// <param name="info">The  folder</param>
+        public static async Task<bool> DeleteFolder(DirectoryInfo info)
         {
-            Messages.DisplayYesNoMessage("'" + relativepath + "' Will be deleted permanently.", "Macro Deletion", new Action<bool>((result) => {
-                if (result)
-                {
-                    try
-                    {
-                        Directory.Delete(CalculateFullPath(relativepath), true);
-                        OnReturn?.Invoke(true);
-                    }
-                    catch (Exception e)
-                    {
-                        Messages.DisplayOkMessage("Could not delete the folder: " + relativepath + "\n" + e.Message, "Creation error");
-                    }
-                }
-            }));
+            bool result = await Messages.DisplayYesNoMessage("'" + info.Name + "' Will be deleted permanently.", "Macro Deletion");
+
+            if (!result)
+                return false;
+
+            try
+            {
+                Directory.Delete(info.FullName, true);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Messages.DisplayOkMessage("Could not delete the folder: " + info.Name + "\n" + e.Message, "Creation error");
+            }
 
 
-            OnReturn?.Invoke(false);
+            return false;
         }
 
         /// <summary>
         /// Renames a folder from its previous name to the new name
         /// </summary>
-        /// <param name="oldpath">Current relative path of the folder</param>
-        /// <param name="newpath">Desired relative path of the folder</param>
+        /// <param name="info">The current folder</param>
+        /// <param name="newpath">Desired path of the folder</param>
         /// <returns></returns>
-        public static bool RenameFolder(string oldpath, string newpath)
+        public static bool RenameFolder(DirectoryInfo info, string newpath)
         {
             try
             {
-                Directory.Move(CalculateFullPath(oldpath), CalculateFullPath(newpath));
+                Directory.Move(info.FullName, newpath);
                 return true;
             }
             catch (Exception e)
             {
-                Messages.DisplayOkMessage("Could not rename the folder: " + oldpath + "\n" + e.Message, "Creation error");
+                Messages.DisplayOkMessage("Could not rename the folder: " + info.Name + "\n" + e.Message, "Creation error");
             }
 
             return false;
@@ -418,53 +407,32 @@ namespace Macro_Engine
         /// Deletes the specified macro
         /// </summary>
         /// <param name="id">The id of the macro</param>
-        /// <param name="OnReturn">The Action, and bool identifying if the operation was successful, to be fired when the task is completed</param>
-        public static void DeleteMacro(Guid id, Action<bool> OnReturn)
+        /// <returns>If action is successful</returns>
+        public static async Task<bool> DeleteMacro(Guid id)
         {
             MacroDeclaration md = MacroEngine.GetInstance().GetDeclaration(id);
             if (md == null)
-                return;
+                return false;
 
-            Messages.DisplayYesNoMessage("'" + md.Name + "' Will be deleted permanently.", "Macro Deletion", new Action<bool>(result =>
+            bool result = await Messages.DisplayYesNoMessage("'" + md.Info.Name + "' Will be deleted permanently.", "Macro Deletion");
+
+            if (!result)
+                return false;
+
+            try
             {
-                if (result)
-                {
-                    try
-                    {
-                        System.Diagnostics.Debug.WriteLine("Deleting...");
-                        File.Delete(CalculateFullPath(md.RelativePath));
-                        MacroEngine.GetInstance().RemoveMacro(id);
+                System.Diagnostics.Debug.WriteLine("Deleting...");
+                File.Delete(md.Info.FullName);
+                MacroEngine.GetInstance().RemoveMacro(id);
 
-                        OnReturn?.Invoke(true);
-                    }
-                    catch (Exception e)
-                    {
-                        Messages.DisplayOkMessage("Could not delete macro: \"" + md.Name + "\". \n\n" + e.Message, "Deletion Error");
-                    }
-                }
-            }));
+                return true;
+            }
+            catch (Exception e)
+            {
+                Messages.DisplayOkMessage("Could not delete macro: \"" + md.Info.Name + "\". \n\n" + e.Message, "Deletion Error");
+            }
 
-            OnReturn?.Invoke(false);
-        }
-
-        /// <summary>
-        /// Calculates the relative path from a fullpath
-        /// </summary>
-        /// <param name="fullpath">A fullpath</param>
-        /// <returns>Relative path of the fullpath</returns>
-        public static string CalculateRelativePath(string fullpath)
-        {
-            return fullpath.Remove(0, Files.MacroDirectory.Length);
-        }
-
-        /// <summary>
-        /// Calculates the fullpath from a relative path
-        /// </summary>
-        /// <param name="relativepath">A relative path</param>
-        /// <returns>Fullpath of the relative path</returns>
-        public static string CalculateFullPath(string relativepath)
-        {
-            return Path.GetFullPath(Files.MacroDirectory + relativepath);
+            return false;
         }
 
         #endregion

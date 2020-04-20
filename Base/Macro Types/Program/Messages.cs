@@ -14,14 +14,6 @@ namespace Macro_Engine
         public static event VoidMessageEvent DisplayOkMessageEvent;
 
         //ObjectMessage event, for all Forms and GUIs
-        public delegate void ObjectMessageEvent(string content, string title, Action<bool> OnReturn);
-        public static event ObjectMessageEvent DisplayYesNoMessageEvent;
-
-        //InputMessage event, for all Forms and GUIs
-        public delegate void InputMessageEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult);
-        public static event InputMessageEvent DisplayInputMessageEvent;
-
-        //ObjectMessage event, for all Forms and GUIs
         public delegate bool ObjectMessageReturnEvent(string content, string title);
         public static event ObjectMessageReturnEvent DisplayYesNoMessageReturnEvent;
 
@@ -40,43 +32,18 @@ namespace Macro_Engine
         }
 
         /// <summary>
-        /// Fires the DisplayYesNOMessage event
-        /// </summary>
-        /// <param name="content">The message to be displayed</param>
-        /// <param name="title">The message's header</param>
-        /// <param name="OnReturn">The Action, and bool representation of the yes/no result, to be fired when the user provides input</param>
-        public static void DisplayYesNoMessage(string content, string title, Action<bool> OnReturn)
-        {
-            DisplayYesNoMessageEvent?.Invoke(content, title, OnReturn);
-        }
-
-        /// <summary>
-        /// Display input message asynchronously, forwarding Excel method; VBA Input Box
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="title"></param>
-        /// <param name="def"></param>
-        /// <param name="left"></param>
-        /// <param name="top"></param>
-        /// <param name="helpFile"></param>
-        /// <param name="helpContextID"></param>
-        /// <param name="type"></param>
-        /// <param name="OnResult">The Action, and returning object, to be fired when the task is completed</param>
-        public static void DisplayInputMessage(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult)
-        {
-            DisplayInputMessageEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type, OnResult);
-        }
-
-        /// <summary>
         /// Fires the DisplayYesNOMessageReturn event
         /// </summary>
         /// <param name="content">The message to be displayed</param>
         /// <param name="title">The message's header</param>
         /// <returns>The bool result of the user's action</returns>
-        public static bool DisplayYesNoMessage(string content, string title)
+        public static Task<bool> DisplayYesNoMessage(string content, string title)
         {
-            bool? res = DisplayYesNoMessageReturnEvent?.Invoke(content, title);
-            return res.HasValue ? res.Value : false;
+            return Task.Run(new Func<bool>(() =>
+            {
+                bool? res = DisplayYesNoMessageReturnEvent?.Invoke(content, title);
+                return res.HasValue ? res.Value : false;
+            }));
         }
 
         /// <summary>
@@ -91,9 +58,12 @@ namespace Macro_Engine
         /// <param name="helpContextID"></param>
         /// <param name="type"></param>
         /// <returns>InputBox's resultant object</returns>
-        public static object DisplayInputMessage(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type)
+        public static Task<object> DisplayInputMessage(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type)
         {
-            return DisplayInputMessageReturnEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type);
+            return Task.Run(new Func<object>(() =>
+            {
+                return DisplayInputMessageReturnEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type);
+            }));
         }
     }
 }

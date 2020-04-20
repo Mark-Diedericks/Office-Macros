@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,19 +16,19 @@ namespace Macro_Engine.Macros
     [SettingsSerializeAs(SettingsSerializeAs.String)]
     public class MacroDeclaration
     {
+        public Guid ID { get; set; }
         public string Language { get; }
-        public string Name { get; set; }
-        public string RelativePath { get; set; }
-        public Guid ID  { get; set; }
+        public FileInfo Info { get; }
+        public IMacro Macro { get; }
 
-        public MacroDeclaration(string lang, string name, string path) : this(lang, name, path, Guid.Empty)
+        public MacroDeclaration(string lang, FileInfo info, IMacro macro) : this(lang, info, macro, Guid.Empty)
         {}
 
-        public MacroDeclaration(string lang, string name, string path, Guid id)
+        public MacroDeclaration(string lang, FileInfo info, IMacro macro, Guid id)
         {
             Language = lang;
-            Name = name;
-            RelativePath = path;
+            Info = info;
+            Macro = macro;
             ID = id;
         }
     }
@@ -60,7 +61,10 @@ namespace Macro_Engine.Macros
             if (value is string)
             {
                 string[] parts = ((string)value).Split(new char[] { ',' });
-                MacroDeclaration macro = new MacroDeclaration(parts[0], parts.Length > 1 ? parts[1] : "", parts.Length > 2 ? parts[2] : "");
+
+                FileInfo info = new FileInfo(parts.Length > 1 ? parts[1] : "");
+                MacroDeclaration macro = new MacroDeclaration(parts[0], info);
+
                 return macro;
             }
 
@@ -80,7 +84,7 @@ namespace Macro_Engine.Macros
             if (destinationType == typeof(string))
             {
                 MacroDeclaration macro = value as MacroDeclaration;
-                return string.Format("{0},{1},{2}", macro.Language, macro.Name, macro.RelativePath);
+                return string.Format("{0},{1}", macro.Language, macro.Info.FullName);
             }
             return base.ConvertTo(context, culture, value, destinationType);
         }

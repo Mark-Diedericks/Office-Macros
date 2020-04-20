@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Macro_Engine.Macros
@@ -103,7 +104,8 @@ namespace Macro_Engine.Macros
         public void Execute(bool async, Action OnComplete = null, string runtime = "")
         {
             Save();
-            string filepath = Path.Combine(Files.MacroDirectory, MacroEngine.GetInstance().GetDeclaration(ID).RelativePath);
+            //string filepath = Path.Combine(Files.MacroDirectory, MacroEngine.GetInstance().GetDeclaration(ID).RelativePath);
+            string filepath = Files.CleanPath(Files.MacroDirectory + MacroEngine.GetInstance().GetDeclaration(ID).RelativePath);
 
             if (string.IsNullOrEmpty(runtime))
                 runtime = GetDefaultRuntime();

@@ -1022,7 +1022,6 @@ namespace Macro_UI.ViewModel
         /// Creates macro
         /// </summary>
         /// <param name="parent">The parent item to which it'll be added</param>
-        /// <param name="lang">The language of the macro</param>
         /// <param name="root">The root of the item's relative future directory</param>
         /// <param name="OnReturn">The Action, and resulting guid of the created macro, to be fired when the task is completed</param>
         public void CreateMacro(DisplayableTreeViewItem parent, string root, Action<Guid> OnReturn)

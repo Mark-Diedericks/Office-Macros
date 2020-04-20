@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Macro_Engine
@@ -11,6 +12,37 @@ namespace Macro_Engine
     {
         public static readonly string ASSEMBLY_FILE_EXT = ".dll";
         public static readonly string ASSEMBLY_FILTER = "Assembly | *" + ASSEMBLY_FILE_EXT;
+
+        #region Path Helpers
+
+        public static readonly Regex REG_DIR = new Regex("[/]{2,}", RegexOptions.None);
+
+        public static string CleanPath(string path)
+        {
+            path = path.Replace("\\", "/");
+            path = REG_DIR.Replace(path, "/");
+            return path;
+        }
+
+        public static string FullPath(string basepath, string relativepath)
+        {
+            return CleanPath(basepath + "/" + basepath);
+        }
+
+        public static string FullPathMacro(string relativepath)
+        {
+            return FullPath(MacroDirectory, relativepath);
+        }
+        public static string FullPathExtension(string relativepath)
+        {
+            return FullPath(ExtensionsDirectory, relativepath);
+        }
+        public static string FullPathAssembly(string relativepath)
+        {
+            return FullPath(AssemblyDirectory, relativepath);
+        }
+
+        #endregion
 
         #region Directories
 
