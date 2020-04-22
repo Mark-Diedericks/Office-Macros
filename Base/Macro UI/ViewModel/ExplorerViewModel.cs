@@ -793,7 +793,7 @@ namespace Macro_UI.ViewModel
             tvi.ContextMenu.IsOpen = true;
         }
 
-#endregion
+        #endregion
 
         #region Tree View Functions & Item Functions
         
@@ -899,7 +899,7 @@ namespace Macro_UI.ViewModel
         /// <summary>
         /// Creates a macro, using an appropriate method
         /// </summary>
-        /// <param name="OnReturn">The Action, and resulting guid of the created macro, to be fired when the task is completed</param>
+        /// <param name="OnReturn">The Action, and resulting file declaration of the created macro, to be fired when the task is completed</param>
         public void CreateMacro(Action<FileDeclaration> OnReturn)
         {
             if (SelectedItem == null)
@@ -915,7 +915,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         /// <param name="parent">The parent item to which it'll be added</param>
         /// <param name="root">The root of the item's relative future directory</param>
-        /// <param name="OnReturn">The Action, and resulting guid of the created macro, to be fired when the task is completed</param>
+        /// <param name="OnReturn">The Action, and resulting file declaration of the created macro, to be fired when the task is completed</param>
         public void CreateMacro(DisplayableTreeViewItem parent, string root, Action<FileDeclaration> OnReturn)
         {
             if (m_IsCreating)

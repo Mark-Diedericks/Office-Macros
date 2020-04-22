@@ -6,7 +6,6 @@ Settings Flyout:
 Main Window:
 	Toolbar: Remove 'Convert To Python' button
 	Document: ActiveDocument not selected on startup
-	Document: Cannot run a macro directly after creating it, cannot resolve path
 
 Console MVVM:
 	TextLines binding can cause lagging when constaly printing to console, investigate solution
@@ -21,10 +20,11 @@ Execution Engines:
 	PythonNET: Ensure COM interop is working properly and test a variety of cases.
 
 AddIn:
-	MacroUI: Wait for MacroUI to initialize before executing destroy command
+	.
 
 MacroUI:
-	OnComplete: Minimize unnecessary use of OnComplete actions
+	Single instance of MacroUI for all open office app instances? 
+	-> Perhaps drop down to select which office app to execute on? (Automatically changing accent color to reflect this)
 
 Macros:
 	User Defined Functions (UDFs)

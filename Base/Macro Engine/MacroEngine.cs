@@ -130,9 +130,7 @@ namespace Macro_Engine
         /// <summary>
         /// Public instantiation of MacroEngine
         /// </summary>
-        /// <param name="hostDispatcher">Host application UI dispatcher</param>
         /// <param name="state">Host application state; ribbon macros, active macro, assemblies and workspaces</param>
-        /// <param name="OnLoaded">Action to be fired once MacroEngine is fully initialized</param>
         /// <returns>The initialization task thread</returns>
         public void Instantiate(HostState state)
         {
@@ -588,56 +586,5 @@ namespace Macro_Engine
 
         #endregion
 
-        /*
-        #region Event Invocations
-
-        /// <summary>
-        /// Fires Show and Focus events
-        /// </summary>
-        public static void FireShowFocusEvent()
-        {
-            FireShowEvent();
-            FireFocusEvent();
-        }
-
-        /// <summary>
-        /// Fires Show event
-        /// </summary>
-        public static void FireShowEvent()
-        {
-            //Events.OnShownInvoke();
-            Events.InvokeEvent("OnShown");
-        }
-
-        /// <summary>
-        /// Fires Focus event
-        /// </summary>
-        public static void FireFocusEvent()
-        {
-            //Events.OnFocusedInvoke();
-            Events.InvokeEvent("OnFocused");
-        }
-
-        /// <summary>
-        /// Fires Hide event
-        /// </summary>
-        public static void FireHideEvent()
-        {
-            //Events.OnHiddenInvoke();
-            Events.InvokeEvent("OnHidden");
-        }
-
-        /// <summary>
-        /// Sets host's interactivity state
-        /// </summary>
-        /// <param name="enabled">Whether or not the host should be set as interactive</param>
-        public static void SetInteractive(bool enabled)
-        {
-            //Events.SetInteractive(enabled);
-            Events.InvokeEvent("SetInteractive", enabled);
-        }
-
-        #endregion
-        */
     }
 }

@@ -360,7 +360,7 @@ namespace Macro_Engine
         /// <summary>
         /// Deletes the specified macro
         /// </summary>
-        /// <param name="id">The id of the macro</param>
+        /// <param name="info">File to be deleted</param>
         /// <returns>If action is successful</returns>
         public static async Task<bool> DeleteFile(FileInfo info)
         {
