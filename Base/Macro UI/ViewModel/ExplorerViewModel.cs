@@ -271,13 +271,21 @@ namespace Macro_UI.ViewModel
             return mid;
         }
 
+        private int CompareItems(DisplayableTreeViewItem x, DisplayableTreeViewItem y)
+        {
+            if (x.IsFolder == y.IsFolder)
+                return string.Compare(x.Header, y.Header);
+            else
+                return x.IsFolder ? 1 : 0;
+        }
+
         /// <summary>
-        /// Sort the tree view item source collection, using a custom quick sort instead of LINQ sort
+        /// Sort the tree view item source collection
         /// </summary>
         private void Sort()
         {
             List<DisplayableTreeViewItem> items = ItemSource.ToList<DisplayableTreeViewItem>();
-            items.OrderBy(x => x.Header);
+            items.Sort((x, y) => CompareItems(x, y));
 
             ItemSource.Clear();
             for (int i = 0; i < items.Count; i++)
@@ -285,14 +293,14 @@ namespace Macro_UI.ViewModel
         }
 
         /// <summary>
-        /// Sort a tree view item's item collection, using a custom quick sort instead of LINQ sort
+        /// Sort a tree view item's item collection
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
         private DisplayableTreeViewItem Sort(DisplayableTreeViewItem item)
         {
             List<DisplayableTreeViewItem> items = item.Items.ToList<DisplayableTreeViewItem>();
-            items.OrderBy(x => x.Header);
+            items.Sort((x, y) => CompareItems(x, y));
 
             item.Items.Clear();
             for (int i = 0; i < items.Count; i++)
