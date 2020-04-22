@@ -219,7 +219,8 @@ namespace Macro_Engine
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                MacroEngine.FireShowFocusEvent();
+                //MacroEngine.FireShowFocusEvent();
+                Events.InvokeEvent("ShowFocusEvent");
 
                 try
                 {
@@ -227,11 +228,12 @@ namespace Macro_Engine
                 }
                 catch (Exception e)
                 {
-                    Messages.DisplayOkMessage("Could not export macro: \"" + md.Info.Name + "\". \n\n" + e.Message, "Saving Error");
+                    Messages.DisplayOkMessage("Could not export macro: \"" + info.Name + "\". \n\n" + e.Message, "Saving Error");
                 }
             }
 
-            MacroEngine.FireShowFocusEvent();
+            //MacroEngine.FireShowFocusEvent();
+            Events.InvokeEvent("ShowFocusEvent");
         }
 
         /// <summary>
@@ -244,7 +246,8 @@ namespace Macro_Engine
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                MacroEngine.FireShowFocusEvent();
+                //MacroEngine.FireShowFocusEvent();
+                Events.InvokeEvent("ShowFocusEvent");
 
                 string fullpath = Files.FullPath(info.FullName, ofd.SafeFileName);
 
@@ -264,11 +267,12 @@ namespace Macro_Engine
 
                 FileDeclaration declaration = new FileDeclaration(fi, LoadFile(fi));
 
-                MacroEngine.GetInstance().AddMacro(declaration);
+                //MacroEngine.GetInstance().AddMacro(declaration);
                 return declaration;
             }
 
-            MacroEngine.FireShowFocusEvent();
+            //MacroEngine.FireShowFocusEvent();
+            Events.InvokeEvent("ShowFocusEvent");
             return null;
         }
 
@@ -316,7 +320,7 @@ namespace Macro_Engine
 
                 FileDeclaration declaration = new FileDeclaration(info, LoadFile(info));
 
-                MacroEngine.GetInstance().AddMacro(declaration);
+                //MacroEngine.GetInstance().AddMacro(declaration);
                 return declaration;
             }
             catch (Exception e)

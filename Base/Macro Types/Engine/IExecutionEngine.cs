@@ -1,6 +1,7 @@
 ﻿using Macro_Engine.Interop;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace Macro_Engine.Engine
         void Initialize();
         string GetLabel();
 
-        void ExecuteMacro(string filepath, bool async, Action OnComplete = null);
+        Task<bool> ExecuteMacro(string content, bool async, string workspace = "");
         void TerminateExecution();
 
         void Destroy();

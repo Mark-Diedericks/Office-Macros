@@ -31,7 +31,7 @@ namespace Macro_UI
         public delegate void InputMessageEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult);
         public event InputMessageEvent DisplayInputMessageEvent;
 
-        public delegate object InputMessageReturnEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type);
+        public delegate Task<object> InputMessageReturnEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type);
         public event InputMessageReturnEvent DisplayInputMessageReturnEvent;
 
         private static MacroUI s_Instance;
@@ -73,11 +73,8 @@ namespace Macro_UI
 
 
             Messages.DisplayOkMessageEvent += DisplayOkMessage;
-            Messages.DisplayYesNoMessageEvent += DisplayYesNoMessage;
             Messages.DisplayYesNoMessageReturnEvent += DisplayYesNoMessageReturn;
-
-            Messages.DisplayInputMessageEvent += EventManager_DisplayInputMessageEvent;
-            Messages.DisplayInputMessageReturnEvent += EventManager_DisplayInputMessageReturnEvent;
+            Messages.DisplayInputMessageReturnEvent += DisplayInputMessageReturn;
         }
 
         public void Run()
@@ -94,9 +91,8 @@ namespace Macro_UI
 
         public void Destroy()
         {
-            MacroDeclaration md = GetDeclaration(GetActiveMacro());
-            if (md != null)
-                Properties.Settings.Default.ActiveMacro = md.RelativePath;
+            if (GetActiveFile() != null)
+                Properties.Settings.Default.ActiveMacro = GetActiveFile().Info.FullName;
 
             Properties.Settings.Default.IncludedLibraries = GetAssemblies().ToArray<AssemblyDeclaration>();
 
@@ -107,9 +103,10 @@ namespace Macro_UI
 
                 if (unsaved.Count > 0)
                 {
-                    bool save = GetInstance().DisplayYesNoMessageReturn("You have unsaved documents. Would you like to save them?", "Unsaved Documents");
+                    Task<bool> save = GetInstance().DisplayYesNoMessageReturn("You have unsaved documents. Would you like to save them?", "Unsaved Documents");
 
-                    if (save)
+                    save.Wait();
+                    if (save.Result)
                         foreach (DocumentViewModel document in unsaved)
                             if (document is TextualEditorViewModel)
                                 document.Save(null);
@@ -174,23 +171,6 @@ namespace Macro_UI
         #region Main to UI to Excel Events
 
         /// <summary>
-        /// Fowards event to Excel's InputBox -> Asynchronous
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="title"></param>
-        /// <param name="def"></param>
-        /// <param name="left"></param>
-        /// <param name="top"></param>
-        /// <param name="helpFile"></param>
-        /// <param name="helpContextID"></param>
-        /// <param name="type"></param>
-        /// <param name="OnResult"></param>
-        private static void EventManager_DisplayInputMessageEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type, Action<object> OnResult)
-        {
-            GetInstance().DisplayInputMessageEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type, OnResult);
-        }
-
-        /// <summary>
         /// Forwards event to Excel's InputBox -> Synchronous
         /// </summary>
         /// <param name="message"></param>
@@ -202,7 +182,7 @@ namespace Macro_UI
         /// <param name="helpContextID"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static object EventManager_DisplayInputMessageReturnEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type)
+        private static Task<object> DisplayInputMessageReturn(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type)
         {
             return GetInstance().DisplayInputMessageReturnEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type);
         }
@@ -304,27 +284,14 @@ namespace Macro_UI
         }
 
         /// <summary>
-        /// Displays yes/no message -> asynchronous
-        /// </summary>
-        /// <param name="content">The message to be displayed</param>
-        /// <param name="title">The message's header</param>
-        /// <param name="OnReturn">The Action, and bool representing the user's input, to be fires when the user returns input</param>
-        public void DisplayYesNoMessage(string content, string title, Action<bool> OnReturn)
-        {
-            MainWindowViewModel.GetInstance()?.DisplayYesNoMessage(content, title, OnReturn);
-        }
-
-        /// <summary>
         /// Displays yes/no message -> synchronous
         /// </summary>
         /// <param name="content">The message to be displayed</param>
         /// <param name="title">The message's header</param>
         /// <returns>Bool representing the user's input</returns>
-        public bool DisplayYesNoMessageReturn(string content, string title)
+        public Task<bool> DisplayYesNoMessageReturn(string content, string title)
         {
-            Task<bool> t = MainWindowViewModel.GetInstance()?.DisplayYesNoMessageReturn(content, title);
-            t.Wait();
-            return t.Result;
+            return MainWindowViewModel.GetInstance()?.DisplayYesNoMessageReturn(content, title);
         }
 
         /// <summary>
@@ -348,49 +315,29 @@ namespace Macro_UI
             return MacroEngine.GetRuntimes(language);
         }
 
-        public Dictionary<Guid, MacroDeclaration> GetDeclarations()
+        public HashSet<FileDeclaration> GetFileDeclarations()
         {
-            return MacroEngine.GetDeclarations();
+            return MacroEngine.GetFileDeclarations();
         }
 
-        public MacroDeclaration GetDeclaration(Guid id)
+        public void AddFile(FileDeclaration d)
         {
-            return MacroEngine.GetDeclaration(id);
+            MacroEngine.AddFile(d);
         }
 
-        public void SetDeclaration(Guid id, MacroDeclaration md)
+        public void RemoveFile(FileDeclaration d)
         {
-            MacroEngine.SetDeclaration(id, md);
+            MacroEngine.RemoveFile(d);
         }
 
-        public Dictionary<Guid, IMacro> GetMacros()
+        public void RenameFile(FileDeclaration d, string newName)
         {
-            return MacroEngine.GetMacros();
+            MacroEngine.RenameFile(d, newName);
         }
 
-        public IMacro GetMacro(Guid id)
+        public FileDeclaration GetDeclarationFromFullname(string fullname)
         {
-            return MacroEngine.GetMacro(id);
-        }
-
-        public Guid AddMacro(MacroDeclaration md, IMacro macro)
-        {
-            return MacroEngine.AddMacro(md, macro);
-        }
-
-        public void RemoveMacro(Guid id)
-        {
-            MacroEngine.RemoveMacro(id);
-        }
-
-        public void RenameMacro(Guid id, string newName)
-        {
-            MacroEngine.RenameMacro(id, newName);
-        }
-
-        public Guid GetIDFromRelativePath(string relativepath)
-        {
-            return MacroEngine.GetIDFromRelativePath(relativepath);
+            return MacroEngine.GetDeclarationFromFullname(fullname);
         }
 
         public string GetDefaultFileExtension()
@@ -413,39 +360,25 @@ namespace Macro_UI
             MacroEngine.RemoveAssembly(declaration);
         }
 
-        public Guid GetActiveMacro()
+        public FileDeclaration GetActiveFile()
         {
-            return MacroEngine.GetActiveMacro();
+            return MacroEngine.GetActiveFile();
         }
 
-        public void SetActiveMacro(Guid id)
+        public void SetActiveFile(FileDeclaration d)
         {
-            MacroEngine.SetActiveMacro(id);
+            MacroEngine.SetActiveFile(d);
         }
 
-        public bool IsRibbonMacro(Guid id)
+
+        public HashSet<FileDeclaration> RenameFolder(DirectoryInfo info, string newDir)
         {
-            return MacroEngine.IsRibbonMacro(id);
+            return MacroEngine.RenameFolder(info, newDir);
         }
 
-        public void AddRibbonMacro(Guid id)
+        public async Task<bool> DeleteFolder(DirectoryInfo info)
         {
-            MacroEngine.AddRibbonMacro(id);
-        }
-
-        public void RemoveRibbonMacro(Guid id)
-        {
-            MacroEngine.RemoveRibbonMacro(id);
-        }
-
-        public HashSet<Guid> RenameFolder(string oldDir, string newDir)
-        {
-            return MacroEngine.RenameFolder(oldDir, newDir);
-        }
-
-        public void DeleteFolder(string dir, Action<bool> OnReturn)
-        {
-            MacroEngine.DeleteFolder(dir, OnReturn);
+            return await MacroEngine.DeleteFolder(info);
         } 
 
         public void SetExecutionValue(string name, object value)
@@ -456,6 +389,11 @@ namespace Macro_UI
         public void RemoveExecutionValue(string name)
         {
             MacroEngine.RemoveExecutionValue(name);
+        }
+
+        public async Task<bool> TryExecuteFile(FileDeclaration d, bool async, string runtime = "")
+        {
+            return await MacroEngine.TryExecuteFile(d, async, runtime);
         }
 
         #endregion

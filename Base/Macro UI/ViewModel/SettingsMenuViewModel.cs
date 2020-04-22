@@ -128,16 +128,16 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void AddLibrary()
         {
-            Events.InvokeEvent("ImportAssembly", new Action<string>((path) => {
-                if (path == String.Empty)
-                    return;
+            string path = Files.ImportAssembly();
 
-                string name = System.Reflection.Assembly.LoadFrom(path).FullName;
+            if (string.IsNullOrEmpty(path))
+                return;
 
-                AssemblyDeclaration ad = new AssemblyDeclaration(name, path, false);
+            string name = System.Reflection.Assembly.LoadFrom(path).FullName;
 
-                MacroUI.GetInstance().AddAssembly(ad);
-            }));
+            AssemblyDeclaration ad = new AssemblyDeclaration(name, path, false);
+
+            MacroUI.GetInstance().AddAssembly(ad);
         }
 
         #endregion

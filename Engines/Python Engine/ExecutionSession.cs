@@ -129,29 +129,33 @@ namespace Python_Engine
             }
         }
 
-        public void Execute(string filePath, string directory)
+        public bool Execute(string content, string directory)
         {
             if (!CanExecute)
-                return;
+                return false;
 
             int ProfileID = Utilities.BeginProfileSession();
             Executing = true;
+            bool result = true;
 
             try
             {
-                string script = File.ReadAllText(filePath);
-
                 using(Py.GIL())
                 {
                     Scope.Exec("sys.settrace(isExecutionThreadAlive)\n");
-                    Scope.Exec("sys.path.append(r\"" + directory + "\")\n");
-                    Scope.Exec(script);
+
+                    if(!string.IsNullOrEmpty(directory))
+                        Scope.Exec("sys.path.append(r\"" + directory + "\")\n");
+
+                    Scope.Exec(content);
                 }
 
                 IOManager?.GetOutput()?.WriteLine("Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(ProfileID));
             }
             catch (Exception ex)
             {
+                result = false;
+
                 Type exType = ex.GetType();
                 if (exType.Namespace.Contains(PythonNETNamespace))
                 {
@@ -168,6 +172,8 @@ namespace Python_Engine
             IOManager?.GetOutput()?.Flush();
             Utilities.EndProfileSession(ProfileID);
             Executing = false;
+
+            return result;
         }
 
         #endregion

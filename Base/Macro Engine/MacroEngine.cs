@@ -60,9 +60,9 @@ namespace Macro_Engine
         /// Execute a task on the host dispatcher with a given priority
         /// </summary>
         /// <param name="task">Task to be executed</param>
-        private static void ExecuteOnHost(Action task)
+        private static async Task<bool> ExecuteOnHost(Func<bool> task)
         {
-            GetInstance().m_HostExecutor?.ExecuteAction(task);
+            return await GetInstance().m_HostExecutor?.ExecuteAction(task);
         }
 
         #endregion
@@ -96,7 +96,7 @@ namespace Macro_Engine
         /// <summary>
         /// Private constructor
         /// </summary>
-        /// <param name="dispatcher">Host application UI dispatcher</param>
+        /// <param name="executor">Host application UI executor</param>
         private MacroEngine(Executor executor)
         {
             s_Instance = this;
@@ -112,7 +112,9 @@ namespace Macro_Engine
                 pair.Value.Initialize();
             }
 
-            Events.SubscribeEvent("OnHostExecute", (Action<Action>)ExecuteOnHost);
+            //Events.SubscribeEvent("OnHostExecute", (Action<Action>)ExecuteOnHost);
+            Events.ExecuteOnHostEvent = ExecuteOnHost;
+
             Events.SubscribeEvent("SetIO", (Action<string, TextWriter, TextWriter, TextReader>)SetIOStreams);
 
             Events.SubscribeEvent("OnTerminateExecution", new Action(() => {
@@ -176,6 +178,29 @@ namespace Macro_Engine
 
 
         #region Execution Engine & IO
+
+        /// <summary>
+        /// Execute the macro using the source saved in macro
+        /// </summary>
+        /// <param name="async">Bool identifying if the macro should be execute asynchronously or not (synchronous)</param>
+        /// <param name="runtime">Runtime tag identifying which execution engine to use, if empty, a default will be chosen</param>
+        public async Task<bool> TryExecuteFile(FileDeclaration d, bool async, string runtime = "")
+        {
+            d.Save();
+
+            if (string.IsNullOrEmpty(runtime))
+                runtime = GetDefaultRuntime();
+
+            IExecutionEngine engine = GetExecutionEngine(runtime);
+
+            if (engine == null)
+                engine = GetExecutionEngine(GetDefaultRuntime());
+
+            if (engine == null)
+                return false;
+
+            return await engine.ExecuteMacro(d.Content, async, d.Info != null ? d.Info.Directory.FullName : "");
+        }
 
         /// <summary>
         /// Get the appropriate IExecutionEngine implementation for the given language
@@ -546,6 +571,7 @@ namespace Macro_Engine
 
         #endregion
 
+        /*
         #region Event Invocations
 
         /// <summary>
@@ -595,5 +621,6 @@ namespace Macro_Engine
         }
 
         #endregion
+        */
     }
 }

@@ -116,26 +116,31 @@ namespace IronPython_Engine
             }
         }
 
-        public void Execute(string filePath, string directory)
+        public bool Execute(string content, string directory)
         {
             if (!CanExecute)
-                return;
+                return false;
 
             int ProfileID = Utilities.BeginProfileSession();
             Executing = true;
+            bool result = true;
 
             try
             {
                 dynamic addPath = Engine.CreateScriptSourceFromString("sys.path.append(r\"" + directory + "\")\n");
-                dynamic script = Engine.CreateScriptSourceFromFile(filePath);
+                dynamic script = Engine.CreateScriptSourceFromString(content);
 
-                addPath.Execute(Scope);
+                if (!string.IsNullOrEmpty(directory))
+                    addPath.Execute(Scope);
+
                 script.Execute(Scope);
 
                 IOManager?.GetOutput()?.WriteLine("Execution Completed. Runtime of {0:N2}s", Utilities.GetTimeIntervalSeconds(ProfileID));
             }
             catch (Exception ex)
             {
+                result = false;
+
                 Type exType = ex.GetType();
                 if(exType.Namespace.Contains(IronPythonNamespace) || exType.Namespace.Contains(ScriptingNamesapce))
                 {
@@ -152,6 +157,8 @@ namespace IronPython_Engine
             IOManager?.GetOutput()?.Flush();
             Utilities.EndProfileSession(ProfileID);
             Executing = false;
+
+            return result;
         }
 
         #endregion

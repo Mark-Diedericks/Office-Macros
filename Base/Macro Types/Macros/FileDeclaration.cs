@@ -64,7 +64,11 @@ namespace Macro_Engine.Macros
         /// <param name="name">The new name for the macro</param>
         public void Rename(string name)
         {
+            if (Info == null)
+                return;
+
             Files.RenameFile(Info, name);
+
             OnPropertyChanged(nameof(Info));
             OnPropertyChanged(nameof(Name));
         }
@@ -74,6 +78,9 @@ namespace Macro_Engine.Macros
         /// </summary>
         public void Save()
         {
+            if (Info == null)
+                return;
+
             Files.SaveFile(Info, Content);
         }
 
@@ -82,6 +89,9 @@ namespace Macro_Engine.Macros
         /// </summary>
         public void Export()
         {
+            if (Info == null)
+                return;
+
             Files.ExportFile(Info, Content);
         }
 
@@ -90,6 +100,9 @@ namespace Macro_Engine.Macros
         /// </summary>
         public async void Delete()
         {
+            if (Info == null)
+                return;
+
             bool result = await Files.DeleteFile(Info);
 
             if(result)

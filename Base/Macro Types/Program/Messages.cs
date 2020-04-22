@@ -14,11 +14,11 @@ namespace Macro_Engine
         public static event VoidMessageEvent DisplayOkMessageEvent;
 
         //ObjectMessage event, for all Forms and GUIs
-        public delegate bool ObjectMessageReturnEvent(string content, string title);
+        public delegate Task<bool> ObjectMessageReturnEvent(string content, string title);
         public static event ObjectMessageReturnEvent DisplayYesNoMessageReturnEvent;
 
         //InputMessage event, for all Forms and GUIs
-        public delegate object InputMessageReturnEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type);
+        public delegate Task<object> InputMessageReturnEvent(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type);
         public static event InputMessageReturnEvent DisplayInputMessageReturnEvent;
 
         /// <summary>
@@ -39,11 +39,7 @@ namespace Macro_Engine
         /// <returns>The bool result of the user's action</returns>
         public static Task<bool> DisplayYesNoMessage(string content, string title)
         {
-            return Task.Run(new Func<bool>(() =>
-            {
-                bool? res = DisplayYesNoMessageReturnEvent?.Invoke(content, title);
-                return res.HasValue ? res.Value : false;
-            }));
+            return DisplayYesNoMessageReturnEvent?.Invoke(content, title);
         }
 
         /// <summary>
@@ -60,10 +56,7 @@ namespace Macro_Engine
         /// <returns>InputBox's resultant object</returns>
         public static Task<object> DisplayInputMessage(string message, object title, object def, object left, object top, object helpFile, object helpContextID, object type)
         {
-            return Task.Run(new Func<object>(() =>
-            {
-                return DisplayInputMessageReturnEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type);
-            }));
+            return DisplayInputMessageReturnEvent?.Invoke(message, title, def, left, top, helpFile, helpContextID, type);
         }
     }
 }

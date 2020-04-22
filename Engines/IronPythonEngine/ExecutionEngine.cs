@@ -112,41 +112,30 @@ namespace IronPython_Engine
         /// <summary>
         /// Determines how to execute a macro
         /// </summary>
-        /// <param name="filepath">Source code (python)</param>
+        /// <param name="content">Source code (python)</param>
         /// <param name="async">If the code should be run asynchronously or not (synchronous)</param>
-        /// <param name="OnComplete">The action to be called once the code has been executed</param>
-        public void ExecuteMacro(string filepath, bool async, Action OnComplete)
+        public async Task<bool> ExecuteMacro(string content, bool async, string workspace = "")
         {
             TerminateExecution();
             m_IOManager?.ClearAllStreams();
 
-            FileInfo file = new FileInfo(filepath);
-
-            if (!file.Exists)
-            {
-                m_IOManager?.GetError()?.WriteLine("File does not exist: " + file.FullName);
-                return;
-            }
-
-            string filename = file.FullName;
-            string directory = file.Directory.FullName;
-
-            Action execute = new Action(() =>
+            Func<bool> execute = new Func<bool>(() =>
             {
                 ExecutionSession session = new ExecutionSession(m_IOManager, m_ScopeValues, m_Assemblies);
                 m_Sessions.Add(session);
 
-                session.Execute(filename, directory);
+                bool result = session.Execute(content, workspace);
 
                 m_Sessions.Remove(session);
-                OnComplete?.Invoke();
+                return result;
             });
 
 
             if (async)
-                Task.Run(execute);
+                return await Task.Run(execute);
             else
-                Events.InvokeEvent("OnHostExecute", execute);
+                return await Events.ExecuteOnHost(execute);
+                //Events.InvokeEvent("OnHostExecute", execute);
         }
 
         /// <summary>

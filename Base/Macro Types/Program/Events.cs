@@ -34,6 +34,23 @@ namespace Macro_Engine
 
         #endregion
 
+        #region ExecuteOnHost
+
+        public delegate Task<bool> AsyncBoolTask(Func<bool> a);
+        public static AsyncBoolTask ExecuteOnHostEvent;
+
+        public static async Task<bool> ExecuteOnHost(Func<bool> a)
+        {
+            if (ExecuteOnHostEvent == null)
+                return false;
+
+            return await ExecuteOnHostEvent.Invoke(a);
+        }
+
+        #endregion
+
+        #region Events
+
         public static void SubscribeEvent(string name, Delegate callback)
         {
             try
@@ -63,7 +80,6 @@ namespace Macro_Engine
 
         public static void InvokeEvent(string name, params object[] args)
         {
-            //System.Diagnostics.Debug.WriteLine(">>>> Executing '" + name + "' with " + args.Length + " args.");
             try
             {
                 if (Instance.m_Events.ContainsKey(name))
@@ -76,5 +92,7 @@ namespace Macro_Engine
                 System.Diagnostics.Debug.WriteLine(ex.Message);
             }
         }
+
+        #endregion
     }
 }

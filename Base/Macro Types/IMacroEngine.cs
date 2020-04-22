@@ -48,5 +48,8 @@ namespace Macro_Engine
         //Execution engine variables
         void SetExecutionValue(string name, object value);
         void RemoveExecutionValue(string name);
+
+        //Excute macro
+        Task<bool> TryExecuteFile(FileDeclaration d, bool async, string runtime = "");
     }
 }

@@ -902,20 +902,19 @@ namespace Macro_UI.ViewModel
         /// <param name="item">The item to be deleted</param>
         /// <param name="path">The relativepath of the folder</param>
         /// <param name="name">The name of the folder</param>
-        public void DeleteFolder(DisplayableTreeViewItem item, string path, string name)
+        public async void DeleteFolder(DisplayableTreeViewItem item, string path, string name)
         {
-            MacroUI.GetInstance().DeleteFolder(path + "/" + name, (result) =>
-            {
-                if (result)
-                {
-                    if (item.Parent is DisplayableTreeViewItem)
-                        Remove((item.Parent as DisplayableTreeViewItem), item);
-                    else
-                        Remove(null, item);
+            bool result = await MacroUI.GetInstance().DeleteFolder(path + "/" + name);
 
-                    CloseItemMacro(item);
-                }
-            });
+            if (result)
+            {
+                if (item.Parent is DisplayableTreeViewItem)
+                    Remove((item.Parent as DisplayableTreeViewItem), item);
+                else
+                    Remove(null, item);
+
+                CloseItemMacro(item);
+            }
         }
 
         /// <summary>
@@ -1135,27 +1134,28 @@ namespace Macro_UI.ViewModel
 
                 //FileManager.CreateFolder((root + "/" + item.Header).Replace('\\', '/').Replace("//", "/"))
 
-                Events.InvokeEvent("CreateFolder", new Action<bool>((result) => {
-                    if (!result)
-                    {
-                        Remove(parent, item);
-                    }
-                    else
-                    {
-                        Rename(parent, item);
-                        
-                        item.RightClickEvent = TreeViewItem_OnPreviewMouseRightButtonDown;
-                        
-                        item.Root = root;
-                        item.IsFolder = true;
-                        item.IsExpanded = false;
-                        item.Parent = parent;
+                DirectoryInfo info = new DirectoryInfo(Files.CleanPath(root + "/" + item.Header));
+                bool result = Files.CreateFolder(info);
 
-                        item.IsInputting = false;
+                if (!result)
+                {
+                    Remove(parent, item);
+                }
+                else
+                {
+                    Rename(parent, item);
 
-                        m_IsCreating = false;
-                    }
-                }), (root + "/" + item.Header).Replace('\\', '/').Replace("//", "/"));
+                    item.RightClickEvent = TreeViewItem_OnPreviewMouseRightButtonDown;
+
+                    item.Root = root;
+                    item.IsFolder = true;
+                    item.IsExpanded = false;
+                    item.Parent = parent;
+
+                    item.IsInputting = false;
+
+                    m_IsCreating = false;
+                }
             };
 
             //tvi.Items.SortDescriptions.Add(new SortDescription("Header", ListSortDirection.Ascending));

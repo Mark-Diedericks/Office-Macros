@@ -8,13 +8,13 @@ namespace Macro_Engine
 {
     public class Executor
     {
-        public Action<Action> InvokeExecute { get; set; }
+        public Func<Func<bool>, Task<bool>> InvokeExecute { get; set; }
 
         public Executor() {}
 
-        public void ExecuteAction(Action a)
+        public async Task<bool> ExecuteAction(Func<bool> a)
         {
-            InvokeExecute?.Invoke(a);
+            return await InvokeExecute?.Invoke(a);
         }
     }
 }
