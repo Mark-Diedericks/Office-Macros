@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Threading;
+using System.IO;
 
 namespace Macro_Engine
 {
@@ -19,21 +20,16 @@ namespace Macro_Engine
         //Runtimes
         HashSet<string> GetRuntimes(string language = "");
 
-        //Declarations
-        Dictionary<Guid, MacroDeclaration> GetDeclarations();
-        MacroDeclaration GetDeclaration(Guid id);
-        void SetDeclaration(Guid id, MacroDeclaration md);
+        //Declarations / Macros
+        HashSet<FileDeclaration> GetFileDeclarations();
+        FileDeclaration GetDeclarationFromFullname(string fullname);
 
-        //Macros
-        Dictionary<Guid, IMacro> GetMacros();
-        IMacro GetMacro(Guid id);
-        Guid AddMacro(MacroDeclaration md, IMacro macro);
-        void RemoveMacro(Guid id);
-        void RenameMacro(Guid id, string newName);
+        void AddFile(FileDeclaration md);
+        void RemoveFile(FileDeclaration md);
+        void RenameFile(FileDeclaration md, string newName);
 
 
-        //RelativePath and FileExtension
-        Guid GetIDFromRelativePath(string relativepath);
+        //Default file extension
         string GetDefaultFileExtension();
 
         //Assemblies
@@ -42,17 +38,12 @@ namespace Macro_Engine
         void RemoveAssembly(AssemblyDeclaration declaration);
 
         //Active macro
-        Guid GetActiveMacro();
-        void SetActiveMacro(Guid id);
-
-        //Ribbon macros
-        bool IsRibbonMacro(Guid id);
-        void AddRibbonMacro(Guid id);
-        void RemoveRibbonMacro(Guid id);
+        FileDeclaration GetActiveFile();
+        void SetActiveFile(FileDeclaration md);
 
         //Folders
-        HashSet<Guid> RenameFolder(string oldDir, string newDir);
-        void DeleteFolder(string dir, Action<bool> OnReturn);
+        HashSet<FileDeclaration> RenameFolder(DirectoryInfo info, string newName);
+        Task<bool> DeleteFolder(DirectoryInfo info);
 
         //Execution engine variables
         void SetExecutionValue(string name, object value);

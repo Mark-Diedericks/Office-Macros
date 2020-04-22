@@ -33,6 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -50,8 +51,7 @@
     <Compile Include="Interop\AssemblyDeclaration.cs" />
     <Compile Include="Interop\InteropInfo.cs" />
     <Compile Include="Interop\InteropTools.cs" />
-    <Compile Include="Macros\IMacro.cs" />
-    <Compile Include="Macros\MacroDeclaration.cs" />
+    <Compile Include="Macros\FileDeclaration.cs" />
     <Compile Include="Program\Executor.cs" />
     <Compile Include="Program\Files.cs" />
     <Compile Include="Program\Events.cs" />

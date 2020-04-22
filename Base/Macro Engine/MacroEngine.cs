@@ -80,25 +80,12 @@ namespace Macro_Engine
             return s_Instance;
         }
 
-        private readonly FileManager m_FileManager;
-
-        public static FileManager GetFileManager()
-        {
-            return GetInstance().m_FileManager;
-        }
-
         #endregion
 
         #region Initialization & Destruction
-
-        //Temporary path storage
-        private string[] m_RibbonMacroPaths;
-
         //Macros
-        private Dictionary<Guid, MacroDeclaration> m_Declarations;
-        private Dictionary<Guid, IMacro> m_Macros;
-        private HashSet<Guid> m_RibbonMacros;
-        private Guid m_ActiveMacro;
+        private HashSet<FileDeclaration> m_Files;
+        private FileDeclaration m_ActiveFile;
 
         //User Included Assemblies
         private HashSet<AssemblyDeclaration> m_Assemblies;
@@ -127,34 +114,13 @@ namespace Macro_Engine
 
             Events.SubscribeEvent("OnHostExecute", (Action<Action>)ExecuteOnHost);
             Events.SubscribeEvent("SetIO", (Action<string, TextWriter, TextWriter, TextReader>)SetIOStreams);
-            Events.SubscribeEvent("RibbonLoaded", (Action)LoadRibbonMacros);
-            Events.SubscribeEvent("LoadRibbonMacros", (Action)LoadRibbonMacros);
 
             Events.SubscribeEvent("OnTerminateExecution", new Action(() => {
                 foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)
                     pair.Value.TerminateExecution();
             }));
 
-            m_FileManager = new FileManager();
-
-            m_Declarations = new Dictionary<Guid, MacroDeclaration>();
-            m_Macros = new Dictionary<Guid, IMacro>();
-
-            m_RibbonMacros = new HashSet<Guid>();
-            m_RibbonMacroPaths = new string[] { };
-        }
-
-        private void SetState(HostState state)
-        {
-            m_ActiveMacro = GetIDFromRelativePath(state.ActiveMacro);
-
-            m_RibbonMacroPaths = state.RibbonMacros;
-
-            //Get Assemblies
-            if (state.Assemblies != null)
-                m_Assemblies = new HashSet<AssemblyDeclaration>(state.Assemblies);
-            else
-                m_Assemblies = new HashSet<AssemblyDeclaration>();
+            m_Files = new HashSet<FileDeclaration>();
         }
 
         /// <summary>
@@ -166,30 +132,25 @@ namespace Macro_Engine
         /// <returns>The initialization task thread</returns>
         public void Instantiate(HostState state)
         {
-            SetState(state);
 
             //Load all macros in workspaces
-            Dictionary<MacroDeclaration, IMacro> macros = FileManager.LoadAllMacros(state.Workspaces);
-            foreach (KeyValuePair<MacroDeclaration, IMacro> pair in macros)
-            {
-                Guid id = Guid.NewGuid();
-
-                pair.Key.ID = id;
-                pair.Value.ID = id;
-
-                m_Declarations.Add(id, pair.Key);
-                m_Macros.Add(id, pair.Value);
-            }
+            m_Files = Files.LoadAllFiles(state.Workspaces);
 
             //Events.OnMacroCountChangedInvoke();
             Events.InvokeEvent("OnMacroCountChanged");
 
             //Get the active macro
             if (!String.IsNullOrEmpty(state.ActiveMacro))
-                m_ActiveMacro = GetIDFromRelativePath(state.ActiveMacro);
+                m_ActiveFile = GetDeclarationFromFullname(state.ActiveMacro);
             else
-                m_ActiveMacro = m_Macros.Keys.FirstOrDefault<Guid>();
+                m_ActiveFile = m_Files.FirstOrDefault<FileDeclaration>();
 
+
+            //Get Assemblies
+            if (state.Assemblies != null)
+                m_Assemblies = new HashSet<AssemblyDeclaration>(state.Assemblies);
+            else
+                m_Assemblies = new HashSet<AssemblyDeclaration>();
 
             //Events.OnAssembliesChangedInvoke();
             Events.InvokeEvent("OnAssembliesChanged");
@@ -394,88 +355,25 @@ namespace Macro_Engine
 
         #endregion
 
-        #region Ribbon & Active Macros
+        #region Active Macro
 
         /// <summary>
-        /// Loads all ribbon macros from serialized list
+        /// Gets the active macro
         /// </summary>
-        public void LoadRibbonMacros()
+        /// <returns>Active macro</returns>
+        public FileDeclaration GetActiveFile()
         {
-            m_RibbonMacros.Clear();
-
-            foreach (string file in m_RibbonMacroPaths)
-                AddRibbonMacro(GetIDFromRelativePath(file));
-        }
-
-        /// <summary>
-        /// Gets the ID of the active macro
-        /// </summary>
-        /// <returns>ID of active macro</returns>
-        public Guid GetActiveMacro()
-        {
-            return s_Instance.m_ActiveMacro;
+            return s_Instance.m_ActiveFile;
         }
 
         /// <summary>
         /// Sets the active macro
         /// </summary>
-        /// <param name="macro">The macro's ID</param>
-        public void SetActiveMacro(Guid macro)
+        /// <param name="macro">The macro</param>
+        public void SetActiveFile(FileDeclaration d)
         {
-            s_Instance.m_ActiveMacro = macro;
+            s_Instance.m_ActiveFile = d;
             Events.InvokeEvent("ActiveMacroChanged");
-        }
-
-        /// <summary>
-        /// Checks if a macro is ribbon accessible 
-        /// </summary>
-        /// <param name="id">The macro's id</param>
-        /// <returns></returns>
-        public bool IsRibbonMacro(Guid id)
-        {
-            return m_RibbonMacros.Contains(id);
-        }
-
-        /// <summary>
-        /// Adds a macro to the ribbon
-        /// </summary>
-        /// <param name="id">The macro's id</param>
-        public void AddRibbonMacro(Guid id)
-        {
-            if (id == Guid.Empty || IsRibbonMacro(id))
-                return;
-
-            m_RibbonMacros.Add(id);
-
-            MacroDeclaration md = m_Declarations[id];
-            IMacro macro = m_Macros[id];
-
-            //Events.AddRibbonMacro(id, md.Name, md.RelativePath, () => macro.Execute(null, false));
-            Events.InvokeEvent("AddRibbonMacro", id, md.Name, md.RelativePath, new Action(() => macro.Execute(false)));
-        }
-
-        /// <summary>
-        /// Removes a macro from the ribbon
-        /// </summary>
-        /// <param name="id">The macro's id</param>
-        public void RemoveRibbonMacro(Guid id)
-        {
-            m_RibbonMacros.Remove(id);
-            //Events.RemoveRibbonMacro(id);
-            Events.InvokeEvent("RemoveRibbonMacro", id);
-        }
-
-        /// <summary>
-        /// Renames a ribbon macro
-        /// </summary>
-        /// <param name="id">The macro's id</param>
-        public void RenameRibbonMacro(Guid id)
-        {
-            m_RibbonMacros.Add(id);
-
-            MacroDeclaration md = m_Declarations[id];
-            //Events.RenameRibbonMacro(id, md.Name, md.RelativePath);
-            Events.InvokeEvent("RenameRibbonMacro", id, md.Name, md.RelativePath);
         }
 
         #endregion
@@ -535,79 +433,29 @@ namespace Macro_Engine
 
         #endregion
 
-        #region Macro & Declarations
-
-        /// <summary>
-        /// Gets the list of macro declarations
-        /// </summary>
-        /// <returns>Dictionary of MacroDeclarations to their respective IDs</returns>
-        public Dictionary<Guid, MacroDeclaration> GetDeclarations()
-        {
-            return m_Declarations;
-        }
+        #region Get FileDeclarations
 
         /// <summary>
         /// Gets the list of macro objects
         /// </summary>
         /// <returns>Dictionary of Macros and their respective IDs</returns>
-        public Dictionary<Guid, IMacro> GetMacros()
+        public HashSet<FileDeclaration> GetFileDeclarations()
         {
-            return m_Macros;
+            return m_Files;
         }
 
         /// <summary>
-        /// Gets a macro by its id
+        /// Gets the macro for the given fullname
         /// </summary>
-        /// <param name="id">The macro's id</param>
-        /// <returns>Macro of the given id</returns>
-        public IMacro GetMacro(Guid id)
+        /// <param name="fullname">The macro's fullname (fullpath)</param>
+        /// <returns>Th macro</returns>
+        public FileDeclaration GetDeclarationFromFullname(string fullname)
         {
-            if (!m_Macros.ContainsKey(id))
-                return null;
+            foreach (FileDeclaration macro in m_Files)
+                if (fullname.Trim().Equals(macro.Info.FullName.Trim(), StringComparison.OrdinalIgnoreCase))
+                    return macro;
 
-            return m_Macros[id];
-        }
-
-        /// <summary>
-        /// Gets a MacroDeclaration from a macro's id
-        /// </summary>
-        /// <param name="id">The macro's id</param>
-        /// <returns>MacroDeclaration of the given id</returns>
-        public MacroDeclaration GetDeclaration(Guid id)
-        {
-            if (!m_Declarations.ContainsKey(id))
-                return null;
-
-            return m_Declarations[id];
-        }
-
-        /// <summary>
-        /// Gets the ID of a macro from it's relative path
-        /// </summary>
-        /// <param name="relativepath">The macro's relative path</param>
-        /// <returns>Guid of the macro</returns>
-        public Guid GetIDFromRelativePath(string relativepath)
-        {
-            string path = relativepath.ToLower().Trim();
-
-            foreach (MacroDeclaration macro in m_Declarations.Values)
-                if (macro.RelativePath.ToLower().Trim() == path)
-                    return macro.ID;
-
-            return Guid.Empty;
-        }
-
-        /// <summary>
-        /// Sets the MacroDeclaration associated with an ID
-        /// </summary>
-        /// <param name="id">The macro's id</param>
-        /// <param name="declaration">The macro's MacroDeclaration</param>
-        public void SetDeclaration(Guid id, MacroDeclaration declaration)
-        {
-            if (!m_Declarations.ContainsKey(id))
-                m_Declarations.Add(id, declaration);
-            else
-                m_Declarations[id] = declaration;
+            return null;
         }
 
         #endregion
@@ -615,111 +463,85 @@ namespace Macro_Engine
         #region File & Folder functions
 
         /// <summary>
-        /// Adds a macro to the registry
+        /// Adds a macro to the hashset
         /// </summary>
-        /// <param name="declaration">The macro's macro declaration</param>
-        /// <param name="macro">The macro</param>
-        /// <returns>The macro's assigned ID</returns>
-        public Guid AddMacro(MacroDeclaration declaration, IMacro macro)
+        /// <param name="declaration">The macro to be added</param>
+        public void AddFile(FileDeclaration d)
         {
-            Guid id = Guid.NewGuid();
+            m_Files.Add(d);
 
-            declaration.ID = id;
-            macro.ID = id;
-
-            m_Declarations.Add(id, declaration);
-            m_Macros.Add(id, macro);
-            //Events.OnMacroCountChangedInvoke();
             Events.InvokeEvent("OnMacroCountChanged");
-
-            return id;
         }
 
         /// <summary>
-        /// Removes a macro from the registry
+        /// Removes a macro from the hashset
         /// </summary>
-        /// <param name="id">The macro's id</param>
-        public void RemoveMacro(Guid id)
+        /// <param name="declaration">The macro the be removed</param>
+        public void RemoveFile(FileDeclaration d)
         {
-            m_Macros.Remove(id);
-            //Events.OnMacroCountChangedInvoke();
+            m_Files.Remove(d);
+            d.Remove();
+
             Events.InvokeEvent("OnMacroCountChanged");
         }
 
         /// <summary>
         /// Renames a macro
         /// </summary>
-        /// <param name="id">The macro's id</param>
+        /// <param name="declaration">The macro</param>
         /// <param name="newname">The macro's new name</param>
-        public void RenameMacro(Guid id, string newname)
+        public void RenameFile(FileDeclaration d, string newname)
         {
-            if (!m_Macros.ContainsKey(id))
-            {
-                Messages.DisplayOkMessage("Could not find the macro: " + GetDeclaration(id).Name, "Rename Macro Error");
-                return;
-            }
+            d.Save();
+            d.Rename(newname);
+            d.Save();
 
-            IMacro macro = m_Macros[id];
-
-            macro.Save();
-            macro.Rename(newname);
-            macro.Save();
-
-            //Events.OnMacroRenamedInvoke(id);
-            Events.InvokeEvent("OnMacroRenamed", id);
+            Events.InvokeEvent("OnMacroRenamed", d);
         }
 
         /// <summary>
         /// Renames a folder
         /// </summary>
-        /// <param name="olddir">The folder's current relative path</param>
-        /// <param name="newdir">The folder's desired relative path</param>
-        /// <returns>A list (HashSet) of ids of effected macros</returns>
-        public HashSet<Guid> RenameFolder(string olddir, string newdir)
+        /// <param name="info">The folder to be renamed</param>
+        /// <param name="newdir">The folder's dname</param>
+        /// <returns>A list (HashSet) of affected macros</returns>
+        public HashSet<FileDeclaration> RenameFolder(DirectoryInfo info, string newdir)
         {
-            HashSet<Guid> affectedMacros = new HashSet<Guid>();
+            IEnumerable<string> oldPaths = info.GetFiles().Select(x => x.FullName);
+            bool result = Files.RenameFolder(info, newdir);
 
-            FileManager.RenameFolder(olddir, newdir);
-            string relativepath = FileManager.CalculateRelativePath(FileManager.CalculateFullPath(olddir));
+            if (!result)
+                return new HashSet<FileDeclaration>();
 
-            foreach (Guid id in m_Declarations.Keys)
-            {
-                if (GetDeclaration(id).RelativePath.ToLower().Trim().StartsWith(relativepath.ToLower().Trim()))
-                {
-                    affectedMacros.Add(id);
-                    m_Declarations[id].RelativePath = GetDeclaration(id).RelativePath.Replace(relativepath, FileManager.CalculateRelativePath(FileManager.CalculateFullPath(newdir)));
-                }
-            }
+            IEnumerable<string> newPaths = info.GetFiles().Select(x => x.FullName);
+            IEnumerable<FileDeclaration> macros = m_Files.Where(x => oldPaths.Contains(x.Info.FullName));
 
-            return affectedMacros;
+            //foreach(MacroDeclaration md in files)
+            //    md.Info = new FileInfo(
+
+            // TODO
+
+            return macros.ToHashSet<FileDeclaration>();
         }
 
         /// <summary>
         /// Deletes a folder
         /// </summary>
-        /// <param name="directory">The relative path of the folder</param>
-        /// <param name="OnReturn">The Action, a bool representing the operations success, to be fired when the task is completed</param>
-        public void DeleteFolder(string directory, Action<bool> OnReturn)
+        /// <param name="directory">The directroy</param>
+        public async Task<bool> DeleteFolder(DirectoryInfo info)
         {
-            HashSet<Guid> affectedMacros = new HashSet<Guid>();
+            IEnumerable<string> oldPaths = info.GetFiles().Select(x => x.FullName);
 
-            FileManager.DeleteFolder(directory, new Action<bool>((result) =>
-            {
-                if (!result)
-                    OnReturn?.Invoke(false);
+            bool result = await Files.DeleteFolder(info);
 
-                string relativepath = FileManager.CalculateRelativePath(FileManager.CalculateFullPath(directory)).ToLower().Trim();
+            if (!result)
+                return false;
 
-                HashSet<Guid> toremove = new HashSet<Guid>();
-                foreach (Guid id in m_Declarations.Keys)
-                    if (GetDeclaration(id).RelativePath.ToLower().Trim().Contains(relativepath))
-                        toremove.Add(id);
+            IEnumerable<FileDeclaration> files = m_Files.Where(x => oldPaths.Contains(x.Info.FullName));
+            foreach (FileDeclaration md in files)
+                md.Remove();
 
-                foreach (Guid id in toremove)
-                    m_Declarations.Remove(id);
-
-                OnReturn?.Invoke(true);
-            }));
+            return true;
         }
 
         #endregion

@@ -82,7 +82,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\ExecutionEngineIO.cs" />
-    <Compile Include="Macros\Macro.cs" />
     <Compile Include="MacroEngine.cs" />
     <Compile Include="Managers\FileManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -92,6 +91,9 @@
       <Project>{ae8374ae-e21c-4591-ab39-c6e9c8316a25}</Project>
       <Name>Macro Types</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Macros\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
