@@ -29,9 +29,12 @@ namespace Excel_Ribbon
             Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
             Executor executor = new Executor()
             {
-                InvokeExecute = new Func<Func<bool>, Task<bool>>((a) =>
+                InvokeExecute = new Func<Func<bool>, Task<bool>>(async (a) =>
                 {
-                    return (Task<bool>)dispatcher.BeginInvoke(DispatcherPriority.Normal, a).Task;
+                    bool result = false;
+                    await dispatcher.BeginInvoke(DispatcherPriority.Normal, new System.Action(() => result = a.Invoke()));
+
+                    return result;
                 }),
             };
 

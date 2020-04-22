@@ -272,80 +272,16 @@ namespace Macro_UI.ViewModel
         }
 
         /// <summary>
-        /// Produces quicksort partition, returns pivot index
-        /// </summary>
-        /// <param name="items">List of items</param>
-        /// <param name="start">Starting index</param>
-        /// <param name="end">Ending index</param>
-        /// <returns>Index of the partition pivot</returns>
-        private int Partition(ObservableCollection<DisplayableTreeViewItem> items, int start, int end)
-        {
-            int pivot = end;
-            int i = start;
-            int j = end;
-
-            DisplayableTreeViewItem temp;
-            while (i < j)
-            {
-                while (i < end && String.Compare(items[i].Header, items[pivot].Header, true) < 0)
-                    i++;
-
-                while (j > start && String.Compare(items[j].Header, items[pivot].Header, true) > 0)
-                    j--;
-
-                if (i < j)
-                {
-                    temp = items[i];
-                    items[i] = items[j];
-                    items[j] = temp;
-                }
-            }
-
-            temp = items[pivot];
-            items[pivot] = items[j];
-            items[j] = temp;
-
-            return j;
-        }
-
-        /// <summary>
-        /// Performs quicksort on a list of items
-        /// </summary>
-        /// <param name="items">List of items</param>
-        /// <param name="start">Starting index</param>
-        /// <param name="end">Ending index</param>
-        private void QuickSort(ref ObservableCollection<DisplayableTreeViewItem> items, int start, int end)
-        {
-            if (start < end)
-            {
-                int pivot = Partition(items, start, end);
-                QuickSort(ref items, start, pivot - 1);
-                QuickSort(ref items, pivot + 1, end);
-            }
-        }
-
-        /// <summary>
         /// Sort the tree view item source collection, using a custom quick sort instead of LINQ sort
         /// </summary>
         private void Sort()
         {
-#if false
             List<DisplayableTreeViewItem> items = ItemSource.ToList<DisplayableTreeViewItem>();
-            items.Sort();
+            items.OrderBy(x => x.Header);
 
             ItemSource.Clear();
             for (int i = 0; i < items.Count; i++)
                 ItemSource.Insert(i, Sort(items[i]));
-#else
-            ObservableCollection<DisplayableTreeViewItem> items = ItemSource;
-            QuickSort(ref items, 0, ItemSource.Count - 1);
-
-            for (int i = 0; i < items.Count; i++)
-                if (items[i].Items.Count > 0)
-                    items[i] = Sort(items[i]);
-
-            ItemSource = items;
-#endif
         }
 
         /// <summary>
@@ -355,26 +291,14 @@ namespace Macro_UI.ViewModel
         /// <returns></returns>
         private DisplayableTreeViewItem Sort(DisplayableTreeViewItem item)
         {
-#if false
             List<DisplayableTreeViewItem> items = item.Items.ToList<DisplayableTreeViewItem>();
-            items.Sort();
+            items.OrderBy(x => x.Header);
 
             item.Items.Clear();
             for (int i = 0; i < items.Count; i++)
                 item.Items.Insert(i, Sort(items[i]));
 
             return item;
-#else
-            ObservableCollection<DisplayableTreeViewItem> items = item.Items;
-            QuickSort(ref items, 0, item.Items.Count - 1);
-
-            for (int i = 0; i < items.Count; i++)
-                if (items[i].Items.Count > 0)
-                    items[i] = Sort(items[i]);
-
-            item.Items = items;
-            return item;
-#endif
         }
 
         /// <summary>
@@ -382,8 +306,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void Initialize()
         {
-            Dictionary<Guid, IMacro>.KeyCollection keys = MacroUI.GetInstance().GetMacros().Keys;
-            HashSet<DataTreeViewItem> items = CreateTreeViewItemStructure(keys.ToList<Guid>());
+            HashSet<DataTreeViewItem> items = CreateTreeViewItemStructure(MacroUI.GetInstance().GetFileDeclarations());
 
             foreach (DataTreeViewItem item in items)
             {
@@ -430,7 +353,6 @@ namespace Macro_UI.ViewModel
             item.IsFolder = data.folder;
             item.IsExpanded = false;
             item.Parent = parent;
-            item.IsRibbonMacro = MacroUI.GetInstance().IsRibbonMacro(data.macro);
 
             if (data.children != null)
             {
@@ -445,10 +367,10 @@ namespace Macro_UI.ViewModel
 
             if (!data.folder)
             {
-                item.ID = data.macro;
+                item.Declaration = data.decl;
 
                 item.SelectedEvent += delegate (object sender, RoutedEventArgs args) { SelectedItem = item; };
-                item.DoubleClickEvent += delegate (object sender, MouseButtonEventArgs args) { OpenMacro(data.macro); args.Handled = true; };
+                item.DoubleClickEvent += delegate (object sender, MouseButtonEventArgs args) { OpenMacro(data.decl); args.Handled = true; };
             }
 
             item.Root = data.root;
@@ -461,17 +383,18 @@ namespace Macro_UI.ViewModel
         /// Creates a heirarchial data structure of the data elements from the file system's 
         /// directory layout, later used to produce the displayed item
         /// </summary>
-        /// <param name="macros"></param>
+        /// <param name="files"></param>
         /// <returns></returns>
-        private HashSet<DataTreeViewItem> CreateTreeViewItemStructure(List<Guid> macros)
+        private HashSet<DataTreeViewItem> CreateTreeViewItemStructure(HashSet<FileDeclaration> files)
         {
             HashSet<DataTreeViewItem> items = new HashSet<DataTreeViewItem>();
 
-            foreach (Guid id in macros)
+            foreach (FileDeclaration d in files)
             {
-                MacroDeclaration md = MacroUI.GetInstance().GetDeclaration(id);
-                string path = Regex.Replace(md.RelativePath, @"/+", System.IO.Path.DirectorySeparatorChar.ToString());
-                string[] fileitems = path.Split(System.IO.Path.DirectorySeparatorChar).Where<string>(x => !String.IsNullOrEmpty(x)).ToArray<string>();
+                string path = Files.PathRelativeTo(d.Info.FullName, Files.MacroDirectory);
+                string[] fileitems = path.Split(Path.DirectorySeparatorChar).Where<string>(x => !String.IsNullOrEmpty(x)).ToArray<string>();
+
+                System.Diagnostics.Debug.WriteLine(fileitems.Count() + "  " + path);
 
                 if (fileitems.Any())
                 {
@@ -479,7 +402,7 @@ namespace Macro_UI.ViewModel
 
                     if (root == null)
                     {
-                        root = new DataTreeViewItem() { level = 1, name = fileitems[0], macro = id, root = "/", folder = !Path.HasExtension(fileitems[0]), children = new List<DataTreeViewItem>() };
+                        root = new DataTreeViewItem() { level = 1, name = fileitems[0], decl = d, root = "/", folder = !Path.HasExtension(fileitems[0]), children = new List<DataTreeViewItem>() };
                         items.Add(root);
                     }
 
@@ -494,7 +417,7 @@ namespace Macro_UI.ViewModel
 
                             if (child == null)
                             {
-                                child = new DataTreeViewItem() { level = lev, name = fileitems[i], macro = id, root = parent.root + "/" + parent.name, folder = !Path.HasExtension(fileitems[i]), children = new List<DataTreeViewItem>() };
+                                child = new DataTreeViewItem() { level = lev, name = fileitems[i], decl = d, root = parent.root + "/" + parent.name, folder = !Path.HasExtension(fileitems[i]), children = new List<DataTreeViewItem>() };
                                 parent.children.Add(child);
                             }
 
@@ -529,7 +452,7 @@ namespace Macro_UI.ViewModel
             mi_create.Header = "Create Macro";
             mi_create.Click += delegate (object sender, RoutedEventArgs args)
             {
-                CreateMacro(null, "/");
+                CreateMacro(null, "/", (d) => MacroUI.GetInstance().AddFile(d));
                 cm.IsOpen = false;
             };
             mi_create.Style = MenuItemStyle as Style;
@@ -549,7 +472,7 @@ namespace Macro_UI.ViewModel
             mi_import.Header = "Import Macro";
             mi_import.Click += delegate (object sender, RoutedEventArgs args)
             {
-                ImportMacro(null, "/");
+                ImportMacro();
                 cm.IsOpen = false;
             };
             mi_import.Style = MenuItemStyle as Style;
@@ -581,11 +504,12 @@ namespace Macro_UI.ViewModel
 
             MenuItem mi_create = new MenuItem();
             mi_create.Header = "Create Macro";
-            mi_create.Click += delegate (object sender, RoutedEventArgs args)
+            mi_create.Click += async delegate (object sender, RoutedEventArgs args)
             {
                 item.IsExpanded = true;
-                CreateMacro(item, path + "/" + name + "/");
                 cm.IsOpen = false;
+
+                CreateMacro(item, Files.FullPath(path, name), (d) => MacroUI.GetInstance().AddFile(d));
             };
             mi_create.Style = MenuItemStyle as Style;
             cm.Items.Add(mi_create);
@@ -606,7 +530,8 @@ namespace Macro_UI.ViewModel
             mi_import.Click += delegate (object sender, RoutedEventArgs args)
             {
                 item.IsExpanded = true;
-                ImportMacro(item, path + "/" + name + "/");
+                DirectoryInfo info = new DirectoryInfo(Files.FullPath(path, name));
+                ImportMacro(item, info);
                 cm.IsOpen = false;
             };
             mi_import.Style = MenuItemStyle as Style;
@@ -668,7 +593,8 @@ namespace Macro_UI.ViewModel
                         return;
                     }
 
-                    MainWindowViewModel.GetInstance().RenameFolder(path + name, path + item.Header);
+                    DirectoryInfo info = new DirectoryInfo(Files.FullPath(path, name));
+                    MainWindowViewModel.GetInstance().RenameFolder(info, path + item.Header);
                     Rename(parentitem, item);
 
                     item.IsInputting = false;
@@ -690,7 +616,7 @@ namespace Macro_UI.ViewModel
         /// <param name="name">The name of the macro</param>
         /// <param name="id">The id of the macro</param>
         /// <returns>File TreeViewItem ContextMenu</returns>
-        private ContextMenu CreateContextMenuMacro(DisplayableTreeViewItem item, string name, Guid id)
+        private ContextMenu CreateContextMenuMacro(DisplayableTreeViewItem item, string name, FileDeclaration d)
         {
             Style ContextMenuStyle = MainWindow.GetInstance().GetResource("MetroContextMenuStyle") as Style;
             Style MenuItemStyle = MainWindow.GetInstance().GetResource("MetroMenuItemStyle") as Style;
@@ -702,10 +628,9 @@ namespace Macro_UI.ViewModel
 
             DisplayableTreeViewItem parentitem = item.Parent;
 
-            IMacro macro = MacroUI.GetInstance().GetMacro(id);
-            if (macro == null)
+            if (d == null)
             {
-                MacroUI.GetInstance().DisplayOkMessage("Could not find the macro (when attempting to create a context menu): " + name, "Macro Error");
+                MacroUI.GetInstance().DisplayOkMessage("Could not get the macro (when attempting to create a context menu): " + name, "Macro Error");
                 return null;
             }
 
@@ -713,7 +638,7 @@ namespace Macro_UI.ViewModel
             mi_edit.Header = "Edit";
             mi_edit.Click += delegate (object sender, RoutedEventArgs args)
             {
-                OpenMacro(id);
+                OpenMacro(d);
                 args.Handled = true;
                 cm.IsOpen = false;
             };
@@ -725,7 +650,7 @@ namespace Macro_UI.ViewModel
             mi_execute.ToolTip = "Synchronous executions cannot be terminated.";
             mi_execute.Click += delegate (object sender, RoutedEventArgs args)
             {
-                ExecuteMacro(id, macro, false);
+                ExecuteMacro(d, false);
                 args.Handled = true;
                 cm.IsOpen = false;
             };
@@ -737,7 +662,7 @@ namespace Macro_UI.ViewModel
             mi_executea.ToolTip = "Asynchronous executions can be terminated.";
             mi_executea.Click += delegate (object sender, RoutedEventArgs args)
             {
-                ExecuteMacro(id, macro, true);
+                ExecuteMacro(d, true);
                 args.Handled = true;
                 cm.IsOpen = false;
             };
@@ -752,7 +677,7 @@ namespace Macro_UI.ViewModel
             mi_export.Header = "Export";
             mi_export.Click += delegate (object sender, RoutedEventArgs args)
             {
-                macro.Export();
+                d.Export();
                 args.Handled = true;
                 cm.IsOpen = false;
             };
@@ -763,7 +688,7 @@ namespace Macro_UI.ViewModel
             mi_del.Header = "Delete";
             mi_del.Click += delegate (object sender, RoutedEventArgs args)
             {
-                DeleteMacro(item, macro);
+                DeleteMacro(item, d);
 
                 args.Handled = true;
                 cm.IsOpen = false;
@@ -814,7 +739,7 @@ namespace Macro_UI.ViewModel
                         item.Header += MacroUI.GetInstance().GetDefaultFileExtension();
 
 
-                    MainWindowViewModel.GetInstance().RenameMacro(id, item.Header);
+                    MainWindowViewModel.GetInstance().RenameMacro(d, item.Header);
                     Rename(parentitem, item);
 
                     item.IsInputting = false;
@@ -828,26 +753,6 @@ namespace Macro_UI.ViewModel
             Separator sep2 = new Separator();
             sep2.Style = SeparatorStyle;
             cm.Items.Add(sep2);
-
-            MenuItem mi_add = new MenuItem();
-
-            mi_add.Click += delegate (object sender, RoutedEventArgs args)
-            {
-                if (MacroUI.GetInstance().IsRibbonMacro(id))
-                    item.IsRibbonMacro = false;
-                else
-                    item.IsRibbonMacro = true;
-
-                UpdateRibbon();
-
-                mi_add.Header = MacroUI.GetInstance().IsRibbonMacro(id) ? "Remove From Ribbon" : "Add To Ribbon";
-                args.Handled = true;
-                cm.IsOpen = false;
-            };
-
-            mi_add.Header = MacroUI.GetInstance().IsRibbonMacro(id) ? "Remove From Ribbon" : "Add To Ribbon";
-            mi_add.Style = MenuItemStyle as Style;
-            cm.Items.Add(mi_add);
 
             return cm;
         }
@@ -863,7 +768,7 @@ namespace Macro_UI.ViewModel
 
             if (!item.IsFolder)
             {
-                cm = CreateContextMenuMacro(item, item.Header, item.ID);
+                cm = CreateContextMenuMacro(item, item.Header, item.Declaration);
             }
             else
             {
@@ -893,7 +798,7 @@ namespace Macro_UI.ViewModel
             foreach (DisplayableTreeViewItem child in item.Items)
                 CloseItemMacro(child);
 
-            MainWindowViewModel.GetInstance().CloseMacro(item.ID);
+            MainWindowViewModel.GetInstance().CloseMacro(item.Declaration);
         }
 
         /// <summary>
@@ -904,7 +809,8 @@ namespace Macro_UI.ViewModel
         /// <param name="name">The name of the folder</param>
         public async void DeleteFolder(DisplayableTreeViewItem item, string path, string name)
         {
-            bool result = await MacroUI.GetInstance().DeleteFolder(path + "/" + name);
+            DirectoryInfo info = new DirectoryInfo(Files.FullPath(path, name));
+            bool result = await MacroUI.GetInstance().DeleteFolder(info);
 
             if (result)
             {
@@ -922,20 +828,19 @@ namespace Macro_UI.ViewModel
         /// </summary>
         /// <param name="item">The item to be deleted</param>
         /// <param name="macro">The macro attached to the item, to be deleted</param>
-        public void DeleteMacro(DisplayableTreeViewItem item, IMacro macro)
+        public async void DeleteMacro(DisplayableTreeViewItem item, FileDeclaration macro)
         {
-            macro.Delete((result) =>
-            {
-                if (result)
-                {
-                    if (item.Parent is DisplayableTreeViewItem)
-                        Remove((item.Parent as DisplayableTreeViewItem), item);
-                    else
-                        Remove(null, item);
+            bool result = await macro.Delete();
 
-                    CloseItemMacro(item);
-                }
-            });
+            if (result)
+            {
+                if (item.Parent is DisplayableTreeViewItem)
+                    Remove((item.Parent as DisplayableTreeViewItem), item);
+                else
+                    Remove(null, item);
+
+                CloseItemMacro(item);
+            }
         }
 
         /// <summary>
@@ -944,59 +849,50 @@ namespace Macro_UI.ViewModel
         public void ImportMacro()
         {
             if (SelectedItem == null)
-                ImportMacro(null, "/");
+                ImportMacro(null, new DirectoryInfo(Files.FullPathMacro("/")));
             else if (SelectedItem.IsFolder)
-                ImportMacro(SelectedItem, SelectedItem.Root + '/' + SelectedItem.Header);
+                ImportMacro(SelectedItem, new DirectoryInfo(Files.FullPathMacro(Files.FullPath(SelectedItem.Root, SelectedItem.Header))));
             else if (!SelectedItem.IsFolder)
-                ImportMacro(SelectedItem.Parent, SelectedItem.Root);
+                ImportMacro(SelectedItem.Parent, new DirectoryInfo(Files.FullPathMacro(SelectedItem.Root)));
         }
 
         /// <summary>
         /// Imports a macro
         /// </summary>
         /// <param name="parent">The parent item to which it'll be added</param>
-        /// <param name="relativepath">The relativepath of the macro's parent</param>
-        public void ImportMacro(DisplayableTreeViewItem parent, string relativepath)
+        /// <param name="info">The directory in which to import it</param>
+        public async void ImportMacro(DisplayableTreeViewItem parent, DirectoryInfo info)
         {
-            MainWindowViewModel.GetInstance().ImportMacro(relativepath, (id) =>
-            {
-                if (id == Guid.Empty)
-                    return;
+            FileDeclaration d = await MainWindowViewModel.GetInstance().ImportMacro(info);
 
-                DisplayableTreeViewItem item = new DisplayableTreeViewItem();
-                item.Header = MacroUI.GetInstance().GetDeclaration(id).Name;
-                item.IsFolder = false;
-                item.ID = id;
+            if (d == null)
+                return;
 
-                item.RightClickEvent = TreeViewItem_OnPreviewMouseRightButtonDown;
+            DisplayableTreeViewItem item = new DisplayableTreeViewItem();
+            item.Header = d.Name;
+            item.IsFolder = false;
+            item.Declaration = d;
 
-                item.SelectedEvent = delegate (object sender, RoutedEventArgs args) { SelectedItem = item; };
-                item.DoubleClickEvent = delegate (object sender, MouseButtonEventArgs args) { OpenMacro(id); args.Handled = true; };
+            item.RightClickEvent = TreeViewItem_OnPreviewMouseRightButtonDown;
 
-                if (parent == null)
-                    item.Root = "/";
-                else
-                    item.Root = parent.Root + "/" + parent.Header + "/";
+            item.SelectedEvent = delegate (object sender, RoutedEventArgs args) { SelectedItem = item; };
+            item.DoubleClickEvent = delegate (object sender, MouseButtonEventArgs args) { OpenMacro(d); args.Handled = true; };
 
-                Add(parent, item);
-                
-                OpenMacro(id);
-            });
-        }
+            if (parent == null)
+                item.Root = "/";
+            else
+                item.Root = parent.Root + "/" + parent.Header + "/";
 
-        /// <summary>
-        /// Creates a macro, through an appropriate method
-        /// </summary>
-        public void CreateMacro()
-        {
-            CreateMacro(null);
+            Add(parent, item);
+
+            OpenMacro(d);
         }
 
         /// <summary>
         /// Creates a macro, using an appropriate method
         /// </summary>
         /// <param name="OnReturn">The Action, and resulting guid of the created macro, to be fired when the task is completed</param>
-        public void CreateMacro(Action<Guid> OnReturn)
+        public void CreateMacro(Action<FileDeclaration> OnReturn)
         {
             if (SelectedItem == null)
                 CreateMacro(null, "/", OnReturn);
@@ -1007,23 +903,12 @@ namespace Macro_UI.ViewModel
         }
 
         /// <summary>
-        /// Creats a macro, using an appropriate method
-        /// </summary>
-        /// <param name="parent">The parent item to which it'll be added</param>
-        /// <param name="lang">The language of the macro</param>
-        /// <param name="root">The root of the item's relative future directory</param>
-        public void CreateMacro(DisplayableTreeViewItem parent, string root)
-        {
-            CreateMacro(parent, root, null);
-        }
-
-        /// <summary>
         /// Creates macro
         /// </summary>
         /// <param name="parent">The parent item to which it'll be added</param>
         /// <param name="root">The root of the item's relative future directory</param>
         /// <param name="OnReturn">The Action, and resulting guid of the created macro, to be fired when the task is completed</param>
-        public void CreateMacro(DisplayableTreeViewItem parent, string root, Action<Guid> OnReturn)
+        public void CreateMacro(DisplayableTreeViewItem parent, string root, Action<FileDeclaration> OnReturn)
         {
             if (m_IsCreating)
                 return;
@@ -1060,32 +945,33 @@ namespace Macro_UI.ViewModel
 
                 item.Header = Regex.Replace(item.Header, "[^0-9a-zA-Z ._-]", "");
 
-                MainWindowViewModel.GetInstance().CreateMacro(root + "/" + item.Header, new Action<Guid>((id) => {
-                    Rename(parent, item);
+                FileInfo info = new FileInfo(Files.FullPath(root, item.Header));
+                FileDeclaration d = MainWindowViewModel.GetInstance().CreateMacro(info);
 
-                    if (id == Guid.Empty)
-                    {
-                        Remove(parent, item);
-                        return;
-                    }
+                Rename(parent, item);
 
-                    item.Header = MacroUI.GetInstance().GetDeclaration(id).Name;
-                    item.ID = id;
-                    item.Root = root;
-                    item.Parent = parent;
-                    item.IsFolder = false;
+                if (d == null)
+                {
+                    Remove(parent, item);
+                    return;
+                }
 
-                    item.RightClickEvent = TreeViewItem_OnPreviewMouseRightButtonDown;
+                item.Header = d.Name;
+                item.Declaration = d;
+                item.Root = root;
+                item.Parent = parent;
+                item.IsFolder = false;
 
-                    item.SelectedEvent = delegate (object sender, RoutedEventArgs args) { SelectedItem = item; };
-                    item.DoubleClickEvent = delegate (object sender, MouseButtonEventArgs args) { OpenMacro(id); args.Handled = true; };
+                item.RightClickEvent = TreeViewItem_OnPreviewMouseRightButtonDown;
 
-                    item.IsInputting = false;
+                item.SelectedEvent = delegate (object sender, RoutedEventArgs args) { SelectedItem = item; };
+                item.DoubleClickEvent = delegate (object sender, MouseButtonEventArgs args) { OpenMacro(d); args.Handled = true; };
 
-                    m_IsCreating = false;
-                    OnReturn?.Invoke(id);
-                    OpenMacro(id);
-                }));
+                item.IsInputting = false;
+
+                m_IsCreating = false;
+                OnReturn?.Invoke(d);
+                OpenMacro(d);
             };
 
             Add(parent, item);
@@ -1168,28 +1054,27 @@ namespace Macro_UI.ViewModel
         /// <summary>
         /// Opens a macro in the document for editing
         /// </summary>
-        /// <param name="id">The id of the macro</param>
-        public void OpenMacro(Guid id)
+        /// <param name="d">The file declaration</param>
+        public void OpenMacro(FileDeclaration d)
         {
-            MainWindowViewModel.GetInstance().OpenMacroForEditing(id);
+            MainWindowViewModel.GetInstance().OpenMacroForEditing(d);
         }
 
         /// <summary>
         /// Executes a macro, either directly or through the editor
         /// </summary>
-        /// <param name="id">The id of the macro</param>
-        /// <param name="macro">The macro the executed</param>
+        /// <param name="d">The file delcaration</param>
         /// <param name="async">Bool which indicates whether the execution should be asynchronous or not (synchronous)</param>
-        public void ExecuteMacro(Guid id, IMacro macro, bool async)
+        public void ExecuteMacro(FileDeclaration d, bool async)
         {
             if (MainWindow.GetInstance().IsActive)
             {
-                OpenMacro(id);
+                OpenMacro(d);
                 MainWindowViewModel.GetInstance().ExecuteMacro(async);
             }
             else
             {
-                macro.Execute(async);
+                MacroUI.GetInstance().TryExecuteFile(d, async);
             }
         }
 

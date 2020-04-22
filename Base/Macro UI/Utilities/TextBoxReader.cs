@@ -34,7 +34,7 @@ namespace Macro_UI.Utilities
             Model = model;
 
             Events.SubscribeEvent("OnDestroyed", new Action(() => m_Abort = true));
-            Events.SubscribeEvent("OnTerminateExecution", new Action(() => m_Abort = true));
+            Events.SubscribeEvent("OnTerminateExecution", new Action<Action>((x) => m_Abort = true));
             m_Index = 0;
 
             m_Input = String.Empty;

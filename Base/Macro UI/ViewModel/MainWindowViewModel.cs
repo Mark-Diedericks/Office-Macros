@@ -125,16 +125,15 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void ActiveMacroChanged()
         {
-            Guid id = MacroUI.GetInstance().GetActiveMacro();
+            FileDeclaration d = MacroUI.GetInstance().GetActiveFile();
 
-            if(id == Guid.Empty)
+            if(d == null)
             {
                 SelectedRuntime = RuntimeItems.FirstOrDefault<ComboBoxItem>();
                 return;
             }
 
-            IMacro macro = MacroUI.GetInstance().GetMacro(id);
-            string runtime = macro.GetDefaultRuntime();
+            string runtime = MacroUI.GetInstance().GetDefaultRuntime(d);
             foreach (ComboBoxItem item in RuntimeItems)
             {
                 if(string.Equals((string)item.Tag, runtime, StringComparison.OrdinalIgnoreCase))
@@ -935,7 +934,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void NewEvent()
         {
-            DockManager.Explorer.CreateMacro();
+            DockManager.Explorer.CreateMacro((d) => MacroUI.GetInstance().AddFile(d));
         }
 
         #endregion
@@ -984,7 +983,7 @@ namespace Macro_UI.ViewModel
             if (DockManager.ActiveDocument == null)
                 return;
 
-            IMacro macro = MacroUI.GetInstance().GetMacro(DockManager.ActiveDocument.Macro);
+            FileDeclaration macro = DockManager.ActiveDocument.Declaration;
 
             if (macro == null)
                 return;
@@ -1416,10 +1415,10 @@ namespace Macro_UI.ViewModel
         /// <summary>
         /// Close the document associated with a macro ID
         /// </summary>
-        /// <param name="id">The macro's id</param>
-        public void CloseMacro(Guid id)
+        /// <param name="d">The file declaration</param>
+        public void CloseMacro(FileDeclaration d)
         {
-            DocumentViewModel dvm = DockManager.GetDocument(id);
+            DocumentViewModel dvm = DockManager.GetDocument(d);
             if (dvm != null)
                 dvm.IsClosed = true;
         }
@@ -1427,43 +1426,43 @@ namespace Macro_UI.ViewModel
         /// <summary>
         /// Create a new macro
         /// </summary>
-        /// <param name="relativepath">The relativepath of the macro</param>
-        /// <param name="OnReturn">The Action, and Guid of the new macro, which is fired when the task is completed</param>
-        /// <returns>Guid of the macro</returns>
-        public void CreateMacro(string relativepath, Action<Guid> OnReturn)
+        /// <param name="info">The desire file to be created</param>
+        /// <returns>The file declaration</returns>
+        public FileDeclaration CreateMacro(FileInfo info)
         {
             //return FileManager.CreateMacro(relativepath);
             //Events.InvokeEvent("CreateMacro", OnReturn, relativepath);
-            throw new NotImplementedException();
+            return Files.CreateFile(info);
         }
 
         /// <summary>
         /// Import a macro into the local workspace
         /// </summary>
-        /// <param name="relativepath">The relativepath to which the macro will be copied</param>
-        /// <param name="OnReturn">The Action, and Guid of the new macro, which is fired when the task is completed</param>
-        public void ImportMacro(string relativepath, Action<Guid> OnReturn)
+        /// <param name="info">The directory in which to import to</param>
+        /// <returns>The file declaration</returns>
+        public async Task<FileDeclaration> ImportMacro(DirectoryInfo info)
         {
             //FileManager.ImportMacro(relativepath, OnReturn);
             //Events.InvokeEvent("ImportMacro", OnReturn, relativepath);
-            throw new NotImplementedException();
+            return await Files.ImportFile(info);
         }
 
         /// <summary>
         /// Renames a folder and applies changes to UI
         /// </summary>
-        /// <param name="olddir">The current relativepath of the folder</param>
-        /// <param name="newdir">The desired relativepath of the folder</param>
-        public void RenameFolder(string olddir, string newdir)
+        /// <param name="info">The current rfolder</param>
+        /// <param name="newdir">The desired name for the new folder</param>
+        public void RenameFolder(DirectoryInfo info, string newdir)
         {
-            foreach (Guid id in MacroUI.GetInstance().RenameFolder(olddir, newdir))
+            HashSet<FileDeclaration> affected = MacroUI.GetInstance().RenameFolder(info, newdir);
+
+            foreach (FileDeclaration d in affected)
             {
-                DocumentViewModel dvm = DockManager.GetDocument(id);
+                DocumentViewModel dvm = DockManager.GetDocument(d);
                 if (dvm != null)
                 {
-                    string p = MacroUI.GetInstance().GetDeclaration(id).RelativePath;
-                    dvm.ToolTip = p;
-                    dvm.ContentId = p;
+                    dvm.ToolTip = d.Info.Name;
+                    dvm.ContentId = d.Info.FullName;
                 }
             }
         }
@@ -1471,48 +1470,44 @@ namespace Macro_UI.ViewModel
         /// <summary>
         /// Renames a macro and applies changes to UI
         /// </summary>
-        /// <param name="id">The macro's id</param>
+        /// <param name="d">The file declaration</param>
         /// <param name="newName">The new name of the macro</param>
-        public void RenameMacro(Guid id, string newName)
+        public void RenameMacro(FileDeclaration d, string newName)
         {
-            MacroUI.GetInstance().RenameMacro(id, newName);
+            MacroUI.GetInstance().RenameFile(d, newName);
 
-            DocumentViewModel dvm = DockManager.GetDocument(id);
+            DocumentViewModel dvm = DockManager.GetDocument(d);
             if (dvm != null)
             {
-                MacroDeclaration md = MacroUI.GetInstance().GetDeclaration(id);
-                dvm.Title = md.Name;
-                dvm.ContentId = md.RelativePath;
+                dvm.Title = d.Info.Name;
+                dvm.ContentId = d.Info.FullName;
             }
         }
 
         /// <summary>
         /// Opens a document for editing from the id of a macro
         /// </summary>
-        /// <param name="id">The macro's id</param>
-        public void OpenMacroForEditing(Guid id)
+        /// <param name="d">The file declaration</param>
+        public void OpenMacroForEditing(FileDeclaration d)
         {
-            if (id == Guid.Empty)
+            if (d == null)
                 return;
 
-            DocumentViewModel dvm = DockManager.GetDocument(id);
+            DocumentViewModel dvm = DockManager.GetDocument(d);
             if (dvm != null)
             {
                 DockManager.ActiveContent = dvm;
                 return;
             }
 
-            MacroUI.GetInstance().SetActiveMacro(id);
-            if (id != Guid.Empty)
-            {
-                DocumentModel model = DocumentModel.Create(id);
+            MacroUI.GetInstance().SetActiveFile(d);
+            DocumentModel model = DocumentModel.Create(d);
 
-                if (model != null)
-                {
-                    DocumentViewModel viewModel = DocumentViewModel.Create(model);
-                    DockManager.AddDocument(viewModel);
-                    ChangeActiveDocument(viewModel);
-                }
+            if (model != null)
+            {
+                DocumentViewModel viewModel = DocumentViewModel.Create(model);
+                DockManager.AddDocument(viewModel);
+                ChangeActiveDocument(viewModel);
             }
         }
 

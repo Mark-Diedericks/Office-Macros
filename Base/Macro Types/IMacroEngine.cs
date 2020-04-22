@@ -19,6 +19,7 @@ namespace Macro_Engine
 
         //Runtimes
         HashSet<string> GetRuntimes(string language = "");
+        string GetDefaultRuntime(FileDeclaration d);
 
         //Declarations / Macros
         HashSet<FileDeclaration> GetFileDeclarations();

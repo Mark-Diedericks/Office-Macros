@@ -117,9 +117,11 @@ namespace Macro_Engine
 
             Events.SubscribeEvent("SetIO", (Action<string, TextWriter, TextWriter, TextReader>)SetIOStreams);
 
-            Events.SubscribeEvent("OnTerminateExecution", new Action(() => {
+            Events.SubscribeEvent("OnTerminateExecution", new Action<Action>((x) => {
                 foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in GetInstance().m_ExecutionEngineImplementations)
                     pair.Value.TerminateExecution();
+
+                x.Invoke();
             }));
 
             m_Files = new HashSet<FileDeclaration>();
@@ -319,15 +321,30 @@ namespace Macro_Engine
         /// <summary>
         /// Get the appropriate default IExecutionEngine runtime
         /// </summary>
-        /// <param name="runtime">The specified runtime</param>
-        /// <returns>Defaulr runtime</returns>
+        /// <param name="d">For the specified file</param>
+        /// <returns>Default runtime</returns>
         public string GetDefaultRuntime()
         {
             Lazy<IExecutionEngine, IExecutionEngineData> engine = m_ExecutionEngineImplementations.FirstOrDefault<Lazy<IExecutionEngine, IExecutionEngineData>>();
             if (engine.Value == null)
                 return "";
 
-            return GetFileExt(engine.Metadata.Runtime);
+            return engine.Metadata.Runtime;
+        }
+
+        /// <summary>
+        /// Gets an approp
+        /// </summary>
+        /// <param name="d">The file declaration</param>
+        /// <returns>Default runtime for the file</returns>
+        public string GetDefaultRuntime(FileDeclaration d)
+        {
+            HashSet<string> runtimes = GetRuntimes(GetLangaugeFromFileExt(d.Info.Extension));
+
+            if (runtimes.Count > 0)
+                return runtimes.First<string>();
+
+            return GetDefaultRuntime();
         }
 
         /// <summary>

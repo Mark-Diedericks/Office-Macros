@@ -6,6 +6,7 @@
  */
 
 using Macro_Engine.Interop;
+using Macro_Engine.Macros;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Macro_UI.Model
         public int level;
         public bool folder;
         public string name;
-        public Guid macro;
+        public FileDeclaration decl;
         public string root;
         public List<DataTreeViewItem> children;
     }

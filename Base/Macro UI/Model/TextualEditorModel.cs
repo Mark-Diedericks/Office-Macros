@@ -23,23 +23,18 @@ namespace Macro_UI.Model
         /// Instantiation of TextualEditorModel
         /// </summary>
         /// <param name="id">The id of the editor's macro</param>
-        public TextualEditorModel(Guid id)
+        public TextualEditorModel(FileDeclaration d)
         {
-            if(id != Guid.Empty)
+            if (d != null)
             {
-                IMacro macro = MacroUI.GetInstance().GetMacro(id);
-
-                if (macro != null)
-                {
-                    Title = macro.Name;
-                    ToolTip = macro.GetRelativePath();
-                    ContentId = macro.GetRelativePath();
-                    Macro = id;
-                    IsClosed = false;
-                    Source = new TextDocument(macro.Source);
-                    IsSaved = true;
-                    return;
-                }
+                Title = d.Info.Name;
+                ToolTip = d.Info.Name;
+                ContentId = d.Info.FullName;
+                Declaration = d;
+                IsClosed = false;
+                Source = new TextDocument(d.Content);
+                IsSaved = true;
+                return;
             }
 
             Source = new TextDocument();

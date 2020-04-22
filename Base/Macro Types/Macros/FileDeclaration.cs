@@ -98,15 +98,17 @@ namespace Macro_Engine.Macros
         /// <summary>
         /// Delete the macro and it's respective file
         /// </summary>
-        public async void Delete()
+        public async Task<bool> Delete()
         {
             if (Info == null)
-                return;
+                return true;
 
             bool result = await Files.DeleteFile(Info);
 
             if(result)
                 OnRemoved?.Invoke();
+
+            return result;
         }
     }
 }

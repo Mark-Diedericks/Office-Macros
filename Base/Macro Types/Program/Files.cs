@@ -21,14 +21,40 @@ namespace Macro_Engine
 
         public static string CleanPath(string path)
         {
+            if (!Path.HasExtension(path))
+                path += "/";
+
+            path = path.Replace(Path.AltDirectorySeparatorChar, '/');
+            path = path.Replace(Path.DirectorySeparatorChar, '/');
+
             path = path.Replace("\\", "/");
             path = REG_DIR.Replace(path, "/");
+
+            path = path.Replace('/', Path.DirectorySeparatorChar);
+
             return path;
+        }
+
+        public static string PathRelativeTo(string path, string relativeTo)
+        {
+            string a = CleanPath(path);
+            string b = CleanPath(relativeTo);
+
+            Uri aUri = new Uri(a);
+            Uri bUri = new Uri(b);
+
+            if (aUri.Scheme != bUri.Scheme)
+                return b;
+
+            Uri relative = bUri.MakeRelativeUri(aUri);
+            string relativePath = Uri.UnescapeDataString(relative.ToString());
+
+            return CleanPath(relativePath);
         }
 
         public static string FullPath(string basepath, string relativepath)
         {
-            return CleanPath(basepath + "/" + basepath);
+            return CleanPath(basepath + "/" + relativepath);
         }
 
         public static string FullPathMacro(string relativepath)

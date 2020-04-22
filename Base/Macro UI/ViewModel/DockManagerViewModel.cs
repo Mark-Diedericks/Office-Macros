@@ -76,10 +76,10 @@ namespace Macro_UI.ViewModel
         /// </summary>
         /// <param name="id">The macro's id</param>
         /// <returns>DocumentViewModel of the macro</returns>
-        public DocumentViewModel GetDocument(Guid id)
+        public DocumentViewModel GetDocument(FileDeclaration d)
         {
             foreach (DocumentViewModel document in Documents)
-                if (document.Macro == id)
+                if (document.Declaration == d)
                     return document;
 
             return null;
@@ -124,10 +124,10 @@ namespace Macro_UI.ViewModel
 
             foreach(string s in paths)
             {
-                Guid id = MacroUI.GetInstance().GetIDFromRelativePath(s);
-                if (id != Guid.Empty)
+                FileDeclaration d = MacroUI.GetInstance().GetDeclarationFromFullname(s);
+                if (d != null)
                 {
-                    DocumentModel model = DocumentModel.Create(id);
+                    DocumentModel model = DocumentModel.Create(d);
 
                     if (model != null)
                     {
@@ -150,15 +150,10 @@ namespace Macro_UI.ViewModel
 
             foreach(DocumentViewModel document in Documents)
             {
-                if(document.Model.Macro != Guid.Empty)
+                if(document.Model.Declaration != null)
                 {
-                    IMacro macro = MacroUI.GetInstance().GetMacro(document.Model.Macro);
-
-                    if(macro != null)
-                    {
-                        sb.Append(macro.GetRelativePath());
-                        sb.Append(';');
-                    }
+                    sb.Append(document.Model.Declaration.Info.FullName);
+                    sb.Append(';');
                 }
             }
 

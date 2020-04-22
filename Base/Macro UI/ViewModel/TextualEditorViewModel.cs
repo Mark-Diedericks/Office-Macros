@@ -29,7 +29,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         public TextualEditorViewModel()
         {
-            Model = new TextualEditorModel(Guid.Empty);
+            Model = new TextualEditorModel(null);
             IsSaved = true;
         }
 
@@ -39,8 +39,8 @@ namespace Macro_UI.ViewModel
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
         public override void Save(Action OnComplete)
         {
-            MacroUI.GetInstance().GetMacro(Macro).Source = Source.Text;
-            MacroUI.GetInstance().GetMacro(Macro).Save();
+            Declaration.Content = Source.Text;
+            Declaration.Save();
             base.Save(OnComplete);
         }
 
@@ -48,15 +48,15 @@ namespace Macro_UI.ViewModel
         /// Executes the macro associated with the document
         /// </summary>
         /// <param name="OnComplete">Action to be fired on the tasks completetion</param>
-        public override void Start(Action OnComplete)
+        public async override void Start(Action OnComplete)
         {
-            IMacro m = MacroUI.GetInstance().GetMacro(Macro);
             string runtime = (string)MainWindowViewModel.GetInstance().SelectedRuntime.Tag;
+            Declaration.Content = Source.Text;
 
-            m.Source = Source.Text;
-            m.Execute(MainWindowViewModel.GetInstance().AsyncExecution, OnComplete, runtime);
+            //Execute(MainWindowViewModel.GetInstance().AsyncExecution, OnComplete, runtime);
 
-            base.Start(null);
+            await MacroUI.GetInstance().TryExecuteFile(Declaration, MainWindowViewModel.GetInstance().AsyncExecution, runtime);
+            base.Start(OnComplete);
         }
 
         /// <summary>
@@ -66,8 +66,7 @@ namespace Macro_UI.ViewModel
         public override void Stop(Action OnComplete)
         {
             //Events.OnTerminateExecutionInvoke();
-            Events.InvokeEvent("OnTerminateExecution");
-
+            Events.InvokeEvent("OnTerminateExecution", OnComplete);
             base.Stop(null);
         }
 

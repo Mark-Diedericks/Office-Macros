@@ -7,6 +7,7 @@
 
 using Macro_Engine;
 using Macro_Engine.Interop;
+using Macro_Engine.Macros;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -103,7 +104,7 @@ namespace Macro_UI.ViewModel
             IsFolder = false;
             IsInputting = false;
             Root = "";
-            ID = Guid.Empty;
+            Declaration = null;
             Parent = null;
             Items = new ObservableCollection<DisplayableTreeViewItem>();
         }
@@ -243,27 +244,6 @@ namespace Macro_UI.ViewModel
             }
         }
         #endregion
-        #region IsRibbonMacro
-        public bool IsRibbonMacro
-        {
-            get
-            {
-                return MacroUI.GetInstance().IsRibbonMacro(ID);
-            }
-            set
-            {
-                if (ID == Guid.Empty)
-                    return;
-
-                if (value)
-                    MacroUI.GetInstance().AddRibbonMacro(ID);
-                else
-                    MacroUI.GetInstance().RemoveRibbonMacro(ID);
-
-                OnPropertyChanged(nameof(IsRibbonMacro));
-            }
-        }
-        #endregion
         #region Root
         private string m_Root;
         public string Root
@@ -301,20 +281,20 @@ namespace Macro_UI.ViewModel
             }
         }
         #endregion
-        #region ID
-        private Guid m_ID;
-        public Guid ID
+        #region Declaration
+        private FileDeclaration m_Declaration;
+        public FileDeclaration Declaration
         {
             get
             {
-                return m_ID;
+                return m_Declaration;
             }
             set
             {
-                if (m_ID != value)
+                if (m_Declaration != value)
                 {
-                    m_ID = value;
-                    OnPropertyChanged(nameof(ID));
+                    m_Declaration = value;
+                    OnPropertyChanged(nameof(Declaration));
                 }
             }
         }

@@ -5,6 +5,7 @@
  * Document window view model
  */
 
+using Macro_Engine.Macros;
 using Macro_UI.Model;
 using Macro_UI.Model.Base;
 using Macro_UI.Routing;
@@ -403,21 +404,21 @@ namespace Macro_UI.ViewModel.Base
 
         #endregion
 
-        #region Macro
+        #region Declaration
 
-        public Guid Macro
+        public FileDeclaration Declaration
         {
             get
             {
-                return Model.Macro;
+                return Model.Declaration;
             }
 
             set
             {
-                if (Model.Macro != value)
+                if (Model.Declaration != value)
                 {
-                    Model.Macro = value;
-                    OnPropertyChanged(nameof(Macro));
+                    Model.Declaration = value;
+                    OnPropertyChanged(nameof(Declaration));
                 }
             }
         }

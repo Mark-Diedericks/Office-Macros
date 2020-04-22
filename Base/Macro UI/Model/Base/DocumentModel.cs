@@ -23,7 +23,7 @@ namespace Macro_UI.Model.Base
             Title = "";
             ToolTip = "";
             ContentId = "";
-            Macro = Guid.Empty;
+            Declaration = null;
         }
 
         /// <summary>
@@ -31,18 +31,12 @@ namespace Macro_UI.Model.Base
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static DocumentModel Create(Guid id)
+        public static DocumentModel Create(FileDeclaration d)
         {
-            MacroDeclaration declaration = MacroUI.GetInstance().GetDeclaration(id);
-
-            if (declaration == null)
+            if (d == null)
                 return null;
 
-            switch(declaration.Language)
-            {
-                default:
-                    return new TextualEditorModel(id);
-            }
+            return new TextualEditorModel(d);
         }
 
         #region IsClosed
@@ -155,22 +149,22 @@ namespace Macro_UI.Model.Base
 
         #endregion
 
-        #region Macro
+        #region Declaration
 
-        private Guid m_Macro;
-        public Guid Macro
+        private FileDeclaration m_Declaration;
+        public FileDeclaration Declaration
         {
             get
             {
-                return m_Macro;
+                return m_Declaration;
             }
 
             set
             {
-                if (m_Macro != value)
+                if (m_Declaration != value)
                 {
-                    m_Macro = value;
-                    OnPropertyChanged(nameof(Macro));
+                    m_Declaration = value;
+                    OnPropertyChanged(nameof(Declaration));
                 }
             }
         }

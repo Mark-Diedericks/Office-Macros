@@ -344,6 +344,10 @@ namespace Macro_UI
         {
             return MacroEngine.GetDefaultFileExtension();
         }
+        public string GetDefaultRuntime(FileDeclaration d)
+        {
+            return MacroEngine.GetDefaultRuntime(d);
+        }
 
         public HashSet<AssemblyDeclaration> GetAssemblies()
         {
