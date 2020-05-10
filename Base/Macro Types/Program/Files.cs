@@ -342,9 +342,9 @@ namespace Macro_Engine
                     info.Directory.Create();
 
                 using (StreamWriter sw = info.CreateText())
-                    sw.WriteLine("");
+                    sw.Write("\n");
 
-                FileDeclaration declaration = new FileDeclaration(info, LoadFile(info));
+                FileDeclaration declaration = new FileDeclaration(info, "\n");
 
                 //MacroEngine.GetInstance().AddMacro(declaration);
                 return declaration;

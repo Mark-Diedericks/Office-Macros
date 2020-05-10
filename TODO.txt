@@ -5,14 +5,13 @@ Settings Flyout:
 
 Main Window:
 	Toolbar: Remove 'Convert To Python' button
-	Document: ActiveDocument not selected on startup
 
 Console MVVM:
 	TextLines binding can cause lagging when constaly printing to console, investigate solution
 
 Explorer MVVM:
 	Break up Explorer view/viewmodel/model to make it more manageable
-	-> Or maybe just rewrite that ugly mess
+		-> Or maybe just rewrite that ugly mess
 	Drag and drop file into editor to open
 
 Execution Engines:

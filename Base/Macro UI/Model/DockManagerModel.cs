@@ -5,6 +5,7 @@
  * Handles the data of the dock view model
  */
 
+using Macro_Engine;
 using Macro_UI.ViewModel;
 using Macro_UI.ViewModel.Base;
 using System;
@@ -84,6 +85,7 @@ namespace Macro_UI.Model
                 {
                     m_ActiveDocument = value;
                     OnPropertyChanged(nameof(ActiveDocument));
+                    Events.InvokeEvent("ActiveMacroChanged");
                 }
             }
         }

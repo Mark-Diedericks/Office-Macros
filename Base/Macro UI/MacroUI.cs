@@ -91,8 +91,9 @@ namespace Macro_UI
 
         public void Destroy()
         {
-            if (GetActiveFile() != null)
-                Properties.Settings.Default.ActiveMacro = GetActiveFile().Info.FullName;
+            FileDeclaration activeDoc = MainWindowViewModel.GetInstance().DockManager.GetActiveDocumentDeclaration();
+            if (activeDoc != null)
+                Properties.Settings.Default.ActiveDocument = activeDoc.Info.FullName;
 
             Properties.Settings.Default.IncludedLibraries = GetAssemblies().ToArray<AssemblyDeclaration>();
 
@@ -149,7 +150,7 @@ namespace Macro_UI
         {
             MacroUI ui = new MacroUI(engine);
             string[] workspaces = new string[] { Path.GetFullPath(Files.AssemblyDirectory + "/Macros/") };
-            HostState state = new HostState(workspaces, RibbonMacros, Properties.Settings.Default.ActiveMacro, Properties.Settings.Default.IncludedLibraries);
+            HostState state = new HostState(workspaces, RibbonMacros, Properties.Settings.Default.ActiveDocument, Properties.Settings.Default.IncludedLibraries);
 
             engine.Instantiate(state);
             ui.Instantiate(state);
@@ -363,17 +364,6 @@ namespace Macro_UI
         {
             MacroEngine.RemoveAssembly(declaration);
         }
-
-        public FileDeclaration GetActiveFile()
-        {
-            return MacroEngine.GetActiveFile();
-        }
-
-        public void SetActiveFile(FileDeclaration d)
-        {
-            MacroEngine.SetActiveFile(d);
-        }
-
 
         public HashSet<FileDeclaration> RenameFolder(DirectoryInfo info, string newDir)
         {

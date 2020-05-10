@@ -512,7 +512,7 @@ namespace Macro_UI.ViewModel
 
             MenuItem mi_create = new MenuItem();
             mi_create.Header = "Create Macro";
-            mi_create.Click += async delegate (object sender, RoutedEventArgs args)
+            mi_create.Click += delegate (object sender, RoutedEventArgs args)
             {
                 item.IsExpanded = true;
                 cm.IsOpen = false;
@@ -953,7 +953,7 @@ namespace Macro_UI.ViewModel
 
                 item.Header = Regex.Replace(item.Header, "[^0-9a-zA-Z ._-]", "");
 
-                FileInfo info = new FileInfo(Files.FullPath(root, item.Header));
+                FileInfo info = new FileInfo(Files.FullPathMacro(Files.FullPath(root, item.Header)));
                 FileDeclaration d = MainWindowViewModel.GetInstance().CreateMacro(info);
 
                 Rename(parent, item);
@@ -961,6 +961,7 @@ namespace Macro_UI.ViewModel
                 if (d == null)
                 {
                     Remove(parent, item);
+                    m_IsCreating = false;
                     return;
                 }
 

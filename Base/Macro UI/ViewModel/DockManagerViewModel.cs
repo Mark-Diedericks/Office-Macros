@@ -74,7 +74,7 @@ namespace Macro_UI.ViewModel
         /// <summary>
         /// Gets a document based on the macro id
         /// </summary>
-        /// <param name="id">The macro's id</param>
+        /// <param name="d">The file's declaration</param>
         /// <returns>DocumentViewModel of the macro</returns>
         public DocumentViewModel GetDocument(FileDeclaration d)
         {
@@ -83,6 +83,18 @@ namespace Macro_UI.ViewModel
                     return document;
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets the FileDeclaration for the active document
+        /// </summary>
+        /// <returns>FileDeclaration of active document</returns>
+        public FileDeclaration GetActiveDocumentDeclaration()
+        {
+            if (ActiveDocument == null)
+                return null;
+
+            return ActiveDocument.Declaration;
         }
 
         /// <summary>

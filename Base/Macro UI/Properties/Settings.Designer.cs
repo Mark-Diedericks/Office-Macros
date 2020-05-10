@@ -194,12 +194,12 @@ namespace Macro_UI.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ActiveMacro {
+        public string ActiveDocument {
             get {
-                return ((string)(this["ActiveMacro"]));
+                return ((string)(this["ActiveDocument"]));
             }
             set {
-                this["ActiveMacro"] = value;
+                this["ActiveDocument"] = value;
             }
         }
         

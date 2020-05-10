@@ -44,7 +44,7 @@
     <Setting Name="ConsoleTextWrap" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="ActiveMacro" Type="System.String" Scope="User">
+    <Setting Name="ActiveDocument" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="OpenDocuments" Type="System.String" Scope="User">

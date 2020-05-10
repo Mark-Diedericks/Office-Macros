@@ -125,7 +125,7 @@ namespace Macro_UI.ViewModel
         /// </summary>
         private void ActiveMacroChanged()
         {
-            FileDeclaration d = MacroUI.GetInstance().GetActiveFile();
+            FileDeclaration d = DockManager.GetActiveDocumentDeclaration();
 
             if(d == null)
             {
@@ -539,6 +539,7 @@ namespace Macro_UI.ViewModel
         {
             SaveAvalonDockLayout();
             Properties.Settings.Default.OpenDocuments = DockManager.GetVisibleDocuments();
+            Properties.Settings.Default.ActiveDocument = DockManager.ActiveDocument.Declaration.Info.FullName;
             Properties.Settings.Default.Theme = ActiveTheme.Name;
             Properties.Settings.Default.Save();
         }
@@ -592,6 +593,16 @@ namespace Macro_UI.ViewModel
 
             xmlReader.Close();
             stringReader.Close();
+
+            FileDeclaration d = MacroUI.GetInstance().GetDeclarationFromFullname(Properties.Settings.Default.ActiveDocument);
+
+            if (d == null)
+                return;
+
+            DocumentViewModel dvm = DockManager.GetDocument(d);
+
+            if(d != null)
+                ChangeActiveDocument(dvm);
         }
 
         #endregion
@@ -1500,7 +1511,6 @@ namespace Macro_UI.ViewModel
                 return;
             }
 
-            MacroUI.GetInstance().SetActiveFile(d);
             DocumentModel model = DocumentModel.Create(d);
 
             if (model != null)

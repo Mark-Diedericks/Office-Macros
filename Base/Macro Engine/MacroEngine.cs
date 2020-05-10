@@ -85,7 +85,6 @@ namespace Macro_Engine
         #region Initialization & Destruction
         //Macros
         private HashSet<FileDeclaration> m_Files;
-        private FileDeclaration m_ActiveFile;
 
         //User Included Assemblies
         private HashSet<AssemblyDeclaration> m_Assemblies;
@@ -140,12 +139,6 @@ namespace Macro_Engine
 
             //Events.OnMacroCountChangedInvoke();
             Events.InvokeEvent("OnMacroCountChanged");
-
-            //Get the active macro
-            if (!String.IsNullOrEmpty(state.ActiveMacro))
-                m_ActiveFile = GetDeclarationFromFullname(state.ActiveMacro);
-            else
-                m_ActiveFile = m_Files.FirstOrDefault<FileDeclaration>();
 
 
             //Get Assemblies
@@ -391,29 +384,6 @@ namespace Macro_Engine
         {
             foreach (Lazy<IExecutionEngine, IExecutionEngineData> pair in m_ExecutionEngineImplementations)
                 pair.Value?.RemoveValue(name);
-        }
-
-        #endregion
-
-        #region Active Macro
-
-        /// <summary>
-        /// Gets the active macro
-        /// </summary>
-        /// <returns>Active macro</returns>
-        public FileDeclaration GetActiveFile()
-        {
-            return s_Instance.m_ActiveFile;
-        }
-
-        /// <summary>
-        /// Sets the active macro
-        /// </summary>
-        /// <param name="macro">The macro</param>
-        public void SetActiveFile(FileDeclaration d)
-        {
-            s_Instance.m_ActiveFile = d;
-            Events.InvokeEvent("ActiveMacroChanged");
         }
 
         #endregion

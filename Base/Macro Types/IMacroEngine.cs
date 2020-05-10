@@ -38,10 +38,6 @@ namespace Macro_Engine
         void AddAssembly(AssemblyDeclaration declaration);
         void RemoveAssembly(AssemblyDeclaration declaration);
 
-        //Active macro
-        FileDeclaration GetActiveFile();
-        void SetActiveFile(FileDeclaration md);
-
         //Folders
         HashSet<FileDeclaration> RenameFolder(DirectoryInfo info, string newName);
         Task<bool> DeleteFolder(DirectoryInfo info);
