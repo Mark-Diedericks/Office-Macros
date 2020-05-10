@@ -4,10 +4,10 @@ Settings Flyout:
 	Macros tab:	Macros organized by Workspaces (Directories), Macros organized by filetype?
 
 Main Window:
-	Toolbar: Remove 'Convert To Python' button
+	.
 
 Console MVVM:
-	TextLines binding can cause lagging when constaly printing to console, investigate solution
+	TextLines binding can cause lagging when constantly printing to console, investigate solution
 
 Explorer MVVM:
 	Break up Explorer view/viewmodel/model to make it more manageable
@@ -16,7 +16,7 @@ Explorer MVVM:
 
 Execution Engines:
 	FileExt: Change to array, allow for multiple file extensions per language/runtime
-	PythonNET: Ensure COM interop is working properly and test a variety of cases.
+	PythonNET: Ensure COM interop is working properly
 
 AddIn:
 	.
@@ -27,7 +27,7 @@ MacroUI:
 
 Macros:
 	User Defined Functions (UDFs)
-	Embed scripts in Excel (as hidden worksheets? or as VBA modules but with python code?)
+	Embed scripts in Excel (as hidden worksheets? or as VBA modules but with other code?)
 
 Extensibility (UI):
 	Allow for UI to be extensible with different Document and Tool views/models/viewmodels (Eg. Console, Explorer, Source Control, etc.)

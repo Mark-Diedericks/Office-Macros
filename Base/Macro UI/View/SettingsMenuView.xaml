@@ -167,7 +167,7 @@
         </Grid.Resources>
         
         <Grid.ColumnDefinitions>
-            <ColumnDefinition MinWidth="112" Width="112" MaxWidth="112"/>
+            <ColumnDefinition MinWidth="116" Width="116" MaxWidth="116"/>
             <ColumnDefinition MinWidth="1" Width="1" MaxWidth="1"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
