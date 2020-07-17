@@ -19,6 +19,8 @@ namespace Excel_Ribbon
 {
     public partial class ThisAddIn
     {
+        private static ThisAddIn s_Instance;
+
         private Thread m_Thread;
         private MacroEngine m_Engine;
         private MacroUI m_UI;
@@ -26,7 +28,10 @@ namespace Excel_Ribbon
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
+            s_Instance = this;
+
             Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+
             Executor executor = new Executor()
             {
                 InvokeExecute = new Func<Func<bool>, Task<bool>>(async (a) =>
@@ -54,7 +59,7 @@ namespace Excel_Ribbon
                 m_UI.SetAccent("ExcelAccent");
 
                 Events.InvokeEvent("ApplicationLoaded");
-                m_UI.ShowWindow();
+                //m_UI.ShowWindow();
                 m_Loaded = true;
 
                 m_UI.Run();
@@ -88,6 +93,30 @@ namespace Excel_Ribbon
                 System.Diagnostics.Debug.WriteLine(ex.Message);
             }
         }
+
+        #region Ribbon to UI
+
+        public static ThisAddIn GetInstance()
+        {
+            return s_Instance;
+        }
+
+        public void ShowWindow()
+        {
+            int MaxSleep = 10000;
+            while (!m_Loaded)
+            {
+                if (MaxSleep <= 0)
+                    break;
+
+                Thread.Sleep(100);
+                MaxSleep -= 100;
+            }
+
+            m_UI.MainWindow.Dispatcher.Invoke(() => m_UI.ShowWindow());
+        }
+
+        #endregion
 
         #region VSTO generated code
 

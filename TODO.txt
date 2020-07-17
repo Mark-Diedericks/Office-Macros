@@ -12,6 +12,7 @@ Console MVVM:
 Explorer MVVM:
 	Break up Explorer view/viewmodel/model to make it more manageable
 		-> Or maybe just rewrite that ugly mess
+		-> CreateTreeViewItemStructure FileAttributes
 	Drag and drop file into editor to open
 
 Execution Engines:

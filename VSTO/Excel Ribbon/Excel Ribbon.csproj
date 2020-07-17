@@ -208,6 +208,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="RibbonExcelMacros.resx">
+      <DependentUpon>RibbonExcelMacros.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Excel Ribbon_TemporaryKey.pfx" />
     <None Include="packages.config" />
@@ -218,6 +221,12 @@
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="RibbonExcelMacros.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RibbonExcelMacros.Designer.cs">
+      <DependentUpon>RibbonExcelMacros.cs</DependentUpon>
     </Compile>
     <Compile Include="ThisAddIn.cs">
       <SubType>Code</SubType>
