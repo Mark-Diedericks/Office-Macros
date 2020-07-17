@@ -79,7 +79,17 @@ namespace Macro_UI.View
             ThemeDictionary.MergedDictionaries.Clear();
 
             foreach (Uri uri in MainWindowViewModel.GetInstance().ActiveTheme.UriList)
-                ThemeDictionary.MergedDictionaries.Add(new ResourceDictionary() { Source = uri });
+            {
+                try
+                { 
+                    ThemeDictionary.MergedDictionaries.Add(new ResourceDictionary() { Source = uri });
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("Couldn't find: " + uri);
+                    System.Diagnostics.Debug.WriteLine(e.Message);
+                }
+            }
         }
 
         /// <summary>

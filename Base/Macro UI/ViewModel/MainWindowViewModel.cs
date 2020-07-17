@@ -538,8 +538,12 @@ namespace Macro_UI.ViewModel
         public void SaveAll()
         {
             SaveAvalonDockLayout();
+
+            string docName = "";
+            docName = DockManager.ActiveDocument?.Declaration?.Info.FullName;
+
             Properties.Settings.Default.OpenDocuments = DockManager.GetVisibleDocuments();
-            Properties.Settings.Default.ActiveDocument = DockManager.ActiveDocument.Declaration.Info.FullName;
+            Properties.Settings.Default.ActiveDocument = docName;
             Properties.Settings.Default.Theme = ActiveTheme.Name;
             Properties.Settings.Default.Save();
         }
@@ -783,7 +787,17 @@ namespace Macro_UI.ViewModel
                         MainWindow.GetInstance().ThemeDictionary.MergedDictionaries.Clear();
 
                         foreach (Uri uri in ActiveTheme.UriList)
-                            MainWindow.GetInstance().ThemeDictionary.MergedDictionaries.Add(new ResourceDictionary() { Source = uri });
+                        {
+                            try
+                            {
+                                MainWindow.GetInstance().ThemeDictionary.MergedDictionaries.Add(new ResourceDictionary() { Source = uri });
+                            }
+                            catch(Exception e)
+                            {
+                                System.Diagnostics.Debug.WriteLine("Couldn't find: " + uri);
+                                System.Diagnostics.Debug.WriteLine(e.Message);
+                            }
+                        }
                     });
 
                     if (Properties.Settings.Default.Theme.Trim().ToLower() != name.Trim().ToLower())
