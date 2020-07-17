@@ -1,3 +1,7 @@
+	-> Importing modules not working > FileNotFoundException
+	-> Console input not grabbing focus
+	-> Console input not printing on new line
+
 Settings Flyout:
 	Runtimes tab: Configure runtimes (E.g. python35 home), change precedence of runtimes for overlapping file extensions
 	Environment tab: Assemblies and Workspaces (Directories)
